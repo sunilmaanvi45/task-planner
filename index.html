@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
@@ -1713,6 +1713,308 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   .calendar-cell:hover,.week-cell:hover,.learning-tile:hover,.stat-item:hover,.eisen-chip:hover{transform:none}
 }
 </style>
+
+<style id="taskPlannerAuthStyles">
+/* ============================================================
+   17 Â· AUTHENTICATION & LOGIN SCREEN
+   ============================================================ */
+.auth-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:999999 !important;
+  background:var(--bg) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:16px !important;
+  overflow-y:auto !important;
+  box-sizing:border-box !important;
+}
+.auth-overlay.hidden{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  display:none !important;
+}
+.auth-card{
+  width:100% !important;
+  max-width:420px !important;
+  background:var(--card-bg) !important;
+  border:1px solid var(--border-strong) !important;
+  border-radius:18px !important;
+  box-shadow:var(--shadow-lift) !important;
+  padding:32px 28px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:16px !important;
+  box-sizing:border-box !important;
+}
+.auth-header{
+  text-align:center !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  gap:6px !important;
+}
+.auth-icon-badge{
+  width:52px !important;
+  height:52px !important;
+  border-radius:999px !important;
+  background:var(--accent-light) !important;
+  border:1.5px solid var(--accent-border) !important;
+  color:var(--accent) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin-bottom:4px !important;
+}
+.auth-icon-badge svg{
+  width:24px !important;
+  height:24px !important;
+}
+.auth-title{
+  font-size:1.35rem !important;
+  font-weight:700 !important;
+  letter-spacing:-.02em !important;
+  color:var(--text) !important;
+  margin:0 !important;
+  line-height:1.2 !important;
+}
+.auth-subtitle{
+  font-size:0.875rem !important;
+  color:var(--text-secondary) !important;
+  margin:0 !important;
+  line-height:1.4 !important;
+}
+.auth-form{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:14px !important;
+  width:100% !important;
+  box-sizing:border-box !important;
+}
+.auth-field{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:5px !important;
+  width:100% !important;
+}
+.auth-label{
+  font-size:0.6875rem !important;
+  font-weight:700 !important;
+  text-transform:uppercase !important;
+  letter-spacing:.08em !important;
+  color:var(--text-secondary) !important;
+}
+.auth-input-wrap{
+  position:relative !important;
+  display:flex !important;
+  align-items:center !important;
+  width:100% !important;
+}
+.auth-input{
+  width:100% !important;
+  padding:10px 42px 10px 14px !important;
+  border:1.5px solid var(--border-strong) !important;
+  border-radius:8px !important;
+  font-size:0.9rem !important;
+  font-family:inherit !important;
+  background:var(--input-bg) !important;
+  color:var(--text) !important;
+  outline:none !important;
+  box-sizing:border-box !important;
+}
+.auth-input:focus{
+  border-color:var(--accent) !important;
+  box-shadow:var(--focus-ring) !important;
+  background:var(--input-bg-focus) !important;
+}
+.auth-toggle-pwd{
+  position:absolute !important;
+  right:8px !important;
+  background:transparent !important;
+  border:none !important;
+  color:var(--text-secondary) !important;
+  cursor:pointer !important;
+  padding:6px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  border-radius:4px !important;
+}
+.auth-toggle-pwd:hover{
+  color:var(--text) !important;
+}
+.auth-toggle-pwd svg{
+  width:18px !important;
+  height:18px !important;
+}
+.auth-row-remember{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  font-size:0.8125rem !important;
+  color:var(--text-secondary) !important;
+}
+.auth-checkbox-label{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+  cursor:pointer !important;
+  user-select:none !important;
+}
+.auth-checkbox-label input[type="checkbox"]{
+  accent-color:var(--accent) !important;
+  cursor:pointer !important;
+}
+.auth-btn-submit{
+  width:100% !important;
+  padding:12px 18px !important;
+  border:none !important;
+  border-radius:8px !important;
+  background:var(--accent) !important;
+  color:#fff !important;
+  font-size:0.95rem !important;
+  font-weight:600 !important;
+  font-family:inherit !important;
+  cursor:pointer !important;
+  box-shadow:var(--shadow-md) !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  margin-top:4px !important;
+}
+.auth-btn-submit:hover{
+  filter:brightness(1.08) !important;
+  transform:translateY(-1px) !important;
+}
+.auth-btn-submit:active{
+  transform:translateY(0) scale(.98) !important;
+}
+.auth-msg{
+  font-size:0.8125rem !important;
+  padding:10px 14px !important;
+  border-radius:8px !important;
+  display:none !important;
+  align-items:center !important;
+  gap:8px !important;
+  line-height:1.4 !important;
+}
+.auth-msg.error{
+  display:flex !important;
+  background:var(--danger-bg) !important;
+  color:var(--danger) !important;
+  border:1px solid var(--danger-border) !important;
+}
+.auth-msg.success{
+  display:flex !important;
+  background:var(--success-bg) !important;
+  color:var(--success) !important;
+  border:1px solid var(--success-border) !important;
+}
+.auth-msg.info{
+  display:flex !important;
+  background:var(--warning-bg) !important;
+  color:var(--warning) !important;
+  border:1px solid var(--warning-border) !important;
+}
+.auth-default-hint{
+  padding:12px 14px !important;
+  border-radius:10px !important;
+  background:var(--surface-2) !important;
+  border:1px solid var(--border-strong) !important;
+  font-size:0.8125rem !important;
+  line-height:1.55 !important;
+  color:var(--text-secondary) !important;
+}
+.auth-default-hint code{
+  font-family:var(--font-mono) !important;
+  font-size:0.9em !important;
+  background:var(--neutral-tint) !important;
+  padding:2px 6px !important;
+  border-radius:4px !important;
+  color:var(--text) !important;
+  font-weight:700 !important;
+  border:1px solid var(--border) !important;
+}
+
+/* Change Credentials Modal Overlay */
+.change-creds-overlay{
+  position:fixed !important;
+  inset:0 !important;
+  z-index:1000000 !important;
+  background:var(--modal-overlay) !important;
+  backdrop-filter:blur(6px) saturate(120%) !important;
+  -webkit-backdrop-filter:blur(6px) saturate(120%) !important;
+  display:none !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:16px !important;
+  opacity:0 !important;
+  transition:opacity var(--dur-base) var(--ease-in-out) !important;
+}
+.change-creds-overlay.active{
+  display:flex !important;
+  opacity:1 !important;
+}
+.change-creds-modal{
+  background:var(--card-bg) !important;
+  border:1px solid var(--border-strong) !important;
+  border-radius:18px !important;
+  box-shadow:var(--shadow-lift) !important;
+  padding:28px 26px !important;
+  width:100% !important;
+  max-width:440px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:16px !important;
+  box-sizing:border-box !important;
+}
+.change-creds-header{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+}
+.change-creds-title{
+  font-size:1.15rem !important;
+  font-weight:700 !important;
+  color:var(--text) !important;
+  letter-spacing:-.015em !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+.change-creds-title svg{
+  width:20px !important;
+  height:20px !important;
+  color:var(--accent) !important;
+}
+.change-creds-close{
+  width:30px !important;
+  height:30px !important;
+  border-radius:999px !important;
+  border:1px solid var(--border) !important;
+  background:var(--card-bg) !important;
+  cursor:pointer !important;
+  font-size:0.85rem !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  color:var(--text-secondary) !important;
+}
+.change-creds-close:hover{
+  background:var(--danger-bg) !important;
+  color:var(--danger) !important;
+  border-color:var(--danger-border) !important;
+}
+.change-creds-actions{
+  display:flex !important;
+  gap:10px !important;
+  justify-content:flex-end !important;
+  margin-top:6px !important;
+}
+</style>
 </head>
 <body>
     <div class="app-container">
@@ -1730,6 +2032,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <button class="icon-btn" id="btnExportPdf" title="Export PDF" aria-label="Export PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
                     <button class="icon-btn" id="btnImport" title="Import JSON" aria-label="Import JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
                     <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
+                                        
+                    
                                         <button class="icon-btn" id="btnAuthAccount" title="Account / Change Password" aria-label="Account Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
                     <button class="icon-btn" id="btnAuthLogout" title="Log Out" aria-label="Log Out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
                     <button class="icon-btn" id="btnTheme" title="Cycle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
@@ -7524,16 +7828,24 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             });
         })();
     </script>
-    <!-- Login Screen Overlay -->
+    
+    <!-- ============================================================
+         AUTHENTICATION & LOGIN OVERLAY
+         ============================================================ -->
     <div class="auth-overlay" id="authOverlay">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="auth-icon-badge">ðŸ”’</div>
+                <div class="auth-icon-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                </div>
                 <h1 class="auth-title">Task Planner</h1>
-                <p class="auth-subtitle">Please enter your credentials to access your planner</p>
+                <p class="auth-subtitle">Please sign in to access your planner</p>
             </div>
             <div class="auth-msg" id="loginErrorMsg"></div>
-            <form class="auth-form" id="loginForm" onsubmit="return false;">
+            <form class="auth-form" id="loginForm" autocomplete="on">
                 <div class="auth-field">
                     <label class="auth-label" for="loginUsername">Username</label>
                     <div class="auth-input-wrap">
@@ -7544,7 +7856,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <label class="auth-label" for="loginPassword">Password</label>
                     <div class="auth-input-wrap">
                         <input type="password" class="auth-input" id="loginPassword" placeholder="Enter password" autocomplete="current-password" required>
-                        <button type="button" class="auth-toggle-pwd" id="toggleLoginPassword" title="Show/Hide password" aria-label="Toggle password visibility">ðŸ‘ï¸</button>
+                        <button type="button" class="auth-toggle-pwd" id="toggleLoginPassword" title="Show/Hide password" aria-label="Toggle password visibility">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
                     </div>
                 </div>
                 <div class="auth-row-remember">
@@ -7559,19 +7873,24 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 </button>
             </form>
             <div class="auth-default-hint">
-                ðŸ”‘ <strong>Default Credentials:</strong><br>
+                <strong>ðŸ”‘ Default Credentials:</strong><br>
                 Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>admin123</code><br>
-                <span style="font-size:0.75rem;opacity:0.85;">âš ï¸ You will be prompted to change these upon your first login.</span>
+                <span style="font-size:0.75rem;opacity:0.85;">âš ï¸ You will be prompted to change these on your first sign-in.</span>
             </div>
         </div>
     </div>
 
-    <!-- Change Credentials Modal -->
+    <!-- ============================================================
+         CHANGE CREDENTIALS MODAL OVERLAY
+         ============================================================ -->
     <div class="change-creds-overlay" id="changeCredsOverlay" role="dialog" aria-modal="true">
         <div class="change-creds-modal">
             <div class="change-creds-header">
-                <span class="change-creds-title">ðŸ” <span id="changeCredsTitleText">Change Credentials</span></span>
-                <button class="change-creds-close" id="btnChangeCredsClose" title="Close" aria-label="Close">âœ•</button>
+                <span class="change-creds-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1-1l-7 7m0 0l-3 3-3-3 3-3 7-7m-4 10l-4 4-2-2 2-2 4-4"/></svg>
+                    <span id="changeCredsTitleText">Change Credentials</span>
+                </span>
+                <button type="button" class="change-creds-close" id="btnChangeCredsClose" title="Close" aria-label="Close">âœ•</button>
             </div>
             <div class="auth-msg" id="changeCredsMsg"></div>
             <div class="auth-form">
@@ -7579,20 +7898,24 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <label class="auth-label" for="currentPassword">Current Password</label>
                     <div class="auth-input-wrap">
                         <input type="password" class="auth-input" id="currentPassword" placeholder="Enter current password" autocomplete="current-password">
-                        <button type="button" class="auth-toggle-pwd" id="toggleCurrentPassword" title="Show/Hide password">ðŸ‘ï¸</button>
+                        <button type="button" class="auth-toggle-pwd" id="toggleCurrentPassword" title="Show/Hide password">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
                     </div>
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="newUsername">New Username</label>
                     <div class="auth-input-wrap">
-                        <input type="text" class="auth-input" id="newUsername" placeholder="e.g. yourname" autocomplete="username">
+                        <input type="text" class="auth-input" id="newUsername" placeholder="Choose a username" autocomplete="username">
                     </div>
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="newPassword">New Password</label>
                     <div class="auth-input-wrap">
                         <input type="password" class="auth-input" id="newPassword" placeholder="Minimum 6 characters" autocomplete="new-password">
-                        <button type="button" class="auth-toggle-pwd" id="toggleNewPassword" title="Show/Hide password">ðŸ‘ï¸</button>
+                        <button type="button" class="auth-toggle-pwd" id="toggleNewPassword" title="Show/Hide password">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
                     </div>
                 </div>
                 <div class="auth-field">
@@ -7608,28 +7931,93 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             </div>
         </div>
     </div>
+
+    <!-- ============================================================
+         AUTHENTICATION LOGIC (PURE SHA-256 + WEB CRYPTO RESILIENT)
+         ============================================================ -->
     <script>
-    /* ============================================================
-       AUTHENTICATION & CREDENTIALS MODULE
-       ============================================================ */
     (function initAuthModule(){
         const AUTH_CREDS_KEY = 'td_auth_credentials';
         const AUTH_SESSION_KEY = 'td_auth_session';
         const DEFAULT_USERNAME = 'admin';
         const DEFAULT_PASSWORD = 'admin123';
 
+        // Pure JS SHA-256 implementation (works on file://, http://, https://, and all browsers)
+        function sha256Sync(ascii) {
+            function rightRotate(value, amount) { return (value >>> amount) | (value << (32 - amount)); }
+            const mathPow = Math.pow;
+            const maxWord = mathPow(2, 32);
+            let lengthProperty = 'length';
+            let i, j;
+            let result = '';
+            const words = [];
+            const asciiBitLength = ascii[lengthProperty] * 8;
+            let hash = sha256Sync.h = sha256Sync.h || [];
+            const k = sha256Sync.k = sha256Sync.k || [];
+            let primeCounter = k[lengthProperty];
+            const isComposite = {};
+            for (let candidate = 2; primeCounter < 64; candidate++) {
+                if (!isComposite[candidate]) {
+                    for (i = 0; i < 313; i += candidate) isComposite[i] = candidate;
+                    hash[primeCounter] = (mathPow(candidate, .5) * maxWord) | 0;
+                    k[primeCounter++] = (mathPow(candidate, 1/3) * maxWord) | 0;
+                }
+            }
+            ascii += '\x80';
+            while (ascii[lengthProperty] % 64 - 56) ascii += '\x00';
+            for (i = 0; i < ascii[lengthProperty]; i++) {
+                j = ascii.charCodeAt(i);
+                if (j >> 8) return '';
+                words[i >> 2] |= j << ((3 - i) % 4) * 8;
+            }
+            words[words[lengthProperty]] = ((asciiBitLength / maxWord) | 0);
+            words[words[lengthProperty]] = (asciiBitLength);
+            for (j = 0; j < words[lengthProperty];) {
+                const w = words.slice(j, j += 16);
+                const oldHash = hash;
+                hash = hash.slice(0, 8);
+                for (i = 0; i < 64; i++) {
+                    const w15 = w[i - 15], w2 = w[i - 2];
+                    const s0 = rightRotate(w15, 7) ^ rightRotate(w15, 18) ^ (w15 >>> 3);
+                    const s1 = rightRotate(w2, 17) ^ rightRotate(w2, 19) ^ (w2 >>> 10);
+                    const ch = (hash[4] & hash[5]) ^ (~hash[4] & hash[6]);
+                    const maj = (hash[0] & hash[1]) ^ (hash[0] & hash[2]) ^ (hash[1] & hash[2]);
+                    const temp1 = hash[7] + (rightRotate(hash[4], 6) ^ rightRotate(hash[4], 11) ^ rightRotate(hash[4], 25)) + ch + k[i] + (w[i] = (i < 16) ? w[i] : (w[i - 16] + s0 + w[i - 7] + s1) | 0);
+                    const temp2 = (rightRotate(hash[0], 2) ^ rightRotate(hash[0], 13) ^ rightRotate(hash[0], 22)) + maj;
+                    hash = [(temp1 + temp2) | 0].concat(hash);
+                    hash[4] = (hash[4] + temp1) | 0;
+                }
+                for (i = 0; i < 8; i++) hash[i] = (hash[i] + oldHash[i]) | 0;
+            }
+            for (i = 0; i < 8; i++) {
+                for (j = 3; j + 1; j--) {
+                    const b = (hash[i] >> (j * 8)) & 255;
+                    result += ((b < 16) ? '0' : '') + b.toString(16);
+                }
+            }
+            return result;
+        }
+
         async function hashPassword(str) {
-            const enc = new TextEncoder();
-            const data = enc.encode(str + '_tp_salt_2026');
-            const hashBuf = await crypto.subtle.digest('SHA-256', data);
-            const hashArr = Array.from(new Uint8Array(hashBuf));
-            return hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+            const salted = str + '_tp_salt_2026';
+            if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) {
+                try {
+                    const enc = new TextEncoder();
+                    const data = enc.encode(salted);
+                    const hashBuf = await crypto.subtle.digest('SHA-256', data);
+                    return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+                } catch(e) {}
+            }
+            return sha256Sync(salted);
         }
 
         async function getStoredCredentials() {
             const raw = localStorage.getItem(AUTH_CREDS_KEY);
             if (raw) {
-                try { return JSON.parse(raw); } catch(e){}
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && parsed.username && parsed.passwordHash) return parsed;
+                } catch(e){}
             }
             const defaultHash = await hashPassword(DEFAULT_PASSWORD);
             const creds = {
@@ -7679,6 +8067,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         const loginRemember = document.getElementById('loginRemember');
         const loginErrorMsg = document.getElementById('loginErrorMsg');
         const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+        const btnLoginSubmit = document.getElementById('btnLoginSubmit');
 
         const changeCredsOverlay = document.getElementById('changeCredsOverlay');
         const changeCredsTitleText = document.getElementById('changeCredsTitleText');
@@ -7701,7 +8090,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if (!authOverlay) return;
             authOverlay.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-            setTimeout(() => loginUsername?.focus(), 100);
+            setTimeout(() => {
+                if (loginUsername) { loginUsername.focus(); loginUsername.select(); }
+            }, 100);
         }
 
         function hideLogin() {
@@ -7716,9 +8107,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             changeCredsOverlay.classList.add('active');
             changeCredsMsg.className = 'auth-msg';
             changeCredsMsg.textContent = '';
-            currentPasswordInput.value = '';
-            newPasswordInput.value = '';
-            confirmNewPasswordInput.value = '';
+            if (currentPasswordInput) currentPasswordInput.value = '';
+            if (newPasswordInput) newPasswordInput.value = '';
+            if (confirmNewPasswordInput) confirmNewPasswordInput.value = '';
 
             if (isForcedChange) {
                 changeCredsTitleText.textContent = 'Setup New Credentials (First Login)';
@@ -7735,12 +8126,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
 
             getStoredCredentials().then(creds => {
-                newUsernameInput.value = creds.username || DEFAULT_USERNAME;
-                if (isForcedChange) {
-                    newPasswordInput.focus();
-                } else {
-                    currentPasswordInput.focus();
-                }
+                if (newUsernameInput) newUsernameInput.value = creds.username || DEFAULT_USERNAME;
+                setTimeout(() => {
+                    if (isForcedChange && newPasswordInput) {
+                        newPasswordInput.focus();
+                    } else if (currentPasswordInput) {
+                        currentPasswordInput.focus();
+                    }
+                }, 100);
             });
         }
 
@@ -7751,13 +8144,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
         function setupPasswordToggle(btn, input) {
             if (!btn || !input) return;
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 if (input.type === 'password') {
                     input.type = 'text';
-                    btn.textContent = 'ðŸ™ˆ';
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
                 } else {
                     input.type = 'password';
-                    btn.textContent = 'ðŸ‘ï¸';
+                    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
                 }
             });
         }
@@ -7766,14 +8161,18 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         setupPasswordToggle(document.getElementById('toggleNewPassword'), newPasswordInput);
 
         async function handleLogin() {
-            const u = loginUsername.value.trim();
-            const p = loginPassword.value;
-            loginErrorMsg.className = 'auth-msg';
-            loginErrorMsg.textContent = '';
+            const u = loginUsername ? loginUsername.value.trim() : '';
+            const p = loginPassword ? loginPassword.value : '';
+            if (loginErrorMsg) {
+                loginErrorMsg.className = 'auth-msg';
+                loginErrorMsg.textContent = '';
+            }
 
             if (!u || !p) {
-                loginErrorMsg.className = 'auth-msg error';
-                loginErrorMsg.textContent = 'Please enter both username and password.';
+                if (loginErrorMsg) {
+                    loginErrorMsg.className = 'auth-msg error';
+                    loginErrorMsg.textContent = 'Please enter both username and password.';
+                }
                 return;
             }
 
@@ -7781,69 +8180,85 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const inputHash = await hashPassword(p);
 
             if (u.toLowerCase() === creds.username.toLowerCase() && inputHash === creds.passwordHash) {
-                setSession(creds.username, loginRemember.checked);
+                setSession(creds.username, loginRemember ? loginRemember.checked : true);
                 hideLogin();
 
                 if (creds.mustChange) {
-                    setTimeout(() => openChangeCreds(true), 300);
+                    setTimeout(() => openChangeCreds(true), 250);
                 } else {
                     if (window.tdImageUtils && window.tdImageUtils.showToast) {
-                        window.tdImageUtils.showToast('ðŸ‘‹ Welcome back, ' + creds.username + '!');
+                        window.tdImageUtils.showToast('ðŸ‘‹ Welcome, ' + creds.username + '!');
                     }
                 }
             } else {
-                loginErrorMsg.className = 'auth-msg error';
-                loginErrorMsg.textContent = 'Invalid username or password. Please try again.';
-                loginPassword.value = '';
-                loginPassword.focus();
+                if (loginErrorMsg) {
+                    loginErrorMsg.className = 'auth-msg error';
+                    loginErrorMsg.textContent = 'Invalid username or password. Default is admin / admin123';
+                }
+                if (loginPassword) {
+                    loginPassword.value = '';
+                    loginPassword.focus();
+                }
             }
         }
 
         async function handleSaveCreds() {
-            const newU = newUsernameInput.value.trim();
-            const newP = newPasswordInput.value;
-            const confirmP = confirmNewPasswordInput.value;
-            changeCredsMsg.className = 'auth-msg';
-            changeCredsMsg.textContent = '';
+            const newU = newUsernameInput ? newUsernameInput.value.trim() : '';
+            const newP = newPasswordInput ? newPasswordInput.value : '';
+            const confirmP = confirmNewPasswordInput ? confirmNewPasswordInput.value : '';
+            if (changeCredsMsg) {
+                changeCredsMsg.className = 'auth-msg';
+                changeCredsMsg.textContent = '';
+            }
 
             if (!newU) {
-                changeCredsMsg.className = 'auth-msg error';
-                changeCredsMsg.textContent = 'Username cannot be empty.';
+                if (changeCredsMsg) {
+                    changeCredsMsg.className = 'auth-msg error';
+                    changeCredsMsg.textContent = 'Username cannot be empty.';
+                }
                 return;
             }
 
             if (!isForcedChange) {
-                const currentP = currentPasswordInput.value;
+                const currentP = currentPasswordInput ? currentPasswordInput.value : '';
                 if (!currentP) {
-                    changeCredsMsg.className = 'auth-msg error';
-                    changeCredsMsg.textContent = 'Please enter your current password.';
+                    if (changeCredsMsg) {
+                        changeCredsMsg.className = 'auth-msg error';
+                        changeCredsMsg.textContent = 'Please enter your current password.';
+                    }
                     return;
                 }
                 const creds = await getStoredCredentials();
                 const currHash = await hashPassword(currentP);
                 if (currHash !== creds.passwordHash) {
-                    changeCredsMsg.className = 'auth-msg error';
-                    changeCredsMsg.textContent = 'Incorrect current password.';
+                    if (changeCredsMsg) {
+                        changeCredsMsg.className = 'auth-msg error';
+                        changeCredsMsg.textContent = 'Incorrect current password.';
+                    }
                     return;
                 }
             }
 
             if (newP.length < 6) {
-                changeCredsMsg.className = 'auth-msg error';
-                changeCredsMsg.textContent = 'New password must be at least 6 characters.';
+                if (changeCredsMsg) {
+                    changeCredsMsg.className = 'auth-msg error';
+                    changeCredsMsg.textContent = 'New password must be at least 6 characters.';
+                }
                 return;
             }
 
             if (newP !== confirmP) {
-                changeCredsMsg.className = 'auth-msg error';
-                changeCredsMsg.textContent = 'Passwords do not match.';
+                if (changeCredsMsg) {
+                    changeCredsMsg.className = 'auth-msg error';
+                    changeCredsMsg.textContent = 'Passwords do not match.';
+                }
                 return;
             }
 
             await setStoredCredentials(newU, newP, false);
             setSession(newU, !!localStorage.getItem(AUTH_SESSION_KEY));
             isForcedChange = false;
-            changeCredsOverlay.classList.remove('active');
+            if (changeCredsOverlay) changeCredsOverlay.classList.remove('active');
 
             if (window.tdImageUtils && window.tdImageUtils.showToast) {
                 window.tdImageUtils.showToast('âœ… Credentials updated successfully!');
@@ -7855,19 +8270,25 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         function handleLogout() {
             if (confirm('Are you sure you want to log out?')) {
                 clearSession();
-                loginPassword.value = '';
-                loginErrorMsg.className = 'auth-msg';
-                loginErrorMsg.textContent = '';
+                if (loginPassword) loginPassword.value = '';
+                if (loginErrorMsg) {
+                    loginErrorMsg.className = 'auth-msg';
+                    loginErrorMsg.textContent = '';
+                }
                 showLogin();
             }
         }
 
         loginForm?.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
+        btnLoginSubmit?.addEventListener('click', (e) => { e.preventDefault(); handleLogin(); });
+        loginPassword?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
+        loginUsername?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); if (loginPassword && !loginPassword.value) loginPassword.focus(); else handleLogin(); } });
+
         btnChangeCredsClose?.addEventListener('click', closeChangeCreds);
         btnCancelChangeCreds?.addEventListener('click', closeChangeCreds);
-        btnSaveChangeCreds?.addEventListener('click', handleSaveCreds);
-        btnAuthAccount?.addEventListener('click', () => openChangeCreds(false));
-        btnAuthLogout?.addEventListener('click', handleLogout);
+        btnSaveChangeCreds?.addEventListener('click', (e) => { e.preventDefault(); handleSaveCreds(); });
+        btnAuthAccount?.addEventListener('click', (e) => { e.preventDefault(); openChangeCreds(false); });
+        btnAuthLogout?.addEventListener('click', (e) => { e.preventDefault(); handleLogout(); });
 
         [newUsernameInput, newPasswordInput, confirmNewPasswordInput, currentPasswordInput].forEach(inp => {
             inp?.addEventListener('keydown', (e) => {
@@ -7886,7 +8307,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             hideLogin();
             getStoredCredentials().then(creds => {
                 if (creds.mustChange) {
-                    setTimeout(() => openChangeCreds(true), 400);
+                    setTimeout(() => openChangeCreds(true), 350);
                 }
             });
         }
