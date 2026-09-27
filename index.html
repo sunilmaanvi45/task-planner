@@ -7826,8 +7826,40 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(!ds) return;
                 currentDate = ds;
                 closePredsMenu();
+
+                // Preserve active input focus & cursor if user is editing
+                const activeEl = document.activeElement;
+                const isPertInput = !!(activeEl && activeEl.closest && activeEl.closest('#pertTableBody, #pertStartTime'));
+                let focusedId = null, focusedField = null, selStart = null, selEnd = null;
+                if(isPertInput && activeEl){
+                    focusedId = activeEl.dataset ? (activeEl.dataset.id || null) : null;
+                    focusedField = activeEl.dataset ? (activeEl.dataset.field || (activeEl.classList.contains('pert-act-input') ? 'act' : (activeEl.classList.contains('pert-te-input') ? 'te' : null))) : null;
+                    if(typeof activeEl.selectionStart === 'number'){
+                        selStart = activeEl.selectionStart;
+                        selEnd = activeEl.selectionEnd;
+                    }
+                }
+
                 loadForDate(ds);
                 refresh(true);
+
+                if(focusedId && focusedField){
+                    let newEl = null;
+                    if(focusedField === 'act'){
+                        newEl = document.querySelector(`.pert-act-input[data-id="${focusedId}"]`);
+                    } else if(focusedField === 'te'){
+                        newEl = document.querySelector(`.pert-te-input[data-id="${focusedId}"]`);
+                    } else if(focusedField === 'o' || focusedField === 'm' || focusedField === 'p'){
+                        newEl = document.querySelector(`.pert-activity-row input[data-id="${focusedId}"][data-field="${focusedField}"]`);
+                    }
+                    if(newEl){
+                        newEl.focus();
+                        if(selStart !== null && selEnd !== null && typeof newEl.setSelectionRange === 'function'){
+                            try { newEl.setSelectionRange(selStart, selEnd); } catch(e){}
+                        }
+                    }
+                }
+
                 requestAnimationFrame(() => { if(baseW) fitToView(); });
             }
             window.__taskPlannerReloadPert = reloadPertForDate;
@@ -8168,6 +8200,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         let lastLocalPushTime = 0;
         let lastRemoteUpdateTime = 0;
         let cloudPushTimer = null;
+        const CLIENT_SESSION_ID = 'client_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now();
 
         const btnCloudSync = document.getElementById('btnCloudSync');
         const syncStatusDot = document.getElementById('syncStatusDot');
@@ -8229,10 +8262,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if(!supabaseClient || isApplyingRemoteUpdate) return;
             setSyncStatus('syncing', 'Syncing to cloud...', 'Uploading local updates to Supabase');
             const payload = collectSyncPayload();
+            payload._senderId = CLIENT_SESSION_ID;
             const now = new Date();
             const nowIso = now.toISOString();
 
             try {
+                lastLocalPushTime = now.getTime();
                 const { error } = await supabaseClient
                     .from('app_sync')
                     .upsert({ id: 'primary', data: payload, updated_at: nowIso });
@@ -8241,7 +8276,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     console.warn('Cloud sync error:', error);
                     setSyncStatus('error', 'Sync Failed', error.message || 'Error pushing to cloud');
                 } else {
-                    lastLocalPushTime = now.getTime();
                     lastRemoteUpdateTime = lastLocalPushTime;
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
                     if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
@@ -8252,18 +8286,20 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
         }
 
-        function scheduleCloudPush(){
+        function scheduleCloudPush(delay){
             if(cloudPushTimer) clearTimeout(cloudPushTimer);
             cloudPushTimer = setTimeout(() => {
                 pushToCloud();
-            }, 600);
+            }, delay || 1000);
         }
 
         function applyIncomingPayload(remotePayload, remoteUpdatedAt){
             if(!remotePayload || typeof remotePayload !== 'object') return;
+            if(remotePayload._senderId === CLIENT_SESSION_ID) return;
+
             const remoteTime = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
-            if(remoteTime && lastLocalPushTime && remoteTime < lastLocalPushTime) {
-                return; // Local push is newer
+            if(remoteTime && lastLocalPushTime && remoteTime <= lastLocalPushTime) {
+                return; // Local push is newer or equal
             }
 
             isApplyingRemoteUpdate = true;
@@ -8439,6 +8475,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     .channel('realtime_app_sync_channel')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync', filter: 'id=eq.primary' }, (payload) => {
                         if(payload.new && payload.new.data){
+                            if(payload.new.data._senderId === CLIENT_SESSION_ID) return;
                             applyIncomingPayload(payload.new.data, payload.new.updated_at);
                         }
                     })
@@ -8466,6 +8503,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                                     .eq('id', 'primary')
                                     .maybeSingle();
                                 if(fullRes.data && fullRes.data.data){
+                                    if(fullRes.data.data._senderId === CLIENT_SESSION_ID) return;
                                     applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at);
                                 }
                             }
