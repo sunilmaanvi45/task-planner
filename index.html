@@ -1714,6 +1714,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 }
 </style>
 
+
+
 <style id="taskPlannerAuthStyles">
 /* ============================================================
    17 Â· AUTHENTICATION & LOGIN SCREEN
@@ -1939,6 +1941,50 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   border:1px solid var(--border) !important;
 }
 
+/* Nav header buttons for Account and Logout */
+.btn-account-nav{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:5px !important;
+  padding:4px 10px !important;
+  border-radius:999px !important;
+  border:1px solid var(--accent-border) !important;
+  background:var(--accent-light) !important;
+  color:var(--accent) !important;
+  font-size:var(--fs-xs) !important;
+  font-weight:600 !important;
+  cursor:pointer !important;
+  white-space:nowrap !important;
+  transition:background-color var(--dur-fast), transform var(--dur-fast) !important;
+}
+.btn-account-nav:hover{
+  background:var(--accent-hover) !important;
+  transform:translateY(-1px) !important;
+}
+.btn-account-nav svg{width:13px !important;height:13px !important;flex-shrink:0 !important;}
+
+.btn-logout-nav{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:5px !important;
+  padding:4px 10px !important;
+  border-radius:999px !important;
+  border:1px solid var(--danger-border) !important;
+  background:var(--danger-bg) !important;
+  color:var(--danger) !important;
+  font-size:var(--fs-xs) !important;
+  font-weight:600 !important;
+  cursor:pointer !important;
+  white-space:nowrap !important;
+  transition:background-color var(--dur-fast), transform var(--dur-fast) !important;
+}
+.btn-logout-nav:hover{
+  background:var(--danger) !important;
+  color:#fff !important;
+  transform:translateY(-1px) !important;
+}
+.btn-logout-nav svg{width:13px !important;height:13px !important;flex-shrink:0 !important;}
+
 /* Change Credentials Modal Overlay */
 .change-creds-overlay{
   position:fixed !important;
@@ -2034,8 +2080,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
                                         
                     
-                                        <button class="icon-btn" id="btnAuthAccount" title="Account / Change Password" aria-label="Account Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-                    <button class="icon-btn" id="btnAuthLogout" title="Log Out" aria-label="Log Out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+                                        
+                    
+                                        <button class="btn-account-nav" id="btnAuthAccount" title="Account / Change Password" aria-label="Account Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account</span></button>
+                    <button class="btn-logout-nav" id="btnAuthLogout" title="Log Out" aria-label="Log Out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log Out</span></button>
                     <button class="icon-btn" id="btnTheme" title="Cycle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
                 </div>
             </div>
@@ -6681,7 +6729,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 sortedNodes.forEach(n => {
                     occupy(n.x - NODE_R - 2, n.y - NODE_R - 2, NODE_R * 2 + 4, NODE_R * 2 + 4);
-                    occupy(n.x - 36, n.y + NODE_R, 72, 26);
                 });
                 list.forEach(a => {
                     const lane = laneOf[a.id];
@@ -6803,10 +6850,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const clockText = formatClock(startMin + n.time * 60);
                     svg += `<circle cx="${n.x.toFixed(2)}" cy="${n.y.toFixed(2)}" r="${NODE_R}" class="pert-node-circle"/>`;
                     svg += `<text x="${n.x.toFixed(2)}" y="${n.y.toFixed(2)}" class="pert-node-num">${n.num}</text>`;
-                    svg += `<text x="${n.x.toFixed(2)}" y="${(n.y + NODE_R + 10).toFixed(2)}" class="pert-node-time">ET ${fmt(n.time,1)}</text>`;
-                    svg += `<text x="${n.x.toFixed(2)}" y="${(n.y + NODE_R + 20).toFixed(2)}" class="pert-node-clock">${esc(clockText)}</text>`;
                     grow(n.x - NODE_R, n.y - NODE_R, n.x + NODE_R, n.y + NODE_R);
-                    grow(n.x - 30, n.y + NODE_R + 4, n.x + 30, n.y + NODE_R + 24);
                 });
 
                 const chain = res.paths.longestPath.map(id => byId[id]).filter(Boolean);
@@ -7829,6 +7873,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         })();
     </script>
     
+    
     <!-- ============================================================
          AUTHENTICATION & LOGIN OVERLAY
          ============================================================ -->
@@ -7842,7 +7887,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     </svg>
                 </div>
                 <h1 class="auth-title">Task Planner</h1>
-                <p class="auth-subtitle">Please sign in to access your planner</p>
+                <p class="auth-subtitle">Please sign in to access your task planner</p>
             </div>
             <div class="auth-msg" id="loginErrorMsg"></div>
             <form class="auth-form" id="loginForm" autocomplete="on">
@@ -8060,6 +8105,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             localStorage.removeItem(AUTH_SESSION_KEY);
         }
 
+        const appContainer = document.querySelector('.app-container');
         const authOverlay = document.getElementById('authOverlay');
         const loginForm = document.getElementById('loginForm');
         const loginUsername = document.getElementById('loginUsername');
@@ -8087,8 +8133,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         let isForcedChange = false;
 
         function showLogin() {
+            if (appContainer) appContainer.style.display = 'none';
             if (!authOverlay) return;
             authOverlay.classList.remove('hidden');
+            authOverlay.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             setTimeout(() => {
                 if (loginUsername) { loginUsername.focus(); loginUsername.select(); }
@@ -8096,8 +8144,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         }
 
         function hideLogin() {
+            if (appContainer) appContainer.style.display = 'flex';
             if (!authOverlay) return;
             authOverlay.classList.add('hidden');
+            authOverlay.style.display = 'none';
             document.body.style.overflow = '';
         }
 
@@ -8105,6 +8155,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             isForcedChange = !!forced;
             if (!changeCredsOverlay) return;
             changeCredsOverlay.classList.add('active');
+            changeCredsOverlay.style.display = 'flex';
             changeCredsMsg.className = 'auth-msg';
             changeCredsMsg.textContent = '';
             if (currentPasswordInput) currentPasswordInput.value = '';
@@ -8139,7 +8190,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
         function closeChangeCreds() {
             if (isForcedChange) return;
-            if (changeCredsOverlay) changeCredsOverlay.classList.remove('active');
+            if (changeCredsOverlay) {
+                changeCredsOverlay.classList.remove('active');
+                changeCredsOverlay.style.display = 'none';
+            }
         }
 
         function setupPasswordToggle(btn, input) {
@@ -8181,11 +8235,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
             if (u.toLowerCase() === creds.username.toLowerCase() && inputHash === creds.passwordHash) {
                 setSession(creds.username, loginRemember ? loginRemember.checked : true);
-                hideLogin();
 
                 if (creds.mustChange) {
-                    setTimeout(() => openChangeCreds(true), 250);
+                    openChangeCreds(true);
                 } else {
+                    hideLogin();
                     if (window.tdImageUtils && window.tdImageUtils.showToast) {
                         window.tdImageUtils.showToast('ðŸ‘‹ Welcome, ' + creds.username + '!');
                     }
@@ -8258,7 +8312,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             await setStoredCredentials(newU, newP, false);
             setSession(newU, !!localStorage.getItem(AUTH_SESSION_KEY));
             isForcedChange = false;
-            if (changeCredsOverlay) changeCredsOverlay.classList.remove('active');
+            if (changeCredsOverlay) {
+                changeCredsOverlay.classList.remove('active');
+                changeCredsOverlay.style.display = 'none';
+            }
+            hideLogin();
 
             if (window.tdImageUtils && window.tdImageUtils.showToast) {
                 window.tdImageUtils.showToast('âœ… Credentials updated successfully!');
@@ -8304,10 +8362,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         if (!session) {
             showLogin();
         } else {
-            hideLogin();
             getStoredCredentials().then(creds => {
                 if (creds.mustChange) {
-                    setTimeout(() => openChangeCreds(true), 350);
+                    showLogin();
+                    openChangeCreds(true);
+                } else {
+                    hideLogin();
                 }
             });
         }
