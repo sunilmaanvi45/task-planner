@@ -1834,6 +1834,76 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   .icon-btn,.nav-btn{width:36px;height:36px}
   .icon-btn svg{width:16px;height:16px}
   .eisen-modal{width:96vw;height:92vh;border-radius:var(--r-lg)}
+  .eisen-header{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:center !important;
+    padding:8px 12px !important;
+    gap:8px !important;
+    position:relative !important;
+  }
+  .eisen-back{
+    order:1 !important;
+  }
+  .eisen-title{
+    order:2 !important;
+    flex:1 1 auto !important;
+    font-size:var(--fs-sm) !important;
+    min-width:100px !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .eisen-copy-png{
+    order:3 !important;
+    width:32px !important;
+    height:32px !important;
+    flex-shrink:0 !important;
+  }
+  .eisen-close{
+    order:4 !important;
+    width:34px !important;
+    height:34px !important;
+    font-size:1.15rem !important;
+    font-weight:700 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    flex-shrink:0 !important;
+    margin-left:auto !important;
+    background:var(--surface-2) !important;
+    border:1px solid var(--border-strong) !important;
+    color:var(--text) !important;
+    cursor:pointer !important;
+    z-index:10 !important;
+  }
+  .eisen-close:hover,.eisen-close:active{
+    background:var(--danger-bg) !important;
+    color:var(--danger) !important;
+    border-color:var(--danger-border) !important;
+  }
+  .eisen-filters{
+    order:5 !important;
+    width:100% !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch !important;
+    padding-bottom:4px !important;
+    gap:6px !important;
+  }
+  .eisen-filters::-webkit-scrollbar{
+    height:3px !important;
+  }
+  .eisen-filters::-webkit-scrollbar-thumb{
+    background:var(--border-strong) !important;
+    border-radius:4px !important;
+  }
+  .eisen-filter-select, .eisen-defaults-toggle, .eisen-completed-toggle, .eisen-just-start-toggle{
+    flex-shrink:0 !important;
+    font-size:11px !important;
+    padding:4px 8px !important;
+    white-space:nowrap !important;
+  }
   .eisen-sidebar{flex:0 0 180px;padding:var(--sp-3)}
   .eisen-grid{gap:var(--sp-2)}
   .calendar-title{min-width:120px;font-size:var(--fs-base)}
@@ -2112,7 +2182,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         <button class="undo-toast-btn" id="undoToastBtn" type="button">↶ Undo</button>
     </div>
 
-        <!-- Login Page / Full Overlay -->
+    <!-- Login Page / Full Overlay -->
     <div class="auth-overlay active" id="appAuthOverlay" role="dialog" aria-modal="true" aria-label="Sign In">
         <div class="auth-card">
             <div class="auth-header">
@@ -2122,101 +2192,111 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         <line x1="16" y1="2" x2="16" y2="6"/>
                         <line x1="8" y1="2" x2="8" y2="6"/>
                         <line x1="3" y1="10" x2="21" y2="10"/>
+                        <path d="m9 16 2 2 4-4"/>
                     </svg>
                 </div>
-                <div class="auth-title">Task Planner</div>
-                <div class="auth-sub">Sign in to access your personal dashboard</div>
+                <h1 class="auth-title">Task Planner</h1>
+                <p class="auth-sub">Enter credentials to unlock your planner</p>
             </div>
-            <div class="auth-error" id="authErrorMsg"></div>
-            <form class="auth-form" id="authLoginForm" onsubmit="return false;">
+            <form class="auth-form" id="authLoginForm" autocomplete="on">
                 <div class="auth-field">
                     <label class="auth-label" for="authUsernameInput">Username</label>
-                    <input class="auth-input" id="authUsernameInput" type="text" autocomplete="username" placeholder="e.g. admin" required>
+                    <input type="text" class="auth-input" id="authUsernameInput" autocomplete="username" placeholder="admin" required />
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="authPasswordInput">Password</label>
-                    <input class="auth-input" id="authPasswordInput" type="password" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                    <input type="password" class="auth-input" id="authPasswordInput" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required />
                 </div>
                 <label class="auth-remember-row">
-                    <input type="checkbox" id="authRememberMe" checked>
+                    <input type="checkbox" id="authRememberMe" checked />
                     <span>Stay signed in on this device</span>
                 </label>
-                <button class="auth-btn-primary" id="btnAuthSubmit" type="submit">Sign In</button>
+                <div class="auth-error" id="authErrorMsg"></div>
+                <button type="submit" class="auth-btn-primary" id="btnAuthSubmit">
+                    <span>Unlock Planner</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+                <div class="auth-hint">Default username: <b>admin</b> &nbsp;|&nbsp; password: <b>admin123</b></div>
             </form>
-            <div class="auth-hint">Default login: <b>admin</b> / <b>admin123</b></div>
         </div>
     </div>
 
-    <!-- First Login / Change Credentials Modal -->
+    <!-- Account Settings Modal -->
     <div class="account-modal-overlay" id="accountModalOverlay" role="dialog" aria-modal="true" aria-label="Account Settings">
         <div class="account-modal">
             <div class="account-modal-header">
-                <div class="account-modal-title" id="accountModalTitle">
+                <h2 class="account-modal-title" id="accountModalTitle">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <span>Account Settings</span>
-                </div>
-                <button class="account-modal-close" id="btnAccountModalClose" aria-label="Close">âœ•</button>
+                </h2>
+                <button type="button" class="account-modal-close" id="btnAccountModalClose" aria-label="Close">âœ•</button>
             </div>
-            <div class="auth-error" id="accountErrorMsg"></div>
-            <div class="auth-success" id="accountSuccessMsg"></div>
-            <form class="account-modal-body" id="accountForm" onsubmit="return false;">
+            <form class="account-modal-body" id="accountForm">
                 <div class="auth-field">
                     <label class="auth-label" for="accUsernameInput">Username</label>
-                    <input class="auth-input" id="accUsernameInput" type="text" autocomplete="username" required>
+                    <input type="text" class="auth-input" id="accUsernameInput" required />
                 </div>
                 <div class="auth-field" id="accCurrentPwField">
                     <label class="auth-label" for="accCurrentPwInput">Current Password</label>
-                    <input class="auth-input" id="accCurrentPwInput" type="password" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢">
+                    <input type="password" class="auth-input" id="accCurrentPwInput" placeholder="Enter current password" />
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="accNewPwInput">New Password</label>
-                    <input class="auth-input" id="accNewPwInput" type="password" autocomplete="new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                    <input type="password" class="auth-input" id="accNewPwInput" placeholder="At least 4 characters" required />
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="accConfirmPwInput">Confirm New Password</label>
-                    <input class="auth-input" id="accConfirmPwInput" type="password" autocomplete="new-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required>
+                    <input type="password" class="auth-input" id="accConfirmPwInput" placeholder="Re-enter new password" required />
                 </div>
+                <div class="auth-error" id="accountErrorMsg"></div>
+                <div class="auth-success" id="accountSuccessMsg"></div>
                 <div class="account-modal-actions">
-                    <button class="btn-cancel-learning" id="btnAccountCancel" type="button">Cancel</button>
-                    <button class="auth-btn-primary" id="btnAccountSave" type="submit" style="margin-top:0;">Save Credentials</button>
+                    <button type="button" class="btn-secondary" id="btnAccountCancel">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btnAccountSave">Save Credentials</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Cloud Sync Modal -->
-    <div class="account-modal-overlay" id="cloudSyncModalOverlay" role="dialog" aria-modal="true" aria-label="Cloud Sync Settings">
+    <div class="account-modal-overlay" id="cloudSyncModalOverlay" role="dialog" aria-modal="true" aria-label="Cloud Sync">
         <div class="account-modal">
             <div class="account-modal-header">
-                <div class="account-modal-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
-                    </svg>
-                    <span>Real-time Cloud Sync</span>
-                </div>
-                <button class="account-modal-close" id="btnCloudSyncClose" aria-label="Close">âœ•</button>
+                <h2 class="account-modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+                    <span>Automatic Cloud Sync</span>
+                </h2>
+                <button type="button" class="account-modal-close" id="btnCloudSyncClose" aria-label="Close">âœ•</button>
             </div>
             <div class="account-modal-body">
-                <div class="sync-status-banner" id="syncStatusBanner">
-                    <span class="sync-banner-indicator" id="syncBannerIndicator">â—</span>
-                    <span id="syncBannerText">Checking connection...</span>
+                <div class="sync-status-banner connected" id="syncStatusBanner">
+                    <div class="sync-banner-indicator">â—</div>
+                    <div>
+                        <div id="syncBannerText" style="font-weight:700;">Live Realtime Sync Active</div>
+                        <div id="syncDetailText" style="font-size:0.75rem;opacity:0.85;">Connected to Supabase. Instant sync enabled across PC & Mobile.</div>
+                    </div>
                 </div>
                 <div class="sync-info-row">
-                    <span class="auth-label">Status:</span>
-                    <span id="syncDetailText" style="font-size:var(--fs-xs);color:var(--text-secondary);">Connecting to Supabase...</span>
+                    <span style="color:var(--text-secondary);">Last Sync:</span>
+                    <strong id="syncLastTime">Just now</strong>
                 </div>
                 <div class="sync-info-row">
-                    <span class="auth-label">Last Synchronized:</span>
-                    <span id="syncLastTime" style="font-size:var(--fs-xs);color:var(--text);font-weight:600;">Never</span>
+                    <span style="color:var(--text-secondary);">Sync Target:</span>
+                    <span style="font-family:monospace;font-size:0.75rem;">app_sync (primary)</span>
                 </div>
-                <div class="account-modal-actions" style="margin-top:6px;">
-                    <button class="btn-cancel-learning" id="btnAccountSettingsOpen" type="button">Account Settings</button>
-                    <button class="auth-btn-primary" id="btnForceSync" type="button" style="margin-top:0;">âš¡ Sync Now</button>
+                <div class="sync-info-row">
+                    <span style="color:var(--text-secondary);">Sync Mode:</span>
+                    <span>Bidirectional Realtime</span>
+                </div>
+                <div class="account-modal-actions" style="margin-top:10px;">
+                    <button type="button" class="btn-secondary" id="btnAccountSettingsOpen">Account Credentials</button>
+                    <button type="button" class="btn-primary" id="btnForceSync">Force Sync Now</button>
                 </div>
             </div>
         </div>
     </div>
-<div class="eisen-overlay" id="eisenOverlay">
+
+    <div class="eisen-overlay" id="eisenOverlay">
         <div class="eisen-modal" id="eisenModal">
             <div class="eisen-header" id="eisenHeader">
                 <button class="eisen-back" id="eisenBack" title="Back to main matrix">←</button>
@@ -5677,6 +5757,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 });
 
                 eisenClose.addEventListener('click',closeEisenModal);
+                if(eisenOverlay)eisenOverlay.addEventListener('click',e=>{if(e.target===eisenOverlay)closeEisenModal();});
                 eisenBack.addEventListener('click',()=>{eisenView='main';renderEisen()});
                 initEisenModalDrag();
                 if(eisenCopyPng)eisenCopyPng.addEventListener('click',copyEisenPng);
@@ -5816,6 +5897,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 });
             }
             function hideBreakReminder(){breakToast.classList.remove('visible');breakToast.classList.add('hiding');setTimeout(()=>{breakToast.classList.remove('hiding')},350)}
+            window.__taskPlannerAppBridge = {
+                renderCalendar,
+                renderLearningsSection,
+                renderHabits,
+                renderDestinationTimes,
+                renderEisen,
+                selectDate,
+                selectWeek,
+                getData,
+                getWeekData,
+                getSelectedDateStr: () => selectedDateStr,
+                getSelectedWeekId: () => selectedWeekId,
+                getSelectionMode: () => selectionMode,
+                clearDataCache: () => { currentDataCache = null; }
+            };
             window.__taskPlannerIDBReady.then(()=>init());
         })();
     </script>
@@ -7762,7 +7858,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             });
         })();
     </script>
-    <!-- Auth Controller & Security Script -->
+    <!-- Auth Controller & Realtime Cloud Sync Engine -->
     <script>
     (function(){
         async function sha256(message) {
@@ -7802,7 +7898,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         h = g; g = f; f = e; e = safe_add(d, T1); d = c; c = b; b = a; a = safe_add(T1, T2);
                     }
                     HASH[0] = safe_add(a, HASH[0]); HASH[1] = safe_add(b, HASH[1]); HASH[2] = safe_add(c, HASH[2]); HASH[3] = safe_add(d, HASH[3]);
-                    HASH[4] = safe_add(e, HASH[4]); HASH[5] = safe_add(f, HASH[5]); HASH[6] = safe_add(g, HASH[6]); HASH[7] = safe_add(h, HASH[7]);
+                    HASH[4] = safe_add(e, HASH[4]); HASH[5] = safe_add(g, HASH[5]); HASH[6] = safe_add(g, HASH[6]); HASH[7] = safe_add(h, HASH[7]);
                 }
                 return HASH;
             }
@@ -8044,7 +8140,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         })();
 
         // ============================================================
-        // REALTIME CLOUD SYNC ENGINE (Supabase)
+        // REALTIME CLOUD SYNC ENGINE (Supabase + window.appStorage)
         // ============================================================
         const SUPABASE_CONFIG = {
             url: 'https://sjstevixlkbvywfynqwg.supabase.co',
@@ -8054,6 +8150,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         let supabaseClient = null;
         let isApplyingRemoteUpdate = false;
         let lastLocalPushTime = 0;
+        let lastRemoteUpdateTime = 0;
         let cloudPushTimer = null;
 
         const btnCloudSync = document.getElementById('btnCloudSync');
@@ -8081,15 +8178,32 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if(syncDetailText && detail) syncDetailText.textContent = detail;
         }
 
+        function getAppStorage(){
+            return (window.appStorage && typeof window.appStorage.getItem === 'function') ? window.appStorage : window.localStorage;
+        }
+
         function collectSyncPayload(){
             const items = {};
-            const storage = window.localStorage;
-            for(let i = 0; i < storage.length; i++){
+            const storage = getAppStorage();
+            const len = storage ? storage.length : 0;
+            for(let i = 0; i < len; i++){
                 const k = storage.key(i);
                 if(!k) continue;
                 if(k.startsWith('td_') || k.startsWith('tdw_')){
-                    if(k.startsWith('tp_auth_') || k === 'td_auth_session') continue;
-                    items[k] = storage.getItem(k);
+                    if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') continue;
+                    const val = storage.getItem(k);
+                    if(val !== null && val !== undefined){
+                        items[k] = val;
+                    }
+                }
+            }
+            if(window.localStorage && window.localStorage !== storage){
+                for(let i = 0; i < window.localStorage.length; i++){
+                    const k = window.localStorage.key(i);
+                    if(k && (k.startsWith('td_') || k.startsWith('tdw_')) && items[k] === undefined){
+                        if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') continue;
+                        items[k] = window.localStorage.getItem(k);
+                    }
                 }
             }
             return items;
@@ -8112,6 +8226,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     setSyncStatus('error', 'Sync Failed', error.message || 'Error pushing to cloud');
                 } else {
                     lastLocalPushTime = now.getTime();
+                    lastRemoteUpdateTime = lastLocalPushTime;
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
                     if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
                 }
@@ -8132,39 +8247,56 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if(!remotePayload || typeof remotePayload !== 'object') return;
             const remoteTime = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
             if(remoteTime && lastLocalPushTime && remoteTime < lastLocalPushTime) {
-                return; // Local is already ahead
+                return; // Local push is newer
             }
 
             isApplyingRemoteUpdate = true;
             let changesMade = false;
-            const storage = window.localStorage;
+            const storage = getAppStorage();
 
             try {
                 for(const [k, v] of Object.entries(remotePayload)){
-                    if(storage.getItem(k) !== v){
+                    if(!k || (!k.startsWith('td_') && !k.startsWith('tdw_'))) continue;
+                    if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') continue;
+
+                    const cur = storage.getItem(k);
+                    if(cur !== v){
                         storage.setItem(k, v);
                         changesMade = true;
                     }
                 }
 
                 if(changesMade){
-                    if(typeof renderCalendar === 'function') renderCalendar();
-                    if(typeof renderLearningsSection === 'function') renderLearningsSection();
-                    if(typeof renderHabits === 'function') renderHabits();
-                    if(typeof renderDestinationTimes === 'function') renderDestinationTimes();
+                    const bridge = window.__taskPlannerAppBridge;
+                    if(bridge){
+                        bridge.clearDataCache();
+                        bridge.renderCalendar();
+                        bridge.renderLearningsSection();
+                        bridge.renderHabits();
+                        if(bridge.renderDestinationTimes) bridge.renderDestinationTimes();
 
-                    if(typeof selectedDateStr !== 'undefined' && selectedDateStr && typeof updateDetailPanel === 'function' && typeof getData === 'function'){
-                        updateDetailPanel(getData(selectedDateStr) || { tasks:[], notes:'', dayTitle:'', holiday:false, attachments:[], learnings:[], habits:[] }, selectedDateStr);
-                    }
-                    if(typeof selectedWeekId !== 'undefined' && selectedWeekId && typeof updateDetailPanelWeek === 'function' && typeof getWeekData === 'function'){
-                        updateDetailPanelWeek(getWeekData(selectedWeekId) || { tasks:[], notes:'' }, selectedWeekId);
+                        const mode = bridge.getSelectionMode ? bridge.getSelectionMode() : 'daily';
+                        const sDate = bridge.getSelectedDateStr ? bridge.getSelectedDateStr() : null;
+                        const sWeek = bridge.getSelectedWeekId ? bridge.getSelectedWeekId() : null;
+
+                        if(mode === 'daily' && sDate && bridge.selectDate){
+                            bridge.selectDate(sDate);
+                        } else if(mode === 'weekly' && sWeek && bridge.selectWeek){
+                            bridge.selectWeek(sWeek);
+                        }
+
+                        const em = document.getElementById('eisenOverlay');
+                        if(em && em.classList.contains('active') && bridge.renderEisen){
+                            bridge.renderEisen();
+                        }
                     }
                 }
                 const now = new Date();
-                setSyncStatus('connected', 'Live Sync Active', 'Received updates from other device');
+                lastRemoteUpdateTime = remoteTime || now.getTime();
+                setSyncStatus('connected', 'Live Sync Active', 'Received updates from cloud');
                 if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
             } finally {
-                setTimeout(() => { isApplyingRemoteUpdate = false; }, 100);
+                setTimeout(() => { isApplyingRemoteUpdate = false; }, 150);
             }
         }
 
@@ -8175,6 +8307,61 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return;
             }
 
+            // 1. Wait for IndexedDB initialization
+            if(window.__taskPlannerIDBReady){
+                try { await window.__taskPlannerIDBReady; } catch(e){}
+            }
+
+            // 2. Intercept mutations on window.appStorage and window.localStorage
+            function hookStorage(){
+                const storage = window.appStorage;
+                if(storage && storage.setItem && !storage.__syncHooked){
+                    const origSet = storage.setItem.bind(storage);
+                    const origRem = storage.removeItem.bind(storage);
+                    storage.setItem = function(k, v){
+                        origSet(k, v);
+                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
+                            if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                scheduleCloudPush();
+                            }
+                        }
+                    };
+                    storage.removeItem = function(k){
+                        origRem(k);
+                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
+                            if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                scheduleCloudPush();
+                            }
+                        }
+                    };
+                    storage.__syncHooked = true;
+                }
+
+                if(window.localStorage && !window.localStorage.__syncHooked){
+                    const origLsSet = window.localStorage.setItem.bind(window.localStorage);
+                    const origLsRem = window.localStorage.removeItem.bind(window.localStorage);
+                    window.localStorage.setItem = function(k, v){
+                        origLsSet(k, v);
+                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
+                            if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                scheduleCloudPush();
+                            }
+                        }
+                    };
+                    window.localStorage.removeItem = function(k){
+                        origLsRem(k);
+                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
+                            if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                scheduleCloudPush();
+                            }
+                        }
+                    };
+                    window.localStorage.__syncHooked = true;
+                }
+            }
+            hookStorage();
+
+            // 3. Connect to Supabase
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
                 setSyncStatus('syncing', 'Connecting to Cloud...', 'Checking database for sync data');
@@ -8185,16 +8372,46 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     .eq('id', 'primary')
                     .maybeSingle();
 
+                const localPayload = collectSyncPayload();
+                const localKeys = Object.keys(localPayload);
+                const remotePayload = (data && data.data) ? data.data : {};
+                const remoteKeys = Object.keys(remotePayload);
+
                 if(error){
+                    console.warn('Cloud sync error on init:', error);
                     setSyncStatus('error', 'Connection Error', error.message);
-                } else if(data && data.data){
-                    applyIncomingPayload(data.data, data.updated_at);
-                    setSyncStatus('connected', 'Live Sync Active', 'Connected & synced with cloud');
-                    if(syncLastTime) syncLastTime.textContent = new Date(data.updated_at).toLocaleTimeString();
-                } else {
+                } else if(remoteKeys.length > 0 && localKeys.length === 0){
+                    // Fresh device (e.g. mobile opening for first time)
+                    applyIncomingPayload(remotePayload, data.updated_at);
+                    setSyncStatus('connected', 'Live Sync Active', 'Loaded data from cloud');
+                } else if(localKeys.length > 0 && remoteKeys.length === 0){
+                    // Cloud has no data, push local data
                     await pushToCloud();
+                } else if(localKeys.length > 0 && remoteKeys.length > 0){
+                    // Both have data: merge non-conflicting keys
+                    let mergedCount = 0;
+                    const store = getAppStorage();
+                    for(const [k, v] of Object.entries(remotePayload)){
+                        if(localPayload[k] === undefined){
+                            store.setItem(k, v);
+                            mergedCount++;
+                        }
+                    }
+                    if(mergedCount > 0){
+                        const bridge = window.__taskPlannerAppBridge;
+                        if(bridge){
+                            bridge.clearDataCache();
+                            bridge.renderCalendar();
+                            bridge.renderLearningsSection();
+                            bridge.renderHabits();
+                        }
+                    }
+                    await pushToCloud();
+                } else {
+                    setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
                 }
 
+                // 4. Realtime subscription
                 supabaseClient
                     .channel('realtime_app_sync_channel')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync', filter: 'id=eq.primary' }, (payload) => {
@@ -8208,27 +8425,43 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         }
                     });
 
+                // 5. Polling on visibility change / focus (vital for mobile wake-up)
+                async function pollCheckRemote(){
+                    if(!supabaseClient || isApplyingRemoteUpdate) return;
+                    try {
+                        const { data, error } = await supabaseClient
+                            .from('app_sync')
+                            .select('updated_at')
+                            .eq('id', 'primary')
+                            .maybeSingle();
+                        if(!error && data && data.updated_at){
+                            const remoteTime = new Date(data.updated_at).getTime();
+                            if(remoteTime > lastRemoteUpdateTime && remoteTime > (lastLocalPushTime + 2000)){
+                                const fullRes = await supabaseClient
+                                    .from('app_sync')
+                                    .select('data, updated_at')
+                                    .eq('id', 'primary')
+                                    .maybeSingle();
+                                if(fullRes.data && fullRes.data.data){
+                                    applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at);
+                                }
+                            }
+                        }
+                    } catch(e){}
+                }
+
+                document.addEventListener('visibilitychange', () => {
+                    if(document.visibilityState === 'visible'){
+                        pollCheckRemote();
+                    }
+                });
+                window.addEventListener('focus', pollCheckRemote);
+                setInterval(pollCheckRemote, 25000);
+
             } catch(e){
                 console.warn('Supabase init error:', e);
                 setSyncStatus('error', 'Init Error', e.message);
             }
-
-            const origSetItem = window.localStorage.setItem.bind(window.localStorage);
-            const origRemoveItem = window.localStorage.removeItem.bind(window.localStorage);
-
-            window.localStorage.setItem = function(k, v){
-                origSetItem(k, v);
-                if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
-                    if(!k.startsWith('tp_auth_')) scheduleCloudPush();
-                }
-            };
-
-            window.localStorage.removeItem = function(k){
-                origRemoveItem(k);
-                if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
-                    if(!k.startsWith('tp_auth_')) scheduleCloudPush();
-                }
-            };
         }
 
         if(btnCloudSync){
@@ -8240,7 +8473,17 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if(cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('active');
         }
         if(btnCloudSyncClose) btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
-        if(btnForceSync) btnForceSync.addEventListener('click', () => { pushToCloud(); });
+        if(btnForceSync) {
+            btnForceSync.addEventListener('click', async () => {
+                setSyncStatus('syncing', 'Syncing now...', 'Force syncing data with Supabase');
+                try {
+                    await pushToCloud();
+                    alert('Cloud sync completed! All data synchronized with Supabase.');
+                } catch(e){
+                    alert('Sync error: ' + (e.message || e));
+                }
+            });
+        }
         if(btnAccountSettingsOpen) {
             btnAccountSettingsOpen.addEventListener('click', () => {
                 closeCloudSyncModal();
