@@ -6075,7 +6075,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 try {
                     const raw = appStorage.getItem(PERT_KEY_PREFIX + ds);
                     if(!raw){ activities = []; tasks = []; startTime = START_DEFAULT; return; }
-                    const d = JSON.parse(raw);
+                    const d = (typeof raw === 'string') ? JSON.parse(raw) : raw;
                     if(!d || !Array.isArray(d.activities)){ activities = []; tasks = []; startTime = START_DEFAULT; return; }
                     activities = d.activities.map(a => ({
                         id: a.id || uid(),
@@ -7821,24 +7821,20 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 requestAnimationFrame(() => { if(baseW) fitToView(); });
             }
 
-            function reloadPertForCurrentDate(){
-                if(!currentDate) return;
+            function reloadPertForDate(targetDate){
+                const ds = targetDate || currentDate || window.__tdSelectedDate || (window.__taskPlannerAppBridge && window.__taskPlannerAppBridge.getSelectedDateStr ? window.__taskPlannerAppBridge.getSelectedDateStr() : null);
+                if(!ds) return;
+                currentDate = ds;
                 closePredsMenu();
-                loadForDate(currentDate);
+                loadForDate(ds);
                 refresh(true);
                 requestAnimationFrame(() => { if(baseW) fitToView(); });
             }
-            window.__taskPlannerReloadPert = reloadPertForCurrentDate;
+            window.__taskPlannerReloadPert = reloadPertForDate;
 
             window.addEventListener('td-pert-cloud-reload', function(e){
-                const targetDate = (e && e.detail && e.detail.date) ? e.detail.date : currentDate;
-                if(targetDate){
-                    currentDate = targetDate;
-                    closePredsMenu();
-                    loadForDate(targetDate);
-                    refresh(true);
-                    requestAnimationFrame(() => { if(baseW) fitToView(); });
-                }
+                const targetDate = (e && e.detail && e.detail.date) ? e.detail.date : null;
+                reloadPertForDate(targetDate);
             });
 
             function requestFit(){
@@ -8281,8 +8277,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') continue;
 
                     const cur = storage.getItem(k);
-                    if(cur !== v){
-                        storage.setItem(k, v);
+                    const strVal = (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v);
+                    if(cur !== strVal){
+                        storage.setItem(k, strVal);
                         changesMade = true;
                     }
                 }
@@ -8410,35 +8407,28 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(error){
                     console.warn('Cloud sync error on init:', error);
                     setSyncStatus('error', 'Connection Error', error.message);
-                } else if(remoteKeys.length > 0 && localKeys.length === 0){
-                    // Fresh device (e.g. mobile opening for first time)
+                } else if(remoteKeys.length > 0){
+                    // Remote Supabase database is central source of truth for all shared keys
                     applyIncomingPayload(remotePayload, data.updated_at);
-                    setSyncStatus('connected', 'Live Sync Active', 'Loaded data from cloud');
-                } else if(localKeys.length > 0 && remoteKeys.length === 0){
-                    // Cloud has no data, push local data
-                    await pushToCloud();
-                } else if(localKeys.length > 0 && remoteKeys.length > 0){
-                    // Both have data: merge non-conflicting keys
-                    let mergedCount = 0;
-                    const store = getAppStorage();
-                    for(const [k, v] of Object.entries(remotePayload)){
-                        if(localPayload[k] === undefined){
-                            store.setItem(k, v);
-                            mergedCount++;
+
+                    // Check if local device has any offline keys that don't exist on remote at all
+                    let localHasUnique = false;
+                    for(const k of localKeys){
+                        if(remotePayload[k] === undefined){
+                            localHasUnique = true;
+                            break;
                         }
                     }
-                    if(mergedCount > 0){
-                        const bridge = window.__taskPlannerAppBridge;
-                        if(bridge){
-                            bridge.clearDataCache();
-                            bridge.renderCalendar();
-                            bridge.renderLearningsSection();
-                            bridge.renderHabits();
-                        }
-                        if(typeof window.__taskPlannerReloadPert === 'function'){
-                            window.__taskPlannerReloadPert();
-                        }
+                    if(localHasUnique){
+                        await pushToCloud();
+                    } else {
+                        lastLocalPushTime = new Date(data.updated_at).getTime();
+                        lastRemoteUpdateTime = lastLocalPushTime;
+                        setSyncStatus('connected', 'Live Sync Active', 'Synced with cloud');
+                        if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
                     }
+                } else if(localKeys.length > 0){
+                    // Remote has no data yet, seed it with local data
                     await pushToCloud();
                 } else {
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
@@ -8469,7 +8459,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             .maybeSingle();
                         if(!error && data && data.updated_at){
                             const remoteTime = new Date(data.updated_at).getTime();
-                            if(remoteTime > lastRemoteUpdateTime && remoteTime > (lastLocalPushTime + 2000)){
+                            if(remoteTime > lastRemoteUpdateTime && (!lastLocalPushTime || remoteTime > lastLocalPushTime)){
                                 const fullRes = await supabaseClient
                                     .from('app_sync')
                                     .select('data, updated_at')
