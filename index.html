@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
@@ -1712,6 +1712,155 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   .calendar-cell:hover,.week-cell:hover,.learning-tile:hover,.stat-item:hover,.eisen-chip:hover{transform:none}
 }
+/* ============================================================
+   17 Â· AUTHENTICATION & LOGIN SCREEN
+   ============================================================ */
+.auth-overlay{
+  position:fixed;inset:0;z-index:99999;
+  background:var(--bg);
+  display:flex;align-items:center;justify-content:center;
+  padding:var(--sp-4);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  transition:opacity var(--dur-slow) var(--ease-out), visibility var(--dur-slow);
+}
+.auth-overlay.hidden{
+  opacity:0;visibility:hidden;pointer-events:none;
+}
+.auth-card{
+  width:100%;max-width:420px;
+  background:var(--card-bg);
+  border:1px solid var(--border-strong);
+  border-radius:var(--r-xl);
+  box-shadow:var(--shadow-lift);
+  padding:var(--sp-7);
+  display:flex;flex-direction:column;gap:var(--sp-4);
+  animation:fadeSlideUp var(--dur-slow) var(--ease-out);
+}
+.auth-header{
+  text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--sp-2);
+}
+.auth-icon-badge{
+  width:52px;height:52px;border-radius:var(--r-full);
+  background:var(--accent-light);border:1.5px solid var(--accent-border);
+  color:var(--accent);display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;margin-bottom:var(--sp-1);
+}
+.auth-title{
+  font-size:var(--fs-xl);font-weight:700;letter-spacing:-.02em;color:var(--text);line-height:1.2;
+}
+.auth-subtitle{
+  font-size:var(--fs-sm);color:var(--text-secondary);line-height:1.4;
+}
+.auth-form{
+  display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-1);
+}
+.auth-field{
+  display:flex;flex-direction:column;gap:var(--sp-1);position:relative;
+}
+.auth-label{
+  font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);
+}
+.auth-input-wrap{
+  position:relative;display:flex;align-items:center;
+}
+.auth-input{
+  width:100%;padding:10px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-md);
+  font-size:var(--fs-md);font-family:inherit;
+  background:var(--input-bg);color:var(--text);
+  outline:none;transition:border-color var(--dur-fast), box-shadow var(--dur-fast), background-color var(--dur-fast);
+}
+.auth-input:focus{
+  border-color:var(--accent-border);box-shadow:var(--focus-ring);background:var(--input-bg-focus);
+}
+.auth-input-wrap .auth-toggle-pwd{
+  position:absolute;right:10px;background:none;border:none;color:var(--text-secondary);
+  cursor:pointer;font-size:.9rem;padding:4px;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--r-xs);
+}
+.auth-input-wrap .auth-toggle-pwd:hover{color:var(--text);}
+.auth-row-remember{
+  display:flex;align-items:center;justify-content:space-between;font-size:var(--fs-xs);color:var(--text-secondary);
+}
+.auth-checkbox-label{
+  display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;
+}
+.auth-checkbox-label input[type="checkbox"]{
+  accent-color:var(--accent);cursor:pointer;
+}
+.auth-btn-submit{
+  width:100%;padding:12px 18px;margin-top:var(--sp-1);
+  border:none;border-radius:var(--r-md);
+  background:var(--accent);color:#fff;
+  font-size:var(--fs-md);font-weight:600;font-family:inherit;
+  cursor:pointer;box-shadow:var(--shadow-md);
+  transition:filter var(--dur-fast), transform var(--dur-fast);
+  display:flex;align-items:center;justify-content:center;gap:var(--sp-2);
+}
+.auth-btn-submit:hover{filter:brightness(1.08);transform:translateY(-1px);}
+.auth-btn-submit:active{transform:translateY(0) scale(.98);}
+.auth-msg{
+  font-size:var(--fs-xs);padding:8px 12px;border-radius:var(--r-sm);
+  display:none;align-items:center;gap:6px;line-height:1.4;
+}
+.auth-msg.error{
+  display:flex;background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);
+}
+.auth-msg.success{
+  display:flex;background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);
+}
+.auth-msg.info{
+  display:flex;background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning-border);
+}
+.auth-default-hint{
+  padding:10px 12px;border-radius:var(--r-md);
+  background:var(--surface-2);border:1px solid var(--border);
+  font-size:var(--fs-xs);line-height:1.5;color:var(--text-secondary);
+}
+.auth-default-hint code{
+  font-family:var(--font-mono);font-size:.9em;background:var(--neutral-tint);
+  padding:1px 5px;border-radius:3px;color:var(--text);font-weight:600;border:1px solid var(--border);
+}
+
+/* Change Credentials Modal */
+.change-creds-overlay{
+  position:fixed;inset:0;z-index:100000;background:var(--modal-overlay);
+  backdrop-filter:blur(6px) saturate(120%);
+  -webkit-backdrop-filter:blur(6px) saturate(120%);
+  display:none;align-items:center;justify-content:center;padding:var(--sp-4);
+  opacity:0;transition:opacity var(--dur-base) var(--ease-in-out);
+}
+.change-creds-overlay.active{
+  display:flex;opacity:1;
+}
+.change-creds-modal{
+  background:var(--card-bg);border:1px solid var(--border-strong);
+  border-radius:var(--r-xl);box-shadow:var(--shadow-lift);
+  padding:var(--sp-6);width:100%;max-width:440px;
+  display:flex;flex-direction:column;gap:var(--sp-4);
+  transform:scale(.97);opacity:0;
+  transition:transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+.change-creds-overlay.active .change-creds-modal{
+  transform:scale(1);opacity:1;
+}
+.change-creds-header{
+  display:flex;align-items:center;justify-content:space-between;
+}
+.change-creds-title{
+  font-size:var(--fs-lg);font-weight:700;color:var(--text);letter-spacing:-.015em;
+  display:flex;align-items:center;gap:var(--sp-2);
+}
+.change-creds-close{
+  width:28px;height:28px;border-radius:var(--r-full);border:1px solid var(--border);
+  background:var(--card-bg);cursor:pointer;font-size:.8rem;
+  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);
+}
+.change-creds-close:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-border);}
+.change-creds-actions{
+  display:flex;gap:var(--sp-2);justify-content:flex-end;margin-top:var(--sp-2);
+}
 </style>
 </head>
 <body>
@@ -1730,6 +1879,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <button class="icon-btn" id="btnExportPdf" title="Export PDF" aria-label="Export PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
                     <button class="icon-btn" id="btnImport" title="Import JSON" aria-label="Import JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
                     <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
+                                        <button class="icon-btn" id="btnAuthAccount" title="Account / Change Password" aria-label="Account Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+                    <button class="icon-btn" id="btnAuthLogout" title="Log Out" aria-label="Log Out"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
                     <button class="icon-btn" id="btnTheme" title="Cycle theme"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></button>
                 </div>
             </div>
@@ -1760,6 +1911,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 </div>
             </div>
 
+            <!-- Destination Time — live chained arrival clocks -->
             <div class="destination-time-section ui-section" id="destinationTimeSection">
                 <div class="ui-section-header" id="destinationTimeHeader">
                     <div class="ui-section-title"><button class="ui-section-chevron" type="button" aria-label="Toggle Destination Time">▼</button><span>🧭 Destination Time</span></div>
@@ -1777,6 +1929,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 </div>
             </div>
 
+            <!-- PERT — Activity on Arrow Network (collapsible) -->
             <div class="pert-section" id="pertSection">
                 <div class="pert-header">
                     <div class="pert-title">
@@ -1894,6 +2047,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 <button class="btn-copy-png-task" id="btnTaskListPng" title="Copy task list as PNG">📷 PNG</button>
             </div>
 
+            <!-- TOP ACTION BAR FOR THE ACTIVE TASK / MULTI-SELECTED TASKS -->
             <div class="task-toolbar disabled" id="taskToolbar">
                 <div class="task-toolbar-info">
                     <span class="task-toolbar-label">Task</span>
@@ -2343,6 +2497,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function countAllAttachments(data){let c=(data?.attachments||[]).length;(data?.tasks||[]).forEach(t=>{c+=(t.attachments||[]).length});return c}
             function updateProgressViz(data){const s=getTaskStats(data);progressPercent.textContent=s.rate+'%';progressFill.style.width=s.rate+'%';progressPercent.style.color=s.rate===100?'var(--success)':(s.rate>50?'var(--accent)':'var(--warning)')}
 
+            /* ============================================================
+               MARKDOWN RENDERER (lightweight, safe)
+               ============================================================ */
             function renderMarkdown(text){
                 if(text===undefined||text===null||text==='')return '';
                 let s=escapeHtml(String(text));
@@ -2412,6 +2569,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return String(t).split('\n')[0].trim();
             }
 
+            /* ============================================================
+               UNDO / REDO SYSTEM
+               ============================================================ */
             function captureAllState(){
                 const s={};
                 for(let i=0;i<appStorage.length;i++){
@@ -2484,6 +2644,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 undoToastTimer=setTimeout(()=>undoToast.classList.remove('visible'),6500);
             }
 
+            /* ============================================================
+               MOVE BETWEEN DATES
+               ============================================================ */
             function moveTaskBetweenDates(taskId,fromDate,toDate,opts){
                 opts=opts||{};
                 if(!taskId||!fromDate||!toDate||fromDate===toDate)return false;
@@ -2551,6 +2714,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return true;
             }
 
+            /* ============================================================
+               DECKS
+               ============================================================ */
             function getAllDecks(){
                 const decks=new Set();
                 for(let i=0;i<appStorage.length;i++){
@@ -4968,6 +5134,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
             function escHtmlSafe(v){const d=document.createElement('div');d.textContent=String(v??'');return d.innerHTML.replace(/"/g,'&quot;')}
 
+            /* Build only the DOM once.  Typing into the inputs must not trigger a rebuild. */
             function buildDestinationRowsHTML(){
                 const now=new Date();
                 let cumulative=0;
@@ -4986,6 +5153,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }).join('');
             }
 
+            /* Only update computed values (clock + meta).  Never touches input elements. */
             function updateDestinationComputeds(){
                 const now=new Date();
                 const localClock=document.getElementById('destinationLocalClock');
@@ -5061,6 +5229,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 destinationClockTimer=setInterval(updateDestinationComputeds,1000);
             }
 
+            /* ------------------------------------------------------------
+               Main detail-panel collapsible sections.
+               Rebuilt to preserve daily-only / weekly-only classes on the
+               wrapper so sections hide correctly in weekly mode.
+               ------------------------------------------------------------ */
             function initMainCollapsibleSections(){
                 const calPanel=document.getElementById('calendarPanel');
                 const calLayout=document.querySelector('.calendar-layout');
@@ -5659,6 +5832,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return lines;
             }
 
+            /* ---------- Predecessors menu positioning ----------------
+               The table body has overflow-y:auto which would clip an
+               absolutely-positioned menu.  We anchor the menu with
+               position:fixed to the trigger element's viewport rect and
+               flip it above when there isn't room below.
+               ---------------------------------------------------------- */
             function positionPredsMenu(displayEl, menuEl){
                 const rect = displayEl.getBoundingClientRect();
                 menuEl.style.position = 'fixed';
@@ -5667,6 +5846,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 menuEl.style.maxWidth = '340px';
                 menuEl.style.zIndex = '99999';
 
+                // First lay it out to measure height
                 menuEl.style.top = '-9999px';
                 const menuHeight = menuEl.offsetHeight || 220;
 
@@ -5682,6 +5862,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
             }
 
+            /* ---------- Start-time helpers ---------- */
             function parseStartTime(str){
                 if(str === undefined || str === null) return null;
                 const m = /^(\d{1,2}):(\d{2})/.exec(String(str).trim());
@@ -5729,6 +5910,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderNetwork(res);
             }
 
+            /* ---------- Storage ---------- */
             function loadForDate(ds){
                 if(!ds){ activities = []; tasks = []; startTime = START_DEFAULT; return; }
                 try {
@@ -5775,6 +5957,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return a.activityText ? String(a.activityText).trim() : '';
             }
 
+            /* ---------- Table rendering ---------- */
             function renderTable(){
                 if(!currentDate){
                     tableBody.innerHTML = '<div class="pert-empty-row">Select a date on the calendar to manage its PERT network.</div>';
@@ -5865,6 +6048,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 tasksListEl.innerHTML = html;
             }
 
+            /* ---------- PERT computation ---------- */
             function buildResolved(){
                 const list = [], byId = {};
                 activities.forEach(a => {
@@ -6132,52 +6316,26 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             /* ---------- Network layout & rendering ---------- */
             const NODE_R = 16;
             const PAD_X = 30;
-            const PAD_Y = 78;
-            const LANE_H = 190;
+            const PAD_Y = 76;
+            const LANE_H = 160;
             const LABEL_LINE_H = 12;
             const LABEL_SUB_H = 11;
             const LABEL_CHAR_W = 6.25;
             const LABEL_PAD_X = 14;
-            const LABEL_TOP_PAD = 12;
-            const LABEL_BOTTOM_PAD = 8;
-            const LEVEL_ORDER = [0, -1, -2, -3, 1, 2, 3];
 
-            function buildActivityLabelMetrics(act, esH, efH, startMin){
+            function activityLabelMetrics(act){
                 const lines = wrapLabel(act.displayName, 16, 2);
-                const teText = 'tₑ ' + fmt(act.te, 2) + 'h';
-                const timeText = formatClock(startMin + esH * 60) + '→' + formatClock(startMin + efH * 60);
-
-                let maxChars = 5;
-                lines.forEach(l => { maxChars = Math.max(maxChars, l.length); });
-                maxChars = Math.max(maxChars, teText.length, timeText.length);
-
+                let maxChars = 4;
+                lines.forEach(line => { maxChars = Math.max(maxChars, line.length); });
                 const width = maxChars * LABEL_CHAR_W + LABEL_PAD_X;
-                const height = LABEL_TOP_PAD + (lines.length - 1) * LABEL_LINE_H + LABEL_SUB_H * 2 + LABEL_BOTTOM_PAD;
-
-                return { lines, teText, timeText, width, height };
+                const height = lines.length * LABEL_LINE_H + LABEL_SUB_H + 10;
+                return { lines, width, height };
             }
 
-            function labelMarkupAtRect(rect, color, metrics){
-                const lines = metrics.lines;
-                const w = metrics.width, h = metrics.height;
-                const mx = rect.x + w / 2;
-
-                let out = `<rect x="${rect.x.toFixed(2)}" y="${rect.y.toFixed(2)}" width="${w.toFixed(2)}" height="${h.toFixed(2)}" rx="5" class="pert-edge-label-bg" style="stroke:${color};stroke-opacity:0.55"/>`;
-
-                let ty = rect.y + LABEL_TOP_PAD;
-                lines.forEach((line, i) => {
-                    out += `<text x="${mx.toFixed(2)}" y="${(ty + i * LABEL_LINE_H).toFixed(2)}" class="pert-edge-label" style="fill:${color}">${esc(line)}</text>`;
-                });
-
-                ty += (lines.length - 1) * LABEL_LINE_H + LABEL_SUB_H;
-                out += `<text x="${mx.toFixed(2)}" y="${ty.toFixed(2)}" class="pert-edge-sub" style="fill:${color};fill-opacity:0.95;font-weight:700">${esc(metrics.teText)}</text>`;
-
-                ty += LABEL_SUB_H;
-                out += `<text x="${mx.toFixed(2)}" y="${ty.toFixed(2)}" class="pert-edge-sub" style="fill:${color};fill-opacity:0.7">${esc(metrics.timeText)}</text>`;
-
-                return out;
-            }
-
+            /* Smallest scale that guarantees two node circles on the same
+               lane never overlap.  No upper clamp — previously an upper
+               clamp caused visual overlaps when two nodes were very close
+               in time. */
             function calculateTimeScale(activities, startTime, endTime, laneOf){
                 const MIN_GAP_PX = NODE_R * 2 + 2;
                 const laneTimes = {};
@@ -6203,6 +6361,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 });
                 if(requiredScale <= 0) return 60;
                 return Math.max(2, requiredScale);
+            }
+
+            function labelMarkupAtRect(act, rect, color){
+                const metrics = activityLabelMetrics(act);
+                const lines = metrics.lines;
+                const blockW = metrics.width;
+                const blockH = metrics.height;
+                const mx = rect.x + blockW / 2;
+                let out = `<rect x="${rect.x.toFixed(2)}" y="${rect.y.toFixed(2)}" width="${blockW.toFixed(2)}" height="${blockH.toFixed(2)}" rx="5" class="pert-edge-label-bg" style="stroke:${color};stroke-opacity:0.55"/>`;
+                const baseY = rect.y + 10;
+                lines.forEach((line, i) => {
+                    out += `<text x="${mx.toFixed(2)}" y="${(baseY + i * LABEL_LINE_H).toFixed(2)}" class="pert-edge-label" style="fill:${color}">${esc(line)}</text>`;
+                });
+                out += `<text x="${mx.toFixed(2)}" y="${(baseY + lines.length * LABEL_LINE_H + 1).toFixed(2)}" class="pert-edge-sub" style="fill:${color};fill-opacity:0.8">${fmt(act.te,2)}</text>`;
+                return out;
             }
 
             function taskTimeHours(raw){
@@ -6243,22 +6416,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return a;
             }
 
-            function pickTaskLabelRect(dotX, dotY, m, occupied, levelH, minX, maxX){
+            function pickTaskLabelRect(dotX, dotY, m, occupied){
+                const DYS = [42,-42,76,-76,110,-110,144,-144,178,-178,212,-212,246,-246,280,-280,314,-314];
+                const DXS = [0,-52,52,-104,104,-156,156,-208,208];
                 let best = null, bestArea = Infinity;
-                for(let i = 0; i < LEVEL_ORDER.length; i++){
-                    const cy = dotY + LEVEL_ORDER[i] * levelH;
-                    let x = dotX - m.width / 2;
-                    const span = maxX - minX;
-                    if(span > 0){
-                        if(m.width >= span) x = minX + (span - m.width) / 2;
-                        else x = Math.max(minX, Math.min(x, maxX - m.width));
+                for(let i = 0; i < DYS.length; i++){
+                    const dy = DYS[i];
+                    for(let j = 0; j < DXS.length; j++){
+                        const dx = DXS[j];
+                        const r = { x: dotX + dx - m.width / 2, y: dotY + dy - m.height / 2, w: m.width, h: m.height };
+                        const area = overlapArea(r, occupied);
+                        if(area === 0) return r;
+                        if(area < bestArea){ bestArea = area; best = r; }
                     }
-                    const r = { x, y: cy - m.height / 2, w: m.width, h: m.height };
-                    const area = overlapArea(r, occupied);
-                    if(area < bestArea){ bestArea = area; best = r; }
-                    if(area === 0) break;
                 }
-                return best || { x: dotX - m.width / 2, y: dotY - m.height / 2 - levelH, w: m.width, h: m.height };
+                return best || { x: dotX - m.width / 2, y: dotY - m.height / 2 - 42, w: m.width, h: m.height };
             }
 
             function applyZoom(){
@@ -6364,18 +6536,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const occupied = [];
                 const occupy = (x, y, w, h) => occupied.push({ x, y, w, h });
 
-                const startMin = getStartMinutes();
-
-                let diagMinX = Infinity, diagMaxX = -Infinity;
-                sortedNodes.forEach(n => {
-                    if(n.x - NODE_R < diagMinX) diagMinX = n.x - NODE_R;
-                    if(n.x + NODE_R > diagMaxX) diagMaxX = n.x + NODE_R;
-                });
-                if(!isFinite(diagMinX)){ diagMinX = 0; diagMaxX = 140; }
-
                 sortedNodes.forEach(n => {
                     occupy(n.x - NODE_R - 2, n.y - NODE_R - 2, NODE_R * 2 + 4, NODE_R * 2 + 4);
-                    occupy(n.x - 36, n.y + NODE_R, 72, 26);
                 });
                 list.forEach(a => {
                     const lane = laneOf[a.id];
@@ -6385,57 +6547,71 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     occupy(Math.min(x1, x2) - 3, y - 7, Math.abs(x2 - x1) + 6, 14);
                 });
 
+                /* ----------------------------------------------------------
+                   Activity-label placement.
+                   We sort by area (large labels first), then for each label
+                   try an ever-widening set of candidate (dx, dy) offsets
+                   around the activity line's midpoint until we find a
+                   position that doesn't overlap any existing label,
+                   node, or activity line.  The search space is deliberately
+                   large (21 y-offsets × 17 x-offsets) so we can almost
+                   always find a clean slot without inflating the canvas.
+                   ---------------------------------------------------------- */
                 const labelJobs = list.map(a => {
                     const lane = laneOf[a.id];
                     const x1 = timeToX(startTime[a.id]);
                     const x2 = timeToX(endTime[a.id]);
-                    const metrics = buildActivityLabelMetrics(a, startTime[a.id], endTime[a.id], startMin);
-                    return { a, cx: (x1 + x2) / 2, baseY: laneToY(lane), metrics };
+                    const y = laneToY(lane);
+                    const metrics = activityLabelMetrics(a);
+                    return { a, cx: (x1 + x2) / 2, cy: y, metrics };
                 });
+                labelJobs.sort((p, q) => (q.metrics.width * q.metrics.height) - (p.metrics.width * p.metrics.height));
 
-                let maxLabelH = 0;
-                labelJobs.forEach(j => { if(j.metrics.height > maxLabelH) maxLabelH = j.metrics.height; });
-                if(maxLabelH <= 0) maxLabelH = 50;
-                const levelH = maxLabelH + 12;
-
-                labelJobs.sort((p, q) => {
-                    if(Math.abs(p.cx - q.cx) > 0.5) return p.cx - q.cx;
-                    return q.metrics.width - p.metrics.width;
-                });
-
-                const clampLabelX = (x, w) => {
-                    const span = diagMaxX - diagMinX;
-                    if(span <= 0) return x;
-                    if(w >= span) return diagMinX + (span - w) / 2;
-                    return Math.max(diagMinX, Math.min(x, diagMaxX - w));
-                };
+                const Y_OFFSETS = [
+                    0, -26, 26, -52, 52, -78, 78, -104, 104,
+                    -130, 130, -156, 156, -182, 182, -208, 208,
+                    -234, 234, -260, 260
+                ];
+                const X_OFFSETS = [
+                    0, -25, 25, -55, 55, -90, 90, -130, 130,
+                    -180, 180, -240, 240
+                ];
 
                 labelJobs.forEach(job => {
                     const m = job.metrics;
-                    let bestRect = null, bestArea = Infinity;
-                    for(let li = 0; li < LEVEL_ORDER.length; li++){
-                        const cy = job.baseY + LEVEL_ORDER[li] * levelH;
-                        const rect = {
-                            x: clampLabelX(job.cx - m.width / 2, m.width),
-                            y: cy - m.height / 2,
-                            w: m.width,
-                            h: m.height
-                        };
-                        const area = overlapArea(rect, occupied);
-                        if(area < bestArea){ bestArea = area; bestRect = rect; }
-                        if(area === 0) break;
+                    let bestRect = null, bestOverlap = Infinity;
+                    for(let yi = 0; yi < Y_OFFSETS.length; yi++){
+                        const dy = Y_OFFSETS[yi];
+                        for(let xi = 0; xi < X_OFFSETS.length; xi++){
+                            const dx = X_OFFSETS[xi];
+                            const rect = {
+                                x: job.cx + dx - m.width / 2,
+                                y: job.cy + dy - m.height / 2,
+                                w: m.width,
+                                h: m.height
+                            };
+                            const ov = overlapArea(rect, occupied);
+                            if(ov < bestOverlap){
+                                bestOverlap = ov;
+                                bestRect = rect;
+                                if(ov === 0) break;
+                            }
+                        }
+                        if(bestOverlap === 0) break;
                     }
                     if(!bestRect){
                         bestRect = {
-                            x: clampLabelX(job.cx - m.width / 2, m.width),
-                            y: job.baseY - m.height / 2 - levelH,
+                            x: job.cx - m.width / 2,
+                            y: job.cy - m.height / 2 - 60,
                             w: m.width, h: m.height
                         };
                     }
-                    job.a._labelPlacement = { rect: bestRect, metrics: m };
+                    job.a._labelPlacement = { rect: bestRect };
+                    // Pad by 2px so adjacent labels keep a visual gap.
                     occupy(bestRect.x - 2, bestRect.y - 2, bestRect.w + 4, bestRect.h + 4);
                 });
 
+                const startMin = getStartMinutes();
                 let svg = '';
 
                 list.forEach(a => {
@@ -6488,7 +6664,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         if(Math.abs(ay - by) > 0.5 || Math.abs(ax - bx) > 0.5){
                             svg += `<line x1="${ax.toFixed(2)}" y1="${ay.toFixed(2)}" x2="${bx.toFixed(2)}" y2="${by.toFixed(2)}" class="pert-label-link" style="stroke:${color};stroke-opacity:0.6"/>`;
                         }
-                        svg += labelMarkupAtRect(rect, color, placement.metrics);
+                        svg += labelMarkupAtRect(a, rect, color);
                         grow(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
                     }
                 });
@@ -6523,7 +6699,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         const lane = laneOf[host.id] !== undefined ? laneOf[host.id] : 0;
                         const dotX = timeToX(T), dotY = laneToY(lane);
                         const m = taskLabelMetrics(item.t);
-                        const rect = pickTaskLabelRect(dotX, dotY, m, occupied, levelH, diagMinX, diagMaxX);
+                        const rect = pickTaskLabelRect(dotX, dotY, m, occupied);
                         item._draw = { dotX, dotY, rect, m };
                         grow(dotX - 7, dotY - 7, dotX + 7, dotY + 7);
                         grow(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h);
@@ -6926,6 +7102,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         display.classList.add('open');
                         if(menu){
                             menu.hidden = false;
+                            // Position AFTER the menu is visible so we can measure it.
                             positionPredsMenu(display, menu);
                         }
                     }
@@ -7080,6 +7257,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
             });
 
+            /* Reposition / close the fixed-position menu on scroll / resize */
             tableBody.addEventListener('scroll', function(){
                 if(openPredsMenuId !== null) closePredsMenu();
             }, { passive: true });
@@ -7521,6 +7699,374 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
             });
         })();
+    </script>
+    <!-- Login Screen Overlay -->
+    <div class="auth-overlay" id="authOverlay">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon-badge">ðŸ”’</div>
+                <h1 class="auth-title">Task Planner</h1>
+                <p class="auth-subtitle">Please enter your credentials to access your planner</p>
+            </div>
+            <div class="auth-msg" id="loginErrorMsg"></div>
+            <form class="auth-form" id="loginForm" onsubmit="return false;">
+                <div class="auth-field">
+                    <label class="auth-label" for="loginUsername">Username</label>
+                    <div class="auth-input-wrap">
+                        <input type="text" class="auth-input" id="loginUsername" placeholder="Enter username" autocomplete="username" required>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label" for="loginPassword">Password</label>
+                    <div class="auth-input-wrap">
+                        <input type="password" class="auth-input" id="loginPassword" placeholder="Enter password" autocomplete="current-password" required>
+                        <button type="button" class="auth-toggle-pwd" id="toggleLoginPassword" title="Show/Hide password" aria-label="Toggle password visibility">ðŸ‘ï¸</button>
+                    </div>
+                </div>
+                <div class="auth-row-remember">
+                    <label class="auth-checkbox-label">
+                        <input type="checkbox" id="loginRemember" checked>
+                        <span>Remember me on this browser</span>
+                    </label>
+                </div>
+                <button type="submit" class="auth-btn-submit" id="btnLoginSubmit">
+                    <span>Sign In</span>
+                    <span>â†’</span>
+                </button>
+            </form>
+            <div class="auth-default-hint">
+                ðŸ”‘ <strong>Default Credentials:</strong><br>
+                Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>admin123</code><br>
+                <span style="font-size:0.75rem;opacity:0.85;">âš ï¸ You will be prompted to change these upon your first login.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Credentials Modal -->
+    <div class="change-creds-overlay" id="changeCredsOverlay" role="dialog" aria-modal="true">
+        <div class="change-creds-modal">
+            <div class="change-creds-header">
+                <span class="change-creds-title">ðŸ” <span id="changeCredsTitleText">Change Credentials</span></span>
+                <button class="change-creds-close" id="btnChangeCredsClose" title="Close" aria-label="Close">âœ•</button>
+            </div>
+            <div class="auth-msg" id="changeCredsMsg"></div>
+            <div class="auth-form">
+                <div class="auth-field" id="fieldCurrentPassword">
+                    <label class="auth-label" for="currentPassword">Current Password</label>
+                    <div class="auth-input-wrap">
+                        <input type="password" class="auth-input" id="currentPassword" placeholder="Enter current password" autocomplete="current-password">
+                        <button type="button" class="auth-toggle-pwd" id="toggleCurrentPassword" title="Show/Hide password">ðŸ‘ï¸</button>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label" for="newUsername">New Username</label>
+                    <div class="auth-input-wrap">
+                        <input type="text" class="auth-input" id="newUsername" placeholder="e.g. yourname" autocomplete="username">
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label" for="newPassword">New Password</label>
+                    <div class="auth-input-wrap">
+                        <input type="password" class="auth-input" id="newPassword" placeholder="Minimum 6 characters" autocomplete="new-password">
+                        <button type="button" class="auth-toggle-pwd" id="toggleNewPassword" title="Show/Hide password">ðŸ‘ï¸</button>
+                    </div>
+                </div>
+                <div class="auth-field">
+                    <label class="auth-label" for="confirmNewPassword">Confirm New Password</label>
+                    <div class="auth-input-wrap">
+                        <input type="password" class="auth-input" id="confirmNewPassword" placeholder="Re-enter new password" autocomplete="new-password">
+                    </div>
+                </div>
+                <div class="change-creds-actions">
+                    <button type="button" class="btn-cancel-learning" id="btnCancelChangeCreds">Cancel</button>
+                    <button type="button" class="btn-save-learning" id="btnSaveChangeCreds">Save Credentials</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    /* ============================================================
+       AUTHENTICATION & CREDENTIALS MODULE
+       ============================================================ */
+    (function initAuthModule(){
+        const AUTH_CREDS_KEY = 'td_auth_credentials';
+        const AUTH_SESSION_KEY = 'td_auth_session';
+        const DEFAULT_USERNAME = 'admin';
+        const DEFAULT_PASSWORD = 'admin123';
+
+        async function hashPassword(str) {
+            const enc = new TextEncoder();
+            const data = enc.encode(str + '_tp_salt_2026');
+            const hashBuf = await crypto.subtle.digest('SHA-256', data);
+            const hashArr = Array.from(new Uint8Array(hashBuf));
+            return hashArr.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function getStoredCredentials() {
+            const raw = localStorage.getItem(AUTH_CREDS_KEY);
+            if (raw) {
+                try { return JSON.parse(raw); } catch(e){}
+            }
+            const defaultHash = await hashPassword(DEFAULT_PASSWORD);
+            const creds = {
+                username: DEFAULT_USERNAME,
+                passwordHash: defaultHash,
+                mustChange: true,
+                createdAt: Date.now()
+            };
+            localStorage.setItem(AUTH_CREDS_KEY, JSON.stringify(creds));
+            return creds;
+        }
+
+        async function setStoredCredentials(username, newPassword, mustChange) {
+            const newHash = await hashPassword(newPassword);
+            const creds = {
+                username: username.trim(),
+                passwordHash: newHash,
+                mustChange: !!mustChange,
+                updatedAt: Date.now()
+            };
+            localStorage.setItem(AUTH_CREDS_KEY, JSON.stringify(creds));
+            return creds;
+        }
+
+        function getSession() {
+            return sessionStorage.getItem(AUTH_SESSION_KEY) || localStorage.getItem(AUTH_SESSION_KEY);
+        }
+
+        function setSession(username, remember) {
+            sessionStorage.setItem(AUTH_SESSION_KEY, username);
+            if (remember) {
+                localStorage.setItem(AUTH_SESSION_KEY, username);
+            } else {
+                localStorage.removeItem(AUTH_SESSION_KEY);
+            }
+        }
+
+        function clearSession() {
+            sessionStorage.removeItem(AUTH_SESSION_KEY);
+            localStorage.removeItem(AUTH_SESSION_KEY);
+        }
+
+        const authOverlay = document.getElementById('authOverlay');
+        const loginForm = document.getElementById('loginForm');
+        const loginUsername = document.getElementById('loginUsername');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginRemember = document.getElementById('loginRemember');
+        const loginErrorMsg = document.getElementById('loginErrorMsg');
+        const toggleLoginPassword = document.getElementById('toggleLoginPassword');
+
+        const changeCredsOverlay = document.getElementById('changeCredsOverlay');
+        const changeCredsTitleText = document.getElementById('changeCredsTitleText');
+        const btnChangeCredsClose = document.getElementById('btnChangeCredsClose');
+        const changeCredsMsg = document.getElementById('changeCredsMsg');
+        const fieldCurrentPassword = document.getElementById('fieldCurrentPassword');
+        const currentPasswordInput = document.getElementById('currentPassword');
+        const newUsernameInput = document.getElementById('newUsername');
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
+        const btnCancelChangeCreds = document.getElementById('btnCancelChangeCreds');
+        const btnSaveChangeCreds = document.getElementById('btnSaveChangeCreds');
+
+        const btnAuthAccount = document.getElementById('btnAuthAccount');
+        const btnAuthLogout = document.getElementById('btnAuthLogout');
+
+        let isForcedChange = false;
+
+        function showLogin() {
+            if (!authOverlay) return;
+            authOverlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => loginUsername?.focus(), 100);
+        }
+
+        function hideLogin() {
+            if (!authOverlay) return;
+            authOverlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function openChangeCreds(forced) {
+            isForcedChange = !!forced;
+            if (!changeCredsOverlay) return;
+            changeCredsOverlay.classList.add('active');
+            changeCredsMsg.className = 'auth-msg';
+            changeCredsMsg.textContent = '';
+            currentPasswordInput.value = '';
+            newPasswordInput.value = '';
+            confirmNewPasswordInput.value = '';
+
+            if (isForcedChange) {
+                changeCredsTitleText.textContent = 'Setup New Credentials (First Login)';
+                changeCredsMsg.className = 'auth-msg info';
+                changeCredsMsg.textContent = 'âš ï¸ Security requirement: Please set your personal username & password before continuing.';
+                if (btnChangeCredsClose) btnChangeCredsClose.style.display = 'none';
+                if (btnCancelChangeCreds) btnCancelChangeCreds.style.display = 'none';
+                if (fieldCurrentPassword) fieldCurrentPassword.style.display = 'none';
+            } else {
+                changeCredsTitleText.textContent = 'Account / Change Password';
+                if (btnChangeCredsClose) btnChangeCredsClose.style.display = 'flex';
+                if (btnCancelChangeCreds) btnCancelChangeCreds.style.display = 'inline-block';
+                if (fieldCurrentPassword) fieldCurrentPassword.style.display = 'flex';
+            }
+
+            getStoredCredentials().then(creds => {
+                newUsernameInput.value = creds.username || DEFAULT_USERNAME;
+                if (isForcedChange) {
+                    newPasswordInput.focus();
+                } else {
+                    currentPasswordInput.focus();
+                }
+            });
+        }
+
+        function closeChangeCreds() {
+            if (isForcedChange) return;
+            if (changeCredsOverlay) changeCredsOverlay.classList.remove('active');
+        }
+
+        function setupPasswordToggle(btn, input) {
+            if (!btn || !input) return;
+            btn.addEventListener('click', () => {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    btn.textContent = 'ðŸ™ˆ';
+                } else {
+                    input.type = 'password';
+                    btn.textContent = 'ðŸ‘ï¸';
+                }
+            });
+        }
+        setupPasswordToggle(toggleLoginPassword, loginPassword);
+        setupPasswordToggle(document.getElementById('toggleCurrentPassword'), currentPasswordInput);
+        setupPasswordToggle(document.getElementById('toggleNewPassword'), newPasswordInput);
+
+        async function handleLogin() {
+            const u = loginUsername.value.trim();
+            const p = loginPassword.value;
+            loginErrorMsg.className = 'auth-msg';
+            loginErrorMsg.textContent = '';
+
+            if (!u || !p) {
+                loginErrorMsg.className = 'auth-msg error';
+                loginErrorMsg.textContent = 'Please enter both username and password.';
+                return;
+            }
+
+            const creds = await getStoredCredentials();
+            const inputHash = await hashPassword(p);
+
+            if (u.toLowerCase() === creds.username.toLowerCase() && inputHash === creds.passwordHash) {
+                setSession(creds.username, loginRemember.checked);
+                hideLogin();
+
+                if (creds.mustChange) {
+                    setTimeout(() => openChangeCreds(true), 300);
+                } else {
+                    if (window.tdImageUtils && window.tdImageUtils.showToast) {
+                        window.tdImageUtils.showToast('ðŸ‘‹ Welcome back, ' + creds.username + '!');
+                    }
+                }
+            } else {
+                loginErrorMsg.className = 'auth-msg error';
+                loginErrorMsg.textContent = 'Invalid username or password. Please try again.';
+                loginPassword.value = '';
+                loginPassword.focus();
+            }
+        }
+
+        async function handleSaveCreds() {
+            const newU = newUsernameInput.value.trim();
+            const newP = newPasswordInput.value;
+            const confirmP = confirmNewPasswordInput.value;
+            changeCredsMsg.className = 'auth-msg';
+            changeCredsMsg.textContent = '';
+
+            if (!newU) {
+                changeCredsMsg.className = 'auth-msg error';
+                changeCredsMsg.textContent = 'Username cannot be empty.';
+                return;
+            }
+
+            if (!isForcedChange) {
+                const currentP = currentPasswordInput.value;
+                if (!currentP) {
+                    changeCredsMsg.className = 'auth-msg error';
+                    changeCredsMsg.textContent = 'Please enter your current password.';
+                    return;
+                }
+                const creds = await getStoredCredentials();
+                const currHash = await hashPassword(currentP);
+                if (currHash !== creds.passwordHash) {
+                    changeCredsMsg.className = 'auth-msg error';
+                    changeCredsMsg.textContent = 'Incorrect current password.';
+                    return;
+                }
+            }
+
+            if (newP.length < 6) {
+                changeCredsMsg.className = 'auth-msg error';
+                changeCredsMsg.textContent = 'New password must be at least 6 characters.';
+                return;
+            }
+
+            if (newP !== confirmP) {
+                changeCredsMsg.className = 'auth-msg error';
+                changeCredsMsg.textContent = 'Passwords do not match.';
+                return;
+            }
+
+            await setStoredCredentials(newU, newP, false);
+            setSession(newU, !!localStorage.getItem(AUTH_SESSION_KEY));
+            isForcedChange = false;
+            changeCredsOverlay.classList.remove('active');
+
+            if (window.tdImageUtils && window.tdImageUtils.showToast) {
+                window.tdImageUtils.showToast('âœ… Credentials updated successfully!');
+            } else {
+                alert('Credentials updated successfully!');
+            }
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to log out?')) {
+                clearSession();
+                loginPassword.value = '';
+                loginErrorMsg.className = 'auth-msg';
+                loginErrorMsg.textContent = '';
+                showLogin();
+            }
+        }
+
+        loginForm?.addEventListener('submit', (e) => { e.preventDefault(); handleLogin(); });
+        btnChangeCredsClose?.addEventListener('click', closeChangeCreds);
+        btnCancelChangeCreds?.addEventListener('click', closeChangeCreds);
+        btnSaveChangeCreds?.addEventListener('click', handleSaveCreds);
+        btnAuthAccount?.addEventListener('click', () => openChangeCreds(false));
+        btnAuthLogout?.addEventListener('click', handleLogout);
+
+        [newUsernameInput, newPasswordInput, confirmNewPasswordInput, currentPasswordInput].forEach(inp => {
+            inp?.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSaveCreds();
+                }
+            });
+        });
+
+        // Initialize state
+        const session = getSession();
+        if (!session) {
+            showLogin();
+        } else {
+            hideLogin();
+            getStoredCredentials().then(creds => {
+                if (creds.mustChange) {
+                    setTimeout(() => openChangeCreds(true), 400);
+                }
+            });
+        }
+    })();
     </script>
 </body>
 </html>
