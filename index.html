@@ -2273,7 +2273,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <div class="sync-banner-indicator">â—</div>
                     <div>
                         <div id="syncBannerText" style="font-weight:700;">Live Realtime Sync Active</div>
-                        <div id="syncDetailText" style="font-size:0.75rem;opacity:0.85;">Connected to Supabase. Instant sync enabled across PC & Mobile.</div>
+                        <div id="syncDetailText" style="font-size:0.75rem;opacity:0.85;">Connected to Supabase. Instant sync enabled across PC & Mobile (Tasks, Habits, Learnings & PERT).</div>
                     </div>
                 </div>
                 <div class="sync-info-row">
@@ -6096,7 +6096,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 } catch(e){ activities = []; tasks = []; startTime = START_DEFAULT; }
             }
             function saveForDate(){
-                if(!currentDate) return;
+                if(!currentDate || window.__isApplyingRemoteUpdate) return;
                 try {
                     appStorage.setItem(
                         PERT_KEY_PREFIX + currentDate,
@@ -6905,9 +6905,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderNetwork(res);
             }
 
-            function refresh(){
+            function refresh(skipSave){
                 sanitizeActivities();
-                saveForDate();
+                if(!skipSave && !window.__isApplyingRemoteUpdate) saveForDate();
                 renderTable();
                 renderTasksPanel();
                 const res = computeAll();
@@ -7810,8 +7810,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
             if(copyPngBtn) copyPngBtn.addEventListener('click', copyPertPng);
 
-            function setDate(ds){
-                if(currentDate) saveForDate();
+            function setDate(ds, forceReload){
+                if(currentDate && !window.__isApplyingRemoteUpdate && !forceReload && ds !== currentDate) saveForDate();
                 currentDate = ds;
                 closePredsMenu();
                 zoom = 1;
@@ -7820,6 +7820,26 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 refresh();
                 requestAnimationFrame(() => { if(baseW) fitToView(); });
             }
+
+            function reloadPertForCurrentDate(){
+                if(!currentDate) return;
+                closePredsMenu();
+                loadForDate(currentDate);
+                refresh(true);
+                requestAnimationFrame(() => { if(baseW) fitToView(); });
+            }
+            window.__taskPlannerReloadPert = reloadPertForCurrentDate;
+
+            window.addEventListener('td-pert-cloud-reload', function(e){
+                const targetDate = (e && e.detail && e.detail.date) ? e.detail.date : currentDate;
+                if(targetDate){
+                    currentDate = targetDate;
+                    closePredsMenu();
+                    loadForDate(targetDate);
+                    refresh(true);
+                    requestAnimationFrame(() => { if(baseW) fitToView(); });
+                }
+            });
 
             function requestFit(){
                 requestAnimationFrame(fitToView);
@@ -8251,6 +8271,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
 
             isApplyingRemoteUpdate = true;
+            window.__isApplyingRemoteUpdate = true;
             let changesMade = false;
             const storage = getAppStorage();
 
@@ -8290,13 +8311,22 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             bridge.renderEisen();
                         }
                     }
+
+                    // Reload PERT diagram & table for active date
+                    if(typeof window.__taskPlannerReloadPert === 'function'){
+                        window.__taskPlannerReloadPert();
+                    }
+                    window.dispatchEvent(new CustomEvent('td-pert-cloud-reload'));
                 }
                 const now = new Date();
                 lastRemoteUpdateTime = remoteTime || now.getTime();
                 setSyncStatus('connected', 'Live Sync Active', 'Received updates from cloud');
                 if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
             } finally {
-                setTimeout(() => { isApplyingRemoteUpdate = false; }, 150);
+                setTimeout(() => {
+                    isApplyingRemoteUpdate = false;
+                    window.__isApplyingRemoteUpdate = false;
+                }, 200);
             }
         }
 
@@ -8405,6 +8435,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             bridge.renderLearningsSection();
                             bridge.renderHabits();
                         }
+                        if(typeof window.__taskPlannerReloadPert === 'function'){
+                            window.__taskPlannerReloadPert();
+                        }
                     }
                     await pushToCloud();
                 } else {
@@ -8453,6 +8486,17 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 document.addEventListener('visibilitychange', () => {
                     if(document.visibilityState === 'visible'){
                         pollCheckRemote();
+                    } else if(document.visibilityState === 'hidden' && cloudPushTimer){
+                        clearTimeout(cloudPushTimer);
+                        cloudPushTimer = null;
+                        pushToCloud();
+                    }
+                });
+                window.addEventListener('beforeunload', () => {
+                    if(cloudPushTimer){
+                        clearTimeout(cloudPushTimer);
+                        cloudPushTimer = null;
+                        pushToCloud();
                     }
                 });
                 window.addEventListener('focus', pollCheckRemote);
