@@ -1181,11 +1181,11 @@ body.text-calendar-mode .text-magnifier-btn{
 
 .calendar-magnifier-lens{
   position:fixed;
-  width:160px;
-  height:160px;
+  width:190px;
+  height:190px;
   border-radius:50%;
   border:3px solid var(--accent);
-  box-shadow:0 10px 30px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.2) inset;
+  box-shadow:0 10px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.2) inset;
   background:var(--card-bg);
   overflow:hidden;
   z-index:99990;
@@ -1197,7 +1197,7 @@ body.text-calendar-mode .text-magnifier-btn{
 }
 .calendar-magnifier-lens:active{
   cursor:grabbing;
-  box-shadow:0 14px 40px rgba(0,0,0,0.45);
+  box-shadow:0 14px 44px rgba(0,0,0,0.5);
 }
 .magnifier-inner{
   position:absolute;
@@ -1212,6 +1212,38 @@ body.text-calendar-mode .text-magnifier-btn{
   left:0;
   transform-origin:0 0;
   pointer-events:none;
+}
+#magnifierContentScaler .calendar-cell{
+  overflow:visible !important;
+  background:var(--card-bg) !important;
+}
+#magnifierContentScaler .text-calendar-cell-list{
+  max-height:none !important;
+  overflow:visible !important;
+}
+#magnifierContentScaler .text-calendar-cell-item{
+  font-size:0.70rem !important;
+  line-height:1.25 !important;
+  white-space:normal !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  display:block !important;
+  -webkit-line-clamp:unset !important;
+  padding:2px 4px !important;
+  margin-bottom:2px !important;
+  background:var(--accent-light) !important;
+  color:var(--text) !important;
+  border-left:2px solid var(--accent) !important;
+  word-break:break-word !important;
+}
+#magnifierContentScaler .text-calendar-cell-item:nth-child(n+4){
+  display:block !important;
+}
+#magnifierContentScaler .cell-date{
+  font-size:13px !important;
+  font-weight:800 !important;
+  color:var(--text) !important;
+  margin-bottom:3px !important;
 }
 .magnifier-header-pill{
   position:absolute;
@@ -1251,6 +1283,20 @@ body.text-calendar-mode .text-magnifier-btn{
 .magnifier-close-btn:hover, .magnifier-close-btn:active{
   background:var(--danger);
   border-color:transparent;
+}
+
+/* Destination Row Improvements */
+.destination-name-row{display:flex;align-items:center;gap:6px}
+.destination-name-row .destination-remove{
+  flex-shrink:0;width:22px;height:22px;padding:0;border:0;border-radius:var(--r-xs);
+  background:transparent;color:var(--text-secondary);cursor:pointer;font-size:.75rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.destination-name-row .destination-remove:hover{background:var(--danger-bg);color:var(--danger)}
+.destination-name-row .destination-name-input{flex:1 1 auto;min-width:0}
+.destination-row{display:grid;grid-template-columns:minmax(120px,1.2fr) minmax(95px,140px) auto;gap:var(--sp-2);align-items:center}
+@media (max-width:720px){
+  .destination-row{grid-template-columns:minmax(100px,1.2fr) 95px auto;gap:6px}
 }
 .learning-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4)}
 .learning-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);letter-spacing:-.015em;display:flex;align-items:center;gap:var(--sp-2)}
@@ -2115,40 +2161,46 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
   /* Mobile Text Calendar Day Tile Resizing to fit nicely */
   body.text-calendar-mode .calendar-cell:not(.empty){
-    min-height:78px !important;
-    padding:3px 2px !important;
+    min-height:64px !important;
+    max-height:85px !important;
+    padding:2px 2px !important;
     box-sizing:border-box !important;
     overflow:hidden !important;
   }
   body.text-calendar-mode .calendar-cell .cell-date{
-    font-size:11px !important;
-    margin-bottom:2px !important;
+    font-size:10px !important;
+    margin-bottom:1px !important;
     font-weight:700 !important;
+    line-height:1 !important;
   }
   body.text-calendar-mode .text-calendar-cell-list{
-    gap:2px !important;
-    margin-top:2px !important;
-    max-height:calc(100% - 18px) !important;
+    gap:1.5px !important;
+    margin-top:1px !important;
+    max-height:calc(100% - 14px) !important;
     overflow:hidden !important;
     width:100% !important;
     box-sizing:border-box !important;
   }
   body.text-calendar-mode .text-calendar-cell-item{
-    font-size:0.50rem !important;
-    line-height:1.15 !important;
-    padding:1px 3px !important;
-    border-left-width:2px !important;
-    border-radius:2px !important;
-    -webkit-line-clamp:2 !important;
-    margin-bottom:1px !important;
+    font-size:0.42rem !important;
+    line-height:1.1 !important;
+    padding:0 2px !important;
+    border-left:1.5px solid var(--accent) !important;
+    border-radius:1.5px !important;
+    white-space:nowrap !important;
     overflow:hidden !important;
     text-overflow:ellipsis !important;
-    word-break:break-word !important;
+    display:block !important;
+    margin-bottom:1px !important;
+  }
+  body.text-calendar-mode .text-calendar-cell-item:nth-child(n+4){
+    display:none !important;
   }
   body.text-calendar-mode .text-calendar-cell-more{
-    font-size:0.46rem !important;
+    font-size:0.40rem !important;
     padding-left:2px !important;
-    line-height:1.1 !important;
+    line-height:1 !important;
+    color:var(--text-secondary) !important;
   }
   .eisen-sidebar{flex:0 0 180px;padding:var(--sp-3)}
   .eisen-grid{gap:var(--sp-2)}
@@ -2560,7 +2612,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         <div class="eisen-filter-menu" id="eisenSubFilterMenu" hidden></div>
                     </div>
                     <div class="eisen-presets-container" style="position:relative;display:inline-flex;align-items:center;">
-                        <button type="button" class="eisen-defaults-toggle eisen-presets-toggle active" id="eisenDefaultsToggle" title="Filter Presets &mdash; Click to select, toggle or save presets">&#9881; Presets</button>
+                        <button type="button" class="eisen-defaults-toggle eisen-presets-toggle" id="eisenDefaultsToggle" title="Filter Presets &mdash; Click to select, toggle or save presets">&#9881; Presets</button>
                         <button type="button" class="eisen-preset-cycle-btn" id="btnPresetCycle" title="Quick toggle to next preset">&#10095;</button>
                         <div class="eisen-filter-menu eisen-presets-menu" id="eisenPresetsMenu" hidden>
                             <div class="eisen-preset-menu-header">
@@ -4602,13 +4654,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 eisenDefaultsMode=!!useDefaults;
                 eisenShowCompleted=false;
                 if(eisenDefaultsMode){
+                    const presets = (typeof getStoredEisenPresets === 'function') ? getStoredEisenPresets() : [];
+                    const def = presets.find(p => p.isDefault) || presets[0];
+                    if(def){
+                        applyEisenPreset(def);
+                        return;
+                    }
                     eisenTagFilter=new Set(['work']);
                     eisenSubFilter=new Set(['0']);
                     eisenJustStartMode=true;
+                    activeEisenPresetId='preset_work_focus';
                 }else{
                     eisenTagFilter.clear();
                     eisenSubFilter.clear();
                     eisenJustStartMode=false;
+                    activeEisenPresetId=null;
                 }
                 if(eisenTagFilterMenu)eisenTagFilterMenu.hidden=true;
                 if(eisenSubFilterMenu)eisenSubFilterMenu.hidden=true;
@@ -4627,11 +4687,28 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
                 eisenFilterClear.classList.toggle('visible',eisenFilterActive());
                 if(eisenDefaultsToggle){
-                    const curP = getActiveEisenPreset();
-                    const pName = curP ? curP.name : "Presets";
-                    eisenDefaultsToggle.textContent = "\u2699 " + pName;
-                    eisenDefaultsToggle.title = "Active Preset: " + pName + " (Click to toggle/manage presets)";
-                    eisenDefaultsToggle.classList.add("active");
+                    const hasActiveFilterEffect = (eisenTagFilter.size > 0 || eisenSubFilter.size > 0 || eisenShowCompleted || eisenJustStartMode);
+                    let curP = getActiveEisenPreset();
+                    if(curP && !isEisenPresetMatching(curP)){
+                        const presets = getStoredEisenPresets();
+                        const altMatch = presets.find(p => isEisenPresetMatching(p));
+                        if(altMatch){
+                            activeEisenPresetId = altMatch.id;
+                            curP = altMatch;
+                        } else {
+                            activeEisenPresetId = null;
+                            curP = null;
+                        }
+                    }
+                    if(curP && hasActiveFilterEffect){
+                        eisenDefaultsToggle.textContent = "\u2699 " + curP.name;
+                        eisenDefaultsToggle.title = "Active Preset: " + curP.name + " (Click to toggle/manage presets)";
+                        eisenDefaultsToggle.classList.add("active");
+                    } else {
+                        eisenDefaultsToggle.textContent = "\u2699 Presets";
+                        eisenDefaultsToggle.title = "Presets (Click to select or manage presets)";
+                        eisenDefaultsToggle.classList.remove("active");
+                    }
                 }
                 if(eisenCompletedToggle){
                     eisenCompletedToggle.classList.toggle("active", eisenShowCompleted);
@@ -4794,16 +4871,25 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 } catch(e){}
             }
 
-            let activeEisenPresetId = 'preset_work_focus';
+            let activeEisenPresetId = null;
 
             function getActiveEisenPreset(){
+                if(!activeEisenPresetId) return null;
                 const presets = getStoredEisenPresets();
-                if(activeEisenPresetId){
-                    const found = presets.find(p => p.id === activeEisenPresetId);
-                    if(found) return found;
-                }
-                const def = presets.find(p => p.isDefault) || presets[0];
-                return def;
+                return presets.find(p => p.id === activeEisenPresetId) || null;
+            }
+
+            function isEisenPresetMatching(p){
+                if(!p) return false;
+                const pTags = new Set(Array.isArray(p.tags) ? p.tags : []);
+                const pStatuses = new Set(Array.isArray(p.statuses) ? p.statuses : []);
+                if(pTags.size !== eisenTagFilter.size) return false;
+                for(let t of pTags){ if(!eisenTagFilter.has(t)) return false; }
+                if(pStatuses.size !== eisenSubFilter.size) return false;
+                for(let s of pStatuses){ if(!eisenSubFilter.has(s)) return false; }
+                if(!!p.completed !== !!eisenShowCompleted) return false;
+                if(!!p.justStart !== !!eisenJustStartMode) return false;
+                return true;
             }
 
             function applyEisenPreset(preset){
@@ -4822,7 +4908,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function cycleNextEisenPreset(){
                 const presets = getStoredEisenPresets();
                 if(presets.length === 0) return;
-                const curIdx = presets.findIndex(p => p.id === activeEisenPresetId);
+                let curIdx = presets.findIndex(p => p.id === activeEisenPresetId);
+                if(curIdx < 0) curIdx = -1;
                 const nextIdx = (curIdx + 1) % presets.length;
                 applyEisenPreset(presets[nextIdx]);
             }
@@ -4853,8 +4940,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const listEl = document.getElementById('eisenPresetList');
                 if(!listEl) return;
                 const presets = getStoredEisenPresets();
-                const active = getActiveEisenPreset();
-                const activeId = active ? active.id : null;
+                const curP = getActiveEisenPreset();
+                const hasActiveFilterEffect = (eisenTagFilter.size > 0 || eisenSubFilter.size > 0 || eisenShowCompleted || eisenJustStartMode);
+                const activeId = (curP && hasActiveFilterEffect) ? curP.id : null;
 
                 let html = '';
                 presets.forEach(p => {
@@ -4908,10 +4996,41 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const scaler = document.getElementById('magnifierContentScaler');
                 if(!grid || !scaler) return;
                 scaler.innerHTML = '';
+                const gridRect = grid.getBoundingClientRect();
+                const compStyle = window.getComputedStyle(grid);
                 const clone = grid.cloneNode(true);
                 clone.id = 'calendarGridClone';
-                // Remove interactive IDs from clone
                 clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
+
+                // Lock clone dimensions and grid structure to match original grid exactly
+                clone.style.width = gridRect.width + 'px';
+                clone.style.height = gridRect.height + 'px';
+                clone.style.minWidth = gridRect.width + 'px';
+                clone.style.minHeight = gridRect.height + 'px';
+                clone.style.maxWidth = gridRect.width + 'px';
+                clone.style.maxHeight = gridRect.height + 'px';
+                clone.style.display = 'grid';
+                clone.style.gridTemplateColumns = compStyle.gridTemplateColumns;
+                clone.style.gridTemplateRows = compStyle.gridTemplateRows;
+                clone.style.gap = compStyle.gap;
+                clone.style.rowGap = compStyle.rowGap;
+                clone.style.columnGap = compStyle.columnGap;
+                clone.style.padding = compStyle.padding;
+                clone.style.margin = '0';
+                clone.style.boxSizing = 'border-box';
+
+                // Sync each individual cell dimension
+                const origCells = grid.children;
+                const cloneCells = clone.children;
+                for (let i = 0; i < origCells.length && i < cloneCells.length; i++) {
+                    const r = origCells[i].getBoundingClientRect();
+                    cloneCells[i].style.width = r.width + 'px';
+                    cloneCells[i].style.height = r.height + 'px';
+                    cloneCells[i].style.minWidth = r.width + 'px';
+                    cloneCells[i].style.minHeight = r.height + 'px';
+                    cloneCells[i].style.boxSizing = 'border-box';
+                }
+
                 scaler.appendChild(clone);
                 updateMagnifierPosition(magnifierX, magnifierY);
             }
@@ -4923,13 +5042,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const grid = document.getElementById('calendarGrid');
                 if(!lens || !grid) return;
 
-                const r = 80; // lens radius (160px diameter)
+                const r = 95; // lens radius (190px diameter)
                 const gridRect = grid.getBoundingClientRect();
                 const winW = window.innerWidth;
                 const winH = window.innerHeight;
 
                 // Safety clamp: keep away from top header bar so turning off is NEVER obstructed!
-                const minY = Math.max(72, gridRect.top - 20);
+                const minY = Math.max(r + 56, gridRect.top - 20);
                 const maxY = Math.min(winH - r - 8, gridRect.bottom + 20);
                 const minX = Math.max(r + 8, gridRect.left - 20);
                 const maxX = Math.min(winW - r - 8, gridRect.right + 20);
@@ -4943,8 +5062,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 lens.style.left = (cx - r) + 'px';
                 lens.style.top = (cy - r) + 'px';
 
-                // 2.2x crisp optical scale
-                const scale = 2.2;
+                // 3.3x crisp optical scale
+                const scale = 3.3;
                 if(scaler){
                     const offX = r - (cx - gridRect.left) * scale;
                     const offY = r - (cy - gridRect.top) * scale;
@@ -4953,18 +5072,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 // Update date pill on the lens
                 if(pill){
-                    const cell = document.elementFromPoint(cx, cy);
-                    const dayCell = cell ? cell.closest('.calendar-cell:not(.empty)') : null;
-                    if(dayCell){
-                        const ds = dayCell.getAttribute('data-date');
-                        if(ds){
-                            const dayNum = parseInt(ds.split('-')[2], 10);
-                            const dData = typeof getData === 'function' ? getData(ds) : null;
-                            const count = (dData && Array.isArray(dData.textCalendar)) ? dData.textCalendar.filter(x=>String(x||'').trim()).length : 0;
-                            pill.textContent = "\uD83D\uDD0D Day " + dayNum + " (" + count + " text" + (count===1?"":"s") + ")";
-                        } else {
-                            pill.textContent = "\uD83D\uDD0D Magnifier";
+                    let targetDateStr = null;
+                    const origCells = grid.querySelectorAll('.calendar-cell:not(.empty)');
+                    for(let i = 0; i < origCells.length; i++){
+                        const rct = origCells[i].getBoundingClientRect();
+                        if(cx >= rct.left && cx <= rct.right && cy >= rct.top && cy <= rct.bottom){
+                            targetDateStr = origCells[i].getAttribute('data-date');
+                            break;
                         }
+                    }
+                    if(targetDateStr){
+                        const parts = targetDateStr.split('-');
+                        const dayNum = parseInt(parts[2], 10);
+                        const dData = typeof getData === 'function' ? getData(targetDateStr) : null;
+                        const count = (dData && Array.isArray(dData.textCalendar)) ? dData.textCalendar.filter(x=>String(x||'').trim()).length : 0;
+                        pill.textContent = "\uD83D\uDD0D Day " + dayNum + " (" + count + " text" + (count===1?"":"s") + ")";
                     } else {
                         pill.textContent = "\uD83D\uDD0D Magnifier";
                     }
@@ -5052,6 +5174,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     });
                 }
                 window.addEventListener('resize', () => { if(isMagnifierOn) syncMagnifierClone(); });
+                window.addEventListener('scroll', () => { if(isMagnifierOn) updateMagnifierPosition(magnifierX, magnifierY); }, { passive: true });
+                window.addEventListener('orientationchange', () => { if(isMagnifierOn) setTimeout(syncMagnifierClone, 150); });
             }
             setTimeout(initMagnifierInteractions, 150);
 
@@ -6044,13 +6168,18 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const mins=parseTravelMinutes(d.travel);
                     if(mins!==null)cumulative+=mins;
                     const arrival=mins===null?null:new Date(now.getTime()+cumulative*60000);
-                    const clock=arrival?arrival.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+                    const clock=arrival?arrival.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'\u2014';
                     const date=arrival?formatLocalDateTime(arrival):'Enter travel time';
                     return `<div class="destination-row" data-destination-id="${escHtmlSafe(d.id)}">
-                        <div><input class="destination-input destination-name-input" data-field="name" value="${escHtmlSafe(d.name)}" aria-label="Destination ${i+1} name" placeholder="Destination ${i+1}"><div class="destination-meta">Arrives ${date}${mins!==null?' · '+formatDestinationDuration(mins)+' from previous':''}</div></div>
+                        <div class="destination-name-col">
+                            <div class="destination-name-row">
+                                <button class="destination-remove" type="button" data-remove="1" title="Remove destination" aria-label="Remove destination">&#10005;</button>
+                                <input class="destination-input destination-name-input" data-field="name" value="${escHtmlSafe(d.name)}" aria-label="Destination ${i+1} name" placeholder="Destination ${i+1}">
+                            </div>
+                            <div class="destination-meta">Arrives ${date}${mins!==null?' \u00B7 '+formatDestinationDuration(mins)+' from previous':''}</div>
+                        </div>
                         <input class="destination-input destination-travel-input" data-field="travel" value="${escHtmlSafe(d.travel)}" aria-label="Travel time to destination ${i+1}" placeholder="Travel time (e.g. 2h 30m)">
                         <div class="destination-clock" data-clock>${clock}</div>
-                        <button class="destination-remove" type="button" data-remove="1" title="Remove destination" aria-label="Remove destination">✕</button>
                     </div>`;
                 }).join('');
             }
