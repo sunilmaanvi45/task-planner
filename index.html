@@ -540,10 +540,10 @@ body{
 }
 
 .pert-table-wrap{border:1px solid var(--border);border-radius:var(--r-md);overflow-x:auto;overflow-y:visible;background:var(--card-bg)}
-.pert-table-inner{min-width:760px}
+.pert-table-inner{min-width:850px}
 .pert-table-head,.pert-activity-row{
   display:grid;
-  grid-template-columns:24px 1.3fr 1.3fr 46px 46px 46px 52px 76px;
+  grid-template-columns:24px 1.2fr 1.2fr 86px 46px 46px 46px 52px 76px;
   gap:var(--sp-2);align-items:center;padding:6px var(--sp-3);
 }
 .pert-table-head{
@@ -1060,6 +1060,26 @@ body{
 .sync-status-banner.error .sync-banner-indicator{color:var(--danger)}
 .sync-status-banner.syncing .sync-banner-indicator{color:var(--accent)}
 .sync-info-row{display:flex;justify-content:space-between;align-items:center;font-size:var(--fs-xs);padding:4px 0}
+
+/* PERT Activity Start Time Input */
+.pert-start-input{
+  width:100%;padding:3px 4px;border:1px solid var(--border);border-radius:var(--r-xs);
+  background:var(--input-bg);color:var(--text);font-family:inherit;font-size:var(--fs-xs);
+  text-align:center;box-sizing:border-box;transition:border-color var(--dur-fast),opacity var(--dur-fast);
+}
+.pert-start-input:focus{outline:none;border-color:var(--accent-border);box-shadow:var(--focus-ring)}
+.pert-start-input:disabled{
+  opacity:0.5;background:var(--surface-3);cursor:not-allowed;border-style:dashed;color:var(--text-secondary);
+}
+
+/* Base Path & Attachments Clean Removal */
+.prefix-row, #basePathSection, .attachment-upload-area, #attachmentsSection, #attachmentsPreview, #fileInput{
+  display:none !important;
+}
+
+/* Calendar Day Tile Counts (Desktop Default vs Mobile) */
+.cell-count-mobile{display:none}
+.cell-count-pc{display:inline}
 .learning-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4)}
 .learning-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);letter-spacing:-.015em;display:flex;align-items:center;gap:var(--sp-2)}
 .learning-modal-close{width:30px;height:30px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:background-color var(--dur-fast) var(--ease-in-out),color var(--dur-fast) var(--ease-in-out),border-color var(--dur-fast) var(--ease-in-out),transform var(--dur-fast) var(--ease-out)}
@@ -1904,18 +1924,27 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
     padding:4px 8px !important;
     white-space:nowrap !important;
   }
+
+  /* Mobile Calendar Day Tile: Show only date and tasks remaining */
+  .calendar-cell .cell-count-pc{display:none !important}
+  .calendar-cell .cell-count-mobile{display:inline-block !important;font-size:var(--fs-xs);font-weight:700}
+  .calendar-cell .cell-progress-bar{display:none !important}
+  .calendar-cell .cell-day-title{display:none !important}
+  .calendar-cell .cell-task-indicator,
+  .calendar-cell .cell-learning-indicator,
+  .calendar-cell .cell-eisen-mini{display:none !important}
   .eisen-sidebar{flex:0 0 180px;padding:var(--sp-3)}
   .eisen-grid{gap:var(--sp-2)}
   .calendar-title{min-width:120px;font-size:var(--fs-base)}
-  .pert-table-head,.pert-activity-row{grid-template-columns:22px 1.1fr 1.1fr 42px 42px 42px 48px 76px;gap:4px}
+  .pert-table-head,.pert-activity-row{grid-template-columns:22px 1.1fr 1.1fr 76px 42px 42px 42px 48px 76px;gap:4px}
 }
 @media (max-width:560px){
   .eisen-body{flex-direction:column}
   .eisen-sidebar{flex:0 0 auto;max-height:150px;border-right:none;border-bottom:1px solid var(--border)}
   .eisen-source-list{flex-direction:row;flex-wrap:wrap;max-height:110px}
   .eisen-chip{flex:1 1 140px}
-  .pert-table-head,.pert-activity-row{grid-template-columns:20px 1fr 1fr 38px 38px 38px 44px 68px;gap:3px;padding:5px 6px}
-  .pert-table-inner{min-width:600px}
+  .pert-table-head,.pert-activity-row{grid-template-columns:20px 1fr 1fr 70px 38px 38px 38px 44px 68px;gap:3px;padding:5px 6px}
+  .pert-table-inner{min-width:700px}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
@@ -2014,7 +2043,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <div class="pert-table-wrap">
                         <div class="pert-table-inner">
                             <div class="pert-table-head">
-                                <span></span><span>Activity</span><span>Predecessors</span>
+                                <span></span><span>Activity</span><span>Predecessors</span><span>Start Time</span>
                                 <span>O</span><span>M</span><span>P</span><span>tₑ</span><span></span>
                             </div>
                             <div class="pert-table-body" id="pertTableBody"></div>
@@ -2135,20 +2164,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 <label for="inputNotesWeek" id="labelNotesWeek">Notes for the Week</label>
                 <textarea id="inputNotesWeek" placeholder="Write your weekly notes and reflections..."></textarea>
             </div>
-            <div class="prefix-row">
-                <span style="font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);white-space:nowrap;">Base Path:</span>
-                <input type="text" id="pathPrefixInput" placeholder="e.g., C:\Users\Me\Docs\" />
-                <button id="savePrefixBtn" class="icon-btn" title="Save prefix" style="flex-shrink:0;">💾</button>
+            <div class="prefix-row" style="display:none !important;">
+                <input type="text" id="pathPrefixInput" style="display:none !important;" />
+                <button id="savePrefixBtn" style="display:none !important;"></button>
             </div>
-            <div class="attachment-upload-area" id="attachmentUploadArea">
-                <div class="attachment-upload-text">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-                    <span>Click or drop files here</span>
-                </div>
-                <div class="attachment-upload-hint">Prefix + filename will be saved automatically</div>
-            </div>
-            <input type="file" id="fileInput" multiple>
-            <div class="attachments-preview" id="attachmentsPreview"></div>
+            <div class="attachment-upload-area" id="attachmentUploadArea" style="display:none !important;"></div>
+            <input type="file" id="fileInput" multiple style="display:none !important;">
+            <div class="attachments-preview" id="attachmentsPreview" style="display:none !important;"></div>
             <div class="detail-actions">
                 <button class="btn-clear" id="btnClear">Clear Entry</button>
                 <button class="btn-copy" id="btnCopy" title="Copy summary to clipboard">📋 Copy</button>
@@ -3441,7 +3463,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             if(stats.done===stats.total)classes.push('all-done');
                             else if(stats.pending>0){const isPast=ds<todayStr;if(isPast&&stats.pending>0)classes.push('overdue');else classes.push('some-pending')}
                             const sc=stats.done===stats.total?'done':(ds<todayStr?'overdue':'pending');
-                            taskHTML=`<div class="cell-task-count ${sc}">${stats.done}/${stats.total}</div>`;
+                            const rem=stats.pending;
+                            taskHTML=`<div class="cell-task-count ${sc}"><span class="cell-count-pc">${stats.done}/${stats.total}</span><span class="cell-count-mobile">${rem}</span></div>`;
                             const pct=stats.total>0?(stats.done/stats.total)*100:0;
                             taskHTML+=`<div class="cell-progress-bar"><div class="cell-progress-fill" style="width:${pct}%"></div></div>`;
                         }
@@ -5447,9 +5470,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(habits)make('habitsCollapsibleSection','Habits','🔥',[habits],'daily-only');
                 if(dayNotes)make('dayNotesSection','Notes for the Day','🗒️',[dayNotes],'daily-only');
                 if(weekNotes)make('weekNotesSection','Notes for the Week','🗒️',[weekNotes],'weekly-only');
-                if(prefix)make('basePathSection','Base Path','📁',[prefix]);
-                if(upload||preview||fileInputEl)make('attachmentsSection','Attachments','📎',[upload,fileInputEl,preview]);
-
+                // Base path and attachments removed as requested
                 initGenericCollapsibles();
             }
 
@@ -5459,7 +5480,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
             function init(){
                 initTheme();initStatsCollapse();initPertCollapse();
-                pathPrefixInput.value=filePathPrefix;
+                if(pathPrefixInput) pathPrefixInput.value=filePathPrefix;
                 const ts=getTodayStr();
                 const[y,m]=ts.split('-').map(Number);
                 currentYear=y;currentMonth=m;selectedDateStr=ts;selectionMode='daily';selectedHabit=null;
@@ -5471,12 +5492,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 initDestinationTime();
                 window.dispatchEvent(new CustomEvent('td-date-changed',{detail:{date:ts}}));
 
-                savePrefixBtn.addEventListener('click',()=>{filePathPrefix=pathPrefixInput.value.trim();appStorage.setItem(PREFIX_KEY,filePathPrefix);showSaved()});
+                if(savePrefixBtn&&pathPrefixInput) savePrefixBtn.addEventListener('click',()=>{filePathPrefix=pathPrefixInput.value.trim();appStorage.setItem(PREFIX_KEY,filePathPrefix);showSaved()});
                 btnAddTask.addEventListener('click',()=>addTask());
                 if(btnTaskListPng)btnTaskListPng.addEventListener('click',copyTaskListPng);
                 if(pertToggle)pertToggle.addEventListener('click',togglePertCollapse);
 
-                attachmentUploadArea.addEventListener('click',()=>{pendingFileTargetTaskId=null;fileInput.click()});
+                if(attachmentUploadArea&&fileInput) attachmentUploadArea.addEventListener('click',()=>{pendingFileTargetTaskId=null;fileInput.click()});
                 attachmentUploadArea.addEventListener('dragover',e=>{e.preventDefault();attachmentUploadArea.classList.add('dragover')});
                 attachmentUploadArea.addEventListener('dragleave',()=>attachmentUploadArea.classList.remove('dragover'));
                 attachmentUploadArea.addEventListener('drop',e=>{e.preventDefault();attachmentUploadArea.classList.remove('dragover');pendingFileTargetTaskId=null;const fs=e.dataTransfer.files;for(let i=0;i<fs.length;i++)handleFileSelect(fs[i])});
@@ -5741,7 +5762,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const key=keys[0];
                     const idx=key.lastIndexOf('|');
                     if(idx<0)return;
-                    setLearningVotes(key.slice(0,idx),key.slice(idx+1),e.target.value);
+                    const val=e.target.value;
+                    if(val==='')return; // Allow empty string while user clears/backspaces to type
+                    const id=key.slice(0,idx);
+                    const sd=key.slice(idx+1);
+                    const data=getData(sd);
+                    if(!data||!data.learnings)return;
+                    const l=data.learnings.find(x=>x.id===id);
+                    if(!l)return;
+                    const p=parseInt(val,10);
+                    l.votes=isNaN(p)?0:Math.max(0,p);
+                    saveData(sd,data);
+                    const tile=document.querySelector(`.learning-tile[data-id="${id}"] .learning-vote-badge`);
+                    if(tile)tile.textContent=l.votes?`â˜… ${l.votes}`:'';
                 });
                 learningsToolbar.addEventListener('change',e=>{
                     if(e.target.id!=='ltVotes')return;
@@ -5752,6 +5785,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(idx<0)return;
                     setLearningVotes(key.slice(0,idx),key.slice(idx+1),e.target.value);
                 });
+                learningsToolbar.addEventListener('blur',e=>{
+                    if(e.target.id!=='ltVotes')return;
+                    const keys=Array.from(selectedLearningKeys);
+                    if(keys.length!==1)return;
+                    const key=keys[0];
+                    const idx=key.lastIndexOf('|');
+                    if(idx<0)return;
+                    setLearningVotes(key.slice(0,idx),key.slice(idx+1),e.target.value);
+                },true);
                 learningsToolbar.addEventListener('keydown',e=>{
                     if(e.target.id==='ltVotes'&&e.key==='Enter'){e.preventDefault();e.target.blur()}
                 });
@@ -6064,6 +6106,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 } else {
                     startTime = raw.slice(0, 5);
                 }
+                document.querySelectorAll('.pert-start-input:disabled').forEach(inp => {
+                    inp.value = startTime;
+                    inp.title = `First activity starts at global start time (${startTime})`;
+                });
                 saveForDate();
                 const res = computeAll();
                 renderSummary(res);
@@ -6075,12 +6121,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 try {
                     const raw = appStorage.getItem(PERT_KEY_PREFIX + ds);
                     if(!raw){ activities = []; tasks = []; startTime = START_DEFAULT; return; }
-                    const d = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+                    const d = JSON.parse(raw);
                     if(!d || !Array.isArray(d.activities)){ activities = []; tasks = []; startTime = START_DEFAULT; return; }
                     activities = d.activities.map(a => ({
                         id: a.id || uid(),
                         activityText: (typeof a.activityText === 'string' ? a.activityText : ''),
                         preds: Array.isArray(a.preds) ? a.preds.slice() : [],
+                        startTime: (typeof a.startTime === 'string' ? a.startTime : ''),
                         o: numOr(a.o, 1),
                         m: numOr(a.m, 2),
                         p: numOr(a.p, 3)
@@ -6164,6 +6211,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const oInvalid = (o < 0) ? ' invalid' : '';
                     const pInvalid = (p < o) ? ' invalid' : '';
 
+                    const isFirstActivity = (a.preds.length === 0);
+                    const startVal = isFirstActivity ? (startTime || START_DEFAULT) : (a.startTime || '');
+                    const startDisabled = isFirstActivity ? ' disabled' : '';
+                    const startTitle = isFirstActivity
+                        ? `First activity starts at global start time (${startVal})`
+                        : 'Optional start time override (leave blank for automatic)';
+                    const startHtml = `<input type="time" class="pert-start-input" data-id="${a.id}" data-field="start" value="${esc(startVal)}"${startDisabled} title="${esc(startTitle)}">`;
+
                     html += `<div class="pert-activity-row" data-row-id="${a.id}">
                         <div class="pert-drag-handle" title="Drag to reorder" aria-label="Reorder">⋮⋮</div>
                         <input class="pert-act-input" type="text" data-id="${a.id}" data-field="activity" value="${esc(activityText)}" placeholder="e.g. bathing, cooking…" autocomplete="off" spellcheck="false" title="Activity name">
@@ -6171,6 +6226,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             <div class="pert-preds-display${a.preds.length === 0 ? ' empty' : ''}${openPredsMenuId === a.id ? ' open' : ''}" data-row-id="${a.id}" title="Click to edit predecessors" tabindex="0" role="button" aria-haspopup="true">${esc(displayTxt)}</div>
                             <div class="pert-preds-menu" data-row-id="${a.id}"${menuHidden}>${menuHtml}</div>
                         </div>
+                        ${startHtml}
                         <input class="pert-o${oInvalid}" type="number" step="0.1" value="${a.o}" data-id="${a.id}" data-field="o" placeholder="O" title="Optimistic (hours)">
                         <input class="pert-m" type="number" step="0.1" value="${a.m}" data-id="${a.id}" data-field="m" placeholder="M" title="Most likely (hours)">
                         <input class="pert-p${pInvalid}" type="number" step="0.1" value="${a.p}" data-id="${a.id}" data-field="p" placeholder="P" title="Pessimistic (hours)">
@@ -6213,7 +6269,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(!name) return;
                     const o = numOr(a.o, 0), m = numOr(a.m, 0), p = numOr(a.p, 0);
                     const r = {
-                        id: a.id, displayName: name, preds: a.preds.slice(), o, m, p,
+                        id: a.id, displayName: name, preds: a.preds.slice(), o, m, p, startTime: a.startTime || '',
                         te: (o + 4 * m + p) / 6,
                         variance: Math.pow((p - o) / 6, 2)
                     };
@@ -6252,6 +6308,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         if(first || sp < smin){ smin = sp; spred = pid; }
                         first = false;
                     });
+                    if(r.preds && r.preds.length > 0 && r.startTime && parseStartTime(r.startTime) !== null){
+                        const explicitMin = parseStartTime(r.startTime);
+                        const globalStartMin = getStartMinutes();
+                        let offsetHours = (explicitMin - globalStartMin) / 60;
+                        if(offsetHours < 0) offsetHours += 24;
+                        lmax = Math.max(lmax, offsetHours);
+                        smin = Math.max(smin, offsetHours);
+                    }
                     longestTo[r.id] = r.te + lmax;
                     shortestTo[r.id] = r.te + smin;
                     longestFrom[r.id] = lpred;
@@ -6320,13 +6384,21 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const order = topoOrder(list, byId);
                 if(!order) return null;
                 const startTime = {}, endTime = {};
+                const globalStartMin = getStartMinutes();
                 order.forEach(a => {
                     let maxEnd = 0;
                     a.preds.forEach(pid => {
                         if(endTime[pid] !== undefined && endTime[pid] > maxEnd) maxEnd = endTime[pid];
                     });
-                    startTime[a.id] = maxEnd;
-                    endTime[a.id] = maxEnd + Math.max(0, a.te);
+                    if(a.preds && a.preds.length > 0 && a.startTime && parseStartTime(a.startTime) !== null){
+                        const explicitMin = parseStartTime(a.startTime);
+                        let offsetHours = (explicitMin - globalStartMin) / 60;
+                        if(offsetHours < 0) offsetHours += 24;
+                        startTime[a.id] = Math.max(maxEnd, offsetHours);
+                    } else {
+                        startTime[a.id] = maxEnd;
+                    }
+                    endTime[a.id] = startTime[a.id] + Math.max(0, a.te);
                 });
                 return { startTime, endTime, order };
             }
@@ -6986,7 +7058,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
             function addEmptyRow(){
                 if(!currentDate) return;
-                activities.push({ id: uid(), activityText: '', preds: [], o: 1, m: 2, p: 3 });
+                activities.push({ id: uid(), activityText: '', preds: [], startTime: '', o: 1, m: 2, p: 3 });
                 saveForDate();
                 refresh();
                 const last = activities[activities.length - 1];
@@ -6998,7 +7070,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(!currentDate) return;
                 const idx = activities.findIndex(a => a.id === id);
                 if(idx === -1) return;
-                const newAct = { id: uid(), activityText: '', preds: [], o: 1, m: 2, p: 3 };
+                const newAct = { id: uid(), activityText: '', preds: [], startTime: '', o: 1, m: 2, p: 3 };
                 activities.splice(idx + 1, 0, newAct);
                 saveForDate();
                 refresh();
@@ -7013,7 +7085,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const copy = {
                     id: uid(),
                     activityText: (src.activityText || '') + ' (copy)',
-                    preds: src.preds.slice(),
+                    preds: src.preds.slice(), startTime: src.startTime || '',
                     o: src.o, m: src.m, p: src.p
                 };
                 activities.splice(idx + 1, 0, copy);
@@ -7102,6 +7174,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                                 id: a.id || uid(),
                                 activityText: (typeof a.activityText === 'string') ? a.activityText : '',
                                 preds: Array.isArray(a.preds) ? a.preds.slice() : [],
+                        startTime: (typeof a.startTime === 'string' ? a.startTime : ''),
                                 o: numOr(a.o, 1), m: numOr(a.m, 2), p: numOr(a.p, 3)
                             }));
                             tasks = Array.isArray(d.tasks) ? d.tasks.map(t => ({
@@ -7149,6 +7222,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const t = e.target;
                 if(!t || !t.dataset) return;
 
+                if(t.classList.contains('pert-start-input')){
+                    const id = t.dataset.id;
+                    const act = activities.find(x => x.id === id);
+                    if(!act) return;
+                    act.startTime = String(t.value || '').trim();
+                    saveForDate();
+                    if(tableInputTimer) clearTimeout(tableInputTimer);
+                    tableInputTimer = setTimeout(() => {
+                        tableInputTimer = null;
+                        updateDiagramOnly();
+                    }, 260);
+                    return;
+                }
                 if(t.classList.contains('pert-act-input')){
                     const id = t.dataset.id;
                     const act = activities.find(x => x.id === id);
@@ -7200,6 +7286,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function handleTableChange(e){
                 const t = e.target;
                 if(!t || !t.dataset) return;
+                if(t.classList.contains('pert-start-input')){
+                    const id = t.dataset.id;
+                    const act = activities.find(x => x.id === id);
+                    if(!act) return;
+                    act.startTime = String(t.value || '').trim();
+                    saveForDate();
+                    updateDiagramOnly();
+                    return;
+                }
                 if(t.classList.contains('pert-te-input')){
                     const id = t.dataset.id;
                     const act = activities.find(x => x.id === id);
@@ -7314,6 +7409,22 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     wrapper.querySelectorAll('input[type="checkbox"][data-pred-value]:not([data-pred-value="__none__"])').forEach(x => { x.checked = false; });
                 }
                 if(value !== '__none__' && cb.checked && noneBox) noneBox.checked = false;
+
+                const rowEl = wrapper.closest('.pert-activity-row');
+                if(rowEl){
+                    const sInp = rowEl.querySelector('.pert-start-input');
+                    if(sInp){
+                        if(act.preds.length === 0){
+                            sInp.disabled = true;
+                            sInp.value = startTime || START_DEFAULT;
+                            sInp.title = `First activity starts at global start time (${startTime || START_DEFAULT})`;
+                        } else {
+                            sInp.disabled = false;
+                            sInp.value = act.startTime || '';
+                            sInp.title = 'Optional start time override (leave blank for automatic)';
+                        }
+                    }
+                }
 
                 updateDiagramOnly();
             }
@@ -7833,7 +7944,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 let focusedId = null, focusedField = null, selStart = null, selEnd = null;
                 if(isPertInput && activeEl){
                     focusedId = activeEl.dataset ? (activeEl.dataset.id || null) : null;
-                    focusedField = activeEl.dataset ? (activeEl.dataset.field || (activeEl.classList.contains('pert-act-input') ? 'act' : (activeEl.classList.contains('pert-te-input') ? 'te' : null))) : null;
+                    focusedField = activeEl.dataset ? (activeEl.dataset.field || (activeEl.classList.contains('pert-act-input') ? 'act' : (activeEl.classList.contains('pert-te-input') ? 'te' : (activeEl.classList.contains('pert-start-input') ? 'start' : null)))) : null;
                     if(typeof activeEl.selectionStart === 'number'){
                         selStart = activeEl.selectionStart;
                         selEnd = activeEl.selectionEnd;
@@ -7847,6 +7958,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     let newEl = null;
                     if(focusedField === 'act'){
                         newEl = document.querySelector(`.pert-act-input[data-id="${focusedId}"]`);
+                    } else if(focusedField === 'start'){
+                        newEl = document.querySelector(`.pert-start-input[data-id="${focusedId}"]`);
                     } else if(focusedField === 'te'){
                         newEl = document.querySelector(`.pert-te-input[data-id="${focusedId}"]`);
                     } else if(focusedField === 'o' || focusedField === 'm' || focusedField === 'p'){
@@ -8444,10 +8557,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     console.warn('Cloud sync error on init:', error);
                     setSyncStatus('error', 'Connection Error', error.message);
                 } else if(remoteKeys.length > 0){
-                    // Remote Supabase database is central source of truth for all shared keys
                     applyIncomingPayload(remotePayload, data.updated_at);
 
-                    // Check if local device has any offline keys that don't exist on remote at all
                     let localHasUnique = false;
                     for(const k of localKeys){
                         if(remotePayload[k] === undefined){
@@ -8464,7 +8575,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
                     }
                 } else if(localKeys.length > 0){
-                    // Remote has no data yet, seed it with local data
                     await pushToCloud();
                 } else {
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
@@ -8485,7 +8595,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         }
                     });
 
-                // 5. Polling on visibility change / focus (vital for mobile wake-up)
+                // 5. Polling on visibility change / focus
                 async function pollCheckRemote(){
                     if(!supabaseClient || isApplyingRemoteUpdate) return;
                     try {
