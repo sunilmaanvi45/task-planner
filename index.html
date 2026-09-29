@@ -2445,7 +2445,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="authPasswordInput">Password</label>
-                    <input type="password" class="auth-input" id="authPasswordInput" autocomplete="current-password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" required />
+                    <input type="password" class="auth-input" id="authPasswordInput" autocomplete="current-password" placeholder="Password" required />
                 </div>
                 <label class="auth-remember-row">
                     <input type="checkbox" id="authRememberMe" checked />
@@ -2469,7 +2469,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     <span>Account Settings</span>
                 </h2>
-                <button type="button" class="account-modal-close" id="btnAccountModalClose" aria-label="Close">âœ•</button>
+                <button type="button" class="account-modal-close" id="btnAccountModalClose" aria-label="Close">&#10005;</button>
             </div>
             <form class="account-modal-body" id="accountForm">
                 <div class="auth-field">
@@ -2506,11 +2506,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                     <span>Automatic Cloud Sync</span>
                 </h2>
-                <button type="button" class="account-modal-close" id="btnCloudSyncClose" aria-label="Close">âœ•</button>
+                <button type="button" class="account-modal-close" id="btnCloudSyncClose" aria-label="Close">&#10005;</button>
             </div>
             <div class="account-modal-body">
                 <div class="sync-status-banner connected" id="syncStatusBanner">
-                    <div class="sync-banner-indicator">â—</div>
+                    <div class="sync-banner-indicator">&#9679;</div>
                     <div>
                         <div id="syncBannerText" style="font-weight:700;">Live Realtime Sync Active</div>
                         <div id="syncDetailText" style="font-size:0.75rem;opacity:0.85;">Connected to Supabase. Instant sync enabled across PC & Mobile (Tasks, Habits, Learnings & PERT).</div>
@@ -2541,8 +2541,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         <div class="magnifier-inner" id="magnifierInner">
             <div class="magnifier-content-scaler" id="magnifierContentScaler"></div>
         </div>
-        <div class="magnifier-header-pill" id="magnifierHeaderPill">ðŸ” Magnifier</div>
-        <button type="button" class="magnifier-close-btn" id="magnifierCloseBtn" title="Close Magnifier" aria-label="Close Magnifier">âœ•</button>
+        <div class="magnifier-header-pill" id="magnifierHeaderPill">&#128269; Magnifier</div>
+        <button type="button" class="magnifier-close-btn" id="magnifierCloseBtn" title="Close Magnifier" aria-label="Close Magnifier">&#10005;</button>
     </div>
 
     <div class="eisen-overlay" id="eisenOverlay">
@@ -2560,12 +2560,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         <div class="eisen-filter-menu" id="eisenSubFilterMenu" hidden></div>
                     </div>
                     <div class="eisen-presets-container" style="position:relative;display:inline-flex;align-items:center;">
-                        <button type="button" class="eisen-defaults-toggle eisen-presets-toggle active" id="eisenDefaultsToggle" title="Filter Presets â€” Click to select, toggle or save presets">âš™ Presets</button>
-                        <button type="button" class="eisen-preset-cycle-btn" id="btnPresetCycle" title="Quick toggle to next preset">â¯</button>
+                        <button type="button" class="eisen-defaults-toggle eisen-presets-toggle active" id="eisenDefaultsToggle" title="Filter Presets &mdash; Click to select, toggle or save presets">&#9881; Presets</button>
+                        <button type="button" class="eisen-preset-cycle-btn" id="btnPresetCycle" title="Quick toggle to next preset">&#10095;</button>
                         <div class="eisen-filter-menu eisen-presets-menu" id="eisenPresetsMenu" hidden>
                             <div class="eisen-preset-menu-header">
                                 <span>Filter Presets</span>
-                                <small>â˜… = Default on open</small>
+                                <small>&#9733; = Default on open</small>
                             </div>
                             <div class="eisen-preset-list" id="eisenPresetList"></div>
                             <div class="eisen-preset-save-area">
@@ -4628,12 +4628,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 eisenFilterClear.classList.toggle('visible',eisenFilterActive());
                 if(eisenDefaultsToggle){
                     const curP = getActiveEisenPreset();
-                    const pName = curP ? curP.name : 'Presets';
-                    eisenDefaultsToggle.textContent = 'âš™ ' + pName;
-                    eisenDefaultsToggle.title = 'Active Preset: ' + pName + ' (Click to toggle/manage presets)';
-                    eisenDefaultsToggle.classList.add('active');
+                    const pName = curP ? curP.name : "Presets";
+                    eisenDefaultsToggle.textContent = "\u2699 " + pName;
+                    eisenDefaultsToggle.title = "Active Preset: " + pName + " (Click to toggle/manage presets)";
+                    eisenDefaultsToggle.classList.add("active");
                 }
-                if(eisenCompletedToggle){eisenCompletedToggle.classList.toggle('active',eisenShowCompleted);eisenCompletedToggle.textContent=eisenShowCompleted?'✓ Completed':'○ Completed'}
+                if(eisenCompletedToggle){
+                    eisenCompletedToggle.classList.toggle("active", eisenShowCompleted);
+                    eisenCompletedToggle.textContent = eisenShowCompleted ? "\u2713 Completed" : "\u25CB Completed";
+                }
                 if(eisenJustStartToggle){eisenJustStartToggle.classList.toggle('active',eisenJustStartMode)}
             }
 
@@ -4869,13 +4872,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         return idx >= 0 ? ((DEFAULT_SUB_LABELS[idx]) || st) : 'Unassigned';
                     }).join(', '));
 
-                    if(p.completed) descParts.push('âœ“ Completed');
-                    if(p.justStart) descParts.push('âš¡ Just Start');
-                    const descStr = descParts.join(' Â· ');
+                    if(p.completed) descParts.push('\u2713 Completed');
+                    if(p.justStart) descParts.push('\u26A1 Just Start');
+                    const descStr = descParts.join(' \u00B7 ');
 
                     html += `<div class="eisen-preset-item ${isAct ? 'active' : ''}" data-preset-id="${p.id}">
                         <div class="eisen-preset-left">
-                            <span class="eisen-preset-radio">${isAct ? 'â—' : 'â—‹'}</span>
+                            <span class="eisen-preset-radio">${isAct ? "\u25CF" : "\u25CB"}</span>
                             <div class="eisen-preset-text">
                                 <span class="eisen-preset-name">${escapeHtml(p.name)}</span>
                                 <span class="eisen-preset-desc" title="${escapeHtml(descStr)}">${escapeHtml(descStr)}</span>
@@ -4883,8 +4886,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         </div>
                         <div class="eisen-preset-badges">
                             ${isDef ? '<span class="eisen-preset-default-badge" title="Default preset on matrix open">Default</span>' : ''}
-                            <button type="button" class="eisen-preset-star-btn ${isDef ? 'is-default' : ''}" data-star-id="${p.id}" title="${isDef ? 'Currently default on matrix open' : 'Set as default preset on open'}">${isDef ? 'â˜…' : 'â˜†'}</button>
-                            ${!p.isBuiltin ? `<button type="button" class="eisen-preset-del-btn" data-del-id="${p.id}" title="Delete preset">âœ•</button>` : ''}
+                            <button type="button" class="eisen-preset-star-btn ${isDef ? "is-default" : ""}" data-star-id="${p.id}" title="${isDef ? "Currently default on matrix open" : "Set as default preset on open"}">${isDef ? "\u2605" : "\u2606"}</button>
+                            ${!p.isBuiltin ? `<button type="button" class="eisen-preset-del-btn" data-del-id="${p.id}" title="Delete preset">\u2715</button>` : ""}
                         </div>
                     </div>`;
                 });
@@ -4958,12 +4961,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             const dayNum = parseInt(ds.split('-')[2], 10);
                             const dData = typeof getData === 'function' ? getData(ds) : null;
                             const count = (dData && Array.isArray(dData.textCalendar)) ? dData.textCalendar.filter(x=>String(x||'').trim()).length : 0;
-                            pill.textContent = `ðŸ“… Day ${dayNum} (${count} text${count===1?'':'s'})`;
+                            pill.textContent = "\uD83D\uDD0D Day " + dayNum + " (" + count + " text" + (count===1?"":"s") + ")";
                         } else {
-                            pill.textContent = 'ðŸ” Magnifier';
+                            pill.textContent = "\uD83D\uDD0D Magnifier";
                         }
                     } else {
-                        pill.textContent = 'ðŸ” Magnifier';
+                        pill.textContent = "\uD83D\uDD0D Magnifier";
                     }
                 }
             }
@@ -6492,7 +6495,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     l.votes=isNaN(p)?0:Math.max(0,p);
                     saveData(sd,data);
                     const tile=document.querySelector(`.learning-tile[data-id="${id}"] .learning-vote-badge`);
-                    if(tile)tile.textContent=l.votes?`â˜… ${l.votes}`:'';
+                    if(tile)tile.textContent=l.votes?("\u2605 " + l.votes):"";
                 });
                 learningsToolbar.addEventListener('change',e=>{
                     if(e.target.id!=='ltVotes')return;
@@ -8883,7 +8886,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(accCurrentPwField) accCurrentPwField.style.display = 'none';
                 if(btnAccountClose) btnAccountClose.style.display = 'none';
                 if(btnAccountCancel) btnAccountCancel.style.display = 'none';
-                if(accountModalTitle) accountModalTitle.innerHTML = '<span>ðŸ”’ Set New Credentials</span>';
+                if(accountModalTitle) accountModalTitle.innerHTML = "<span>&#128274; Set New Credentials</span>";
             } else {
                 if(accCurrentPwField) accCurrentPwField.style.display = 'flex';
                 if(btnAccountClose) btnAccountClose.style.display = 'flex';
