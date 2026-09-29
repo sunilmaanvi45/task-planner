@@ -6536,14 +6536,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(cb)copyToClipboard(cb.dataset.copyPath||'');
                 });
 
-                if(eisenDefaultsToggle)eisenDefaultsToggle.addEventListener('click',e=>{
-                    e.stopPropagation();
-                    flushJustStartSave();
-                    applyEisenFilterPreset(!eisenDefaultsMode);
-                    updateEisenFilterUI();
-                    renderEisen();
-                });
-
+                // legacy eisenDefaultsToggle listener removed
                 if(eisenJustStartToggle)eisenJustStartToggle.addEventListener('click',e=>{
                     e.stopPropagation();
                     flushJustStartSave();
