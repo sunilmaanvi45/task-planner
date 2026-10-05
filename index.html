@@ -1298,6 +1298,42 @@ body.text-calendar-mode .text-magnifier-btn{
 @media (max-width:720px){
   .destination-row{grid-template-columns:minmax(100px,1.2fr) 95px auto;gap:6px}
 }
+
+/* Learnings: Long Notes, Markdown & Calendar Drag */
+.learning-tile{cursor:grab}
+.learning-tile:active{cursor:grabbing}
+.learning-tile.learning-dragging{opacity:0.45}
+.learning-tile-drag{cursor:grab}
+.learning-tile-drag:active{cursor:grabbing}
+.learning-modal{width:92% !important;max-width:680px !important;max-height:90vh !important}
+@media (max-width:600px){
+  .learning-modal{width:96% !important;max-width:96vw !important;max-height:94vh !important;padding:16px 12px !important}
+}
+.learning-tab-btn{
+  padding:3px 9px;font-size:11px;font-weight:600;border:1px solid var(--border);
+  background:var(--card-bg);color:var(--text-secondary);border-radius:var(--r-xs);cursor:pointer;
+  transition:all var(--dur-fast);user-select:none;
+}
+.learning-tab-btn:hover{color:var(--text);border-color:var(--border-strong)}
+.learning-tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.learning-modal-content{max-height:55vh !important;line-height:1.6 !important;word-break:break-word}
+.learning-modal-content p{margin:0 0 8px;line-height:1.6}
+.learning-modal-content p:last-child{margin-bottom:0}
+.learning-modal-content strong{font-weight:700}
+.learning-modal-content em{font-style:italic}
+.learning-modal-content del{text-decoration:line-through;opacity:0.7}
+.learning-modal-content code{font-family:var(--font-mono);font-size:0.9em;background:var(--neutral-tint);padding:1px 4px;border-radius:3px;border:1px solid var(--border)}
+.learning-modal-content pre{font-family:var(--font-mono);font-size:0.85em;background:var(--neutral-tint);padding:10px 12px;border-radius:var(--r-xs);overflow-x:auto;margin:8px 0;border:1px solid var(--border);white-space:pre}
+.learning-modal-content pre code{background:none;padding:0;border:none}
+.learning-modal-content ul,.learning-modal-content ol{margin:6px 0;padding-left:22px}
+.learning-modal-content li{margin:3px 0}
+.learning-modal-content a{color:var(--accent);text-decoration:underline;word-break:break-all}
+.learning-modal-content blockquote{margin:6px 0;padding:6px 12px;border-left:3px solid var(--accent);background:var(--accent-light);border-radius:var(--r-xs)}
+.learning-modal-content h1,.learning-modal-content h2,.learning-modal-content h3,.learning-modal-content h4{margin:12px 0 4px;font-weight:700;line-height:1.25;letter-spacing:-0.01em;color:var(--text)}
+.learning-modal-content h1{font-size:1.25em}
+.learning-modal-content h2{font-size:1.15em}
+.learning-modal-content h3{font-size:1.05em}
+.learning-modal-content h4{font-size:0.95em}
 .learning-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4)}
 .learning-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);letter-spacing:-.015em;display:flex;align-items:center;gap:var(--sp-2)}
 .learning-modal-close{width:30px;height:30px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:background-color var(--dur-fast) var(--ease-in-out),color var(--dur-fast) var(--ease-in-out),border-color var(--dur-fast) var(--ease-in-out),transform var(--dur-fast) var(--ease-out)}
@@ -2580,9 +2616,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     <span style="color:var(--text-secondary);">Sync Mode:</span>
                     <span>Bidirectional Realtime</span>
                 </div>
-                <div class="account-modal-actions" style="margin-top:10px;">
+                <div class="account-modal-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="button" class="btn-secondary" id="btnAccountSettingsOpen">Account Credentials</button>
-                    <button type="button" class="btn-primary" id="btnForceSync">Force Sync Now</button>
+                    <button type="button" class="btn-secondary" id="btnForcePull" title="Pull latest data from cloud to this device">&#8681; Pull from Cloud</button>
+                    <button type="button" class="btn-primary" id="btnForceSync" title="Sync bidirectionally with cloud">&#8645; Sync Now</button>
                 </div>
             </div>
         </div>
@@ -2828,6 +2865,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const BACKUP_COUNTER_KEY='td_backup_counter';
             const LEARNING_TYPE_KEY='td_learning_last_type';
             const TASK_MIME='application/x-td-task';
+            const LEARNING_MIME='application/x-td-learning';
             const TASK_PLACEHOLDER='Task title…\n\nTip: use **bold**, *italic*, `code`, - lists, and [links](url)';
             const MAX_UNDO=30;
             let currentYear,currentMonth,selectedDateStr=null,selectedWeekId=null,selectionMode='daily',selectedHabit=null;
@@ -3164,37 +3202,50 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
                 return true;
             }
-            function moveLearningBetweenDates(learningId,toDate,opts){
-                opts=opts||{};
-                const found=findLearningById(learningId);
-                if(!found)return false;
-                const fromDate=found.dateStr;
-                if(fromDate===toDate)return false;
-                const fromData=getData(fromDate);
-                if(!fromData||!Array.isArray(fromData.learnings))return false;
-                const idx=fromData.learnings.findIndex(l=>l.id===learningId);
-                if(idx===-1)return false;
-                const l=fromData.learnings[idx];
-                fromData.learnings.splice(idx,1);
-                const fromEmpty=!fromData.tasks?.length&&!fromData.notes?.trim()&&!fromData.dayTitle?.trim()&&!fromData.attachments?.length&&!fromData.learnings?.length&&!fromData.habits?.length&&!fromData.holiday&&!fromData.textCalendar?.length;
-                if(fromEmpty)deleteData(fromDate);else saveData(fromDate,fromData);
+            function moveLearningBetweenDates(learningId,toDateOrFromDate,optsOrToDate,maybeOpts){
+                let fromDate, toDate, opts;
+                if(typeof optsOrToDate === 'string'){
+                    fromDate = toDateOrFromDate;
+                    toDate = optsOrToDate;
+                    opts = maybeOpts || {};
+                } else {
+                    toDate = toDateOrFromDate;
+                    opts = optsOrToDate || {};
+                }
+                opts = opts || {};
+                const found = findLearningById(learningId);
+                if(!found) return false;
+                if(!fromDate) fromDate = found.dateStr;
+                if(!toDate || fromDate === toDate) return false;
+                const fromData = getData(fromDate);
+                if(!fromData || !Array.isArray(fromData.learnings)) return false;
+                const idx = fromData.learnings.findIndex(l => l.id === learningId);
+                if(idx === -1) return false;
+                const l = fromData.learnings[idx];
+                fromData.learnings.splice(idx, 1);
+                const fromEmpty = !fromData.tasks?.length && !fromData.notes?.trim() && !fromData.dayTitle?.trim() && !fromData.attachments?.length && !fromData.learnings?.length && !fromData.habits?.length && !fromData.holiday && !fromData.textCalendar?.length;
+                if(fromEmpty) deleteData(fromDate); else saveData(fromDate, fromData);
 
-                const toData=getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                toData.learnings=toData.learnings||[];
-                l.currentDate=toDate;
+                const toData = getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+                toData.learnings = toData.learnings || [];
+                l.currentDate = toDate;
                 toData.learnings.push(l);
-                saveData(toDate,toData);
+                saveData(toDate, toData);
 
                 if(!opts.silent){
-                    currentDataCache=null;
+                    currentDataCache = null;
                     renderCalendar();
                     renderLearningsSection();
-                    if(selectionMode==='daily'&&selectedDateStr===fromDate){
-                        updateDetailPanel(getData(fromDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},fromDate);
+                    if(selectionMode === 'daily'){
+                        if(selectedDateStr === fromDate){
+                            updateDetailPanel(getData(fromDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, fromDate);
+                        } else if(selectedDateStr === toDate){
+                            updateDetailPanel(getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, toDate);
+                        }
                     }
-                    if(eisenOverlay.classList.contains('active'))renderEisen();
-                    updateSingleCell(fromDate,{pop:true});
-                    updateSingleCell(toDate,{pop:true});
+                    if(eisenOverlay.classList.contains('active')) renderEisen();
+                    updateSingleCell(fromDate, {pop:true});
+                    updateSingleCell(toDate, {pop:true});
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
                 }
                 return true;
@@ -3315,15 +3366,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function buildLearningTileHTML(l,ia){
                 const s=srsStatus(l);
                 const p=getPreviewContent(l);
-                const tp=p.length>80?p.slice(0,80)+'…':p;
+                const pClean=p.replace(/\r?\n+/g,' ');
+                const tp=pClean.length>80?pClean.slice(0,80)+'\u2026':pClean;
                 const title=l.title||(l.type==='text'?'Note':l.type==='youtube'?'YouTube':l.type==='link'?'Link':'File');
                 const ic=l.completed===true;
                 const v=l.votes||0;
                 const ac=ia?' active-learning':'';
                 const sk=l.id+'|'+l._sourceDate;
                 const is=selectedLearningKeys.has(sk);
-                const deckBadge=(l.deck&&String(l.deck).trim())?`<span class="deck-badge" title="Deck: ${escapeHtml(l.deck)}">📚 ${escapeHtml(l.deck)}</span>`:'';
-                return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into the Eisenhower Matrix">⠿</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${escapeHtml(title)}</span></div><div class="learning-tile-preview">${escapeHtml(tp)}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${v>0?`<span class="task-meta-pill" title="Votes">▲ ${v}</span>`:''}</div></div></div>`;
+                const deckBadge=(l.deck&&String(l.deck).trim())?`<span class="deck-badge" title="Deck: ${escapeHtml(l.deck)}">&#128218; ${escapeHtml(l.deck)}</span>`:'';
+                return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${escapeHtml(title)}</span></div><div class="learning-tile-preview">${escapeHtml(tp)}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
             }
             function handleLearningsGridClick(e){
                 const sb=e.target.closest('.learning-select-box');
@@ -3338,7 +3390,34 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
                 openLearningModal(tile.dataset.id,tile.dataset.source);
             }
-            function handleLearningDragStart(e){const h=e.target.closest('.learning-tile-drag');if(!h)return;const f=findLearningById(h.dataset.id);if(!f)return;const l=f.learning;const payload={item:{id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type},origin:'external',quadKey:null,cellIdx:null};eisenDragPayload=payload;try{e.dataTransfer.setData(EISEN_MIME,JSON.stringify(payload));e.dataTransfer.setData('text/plain',l.title||'')}catch(err){}e.dataTransfer.effectAllowed='copyMove'}
+            function handleLearningDragStart(e){
+                if(e.target.closest('.learning-select-box')||e.target.closest('button')||e.target.closest('input'))return;
+                const tile=e.target.closest('.learning-tile');
+                const handle=e.target.closest('.learning-tile-drag');
+                const target=handle||tile;
+                if(!target)return;
+                const learnId=target.dataset.id||(tile&&tile.dataset.id);
+                if(!learnId)return;
+                const f=findLearningById(learnId);
+                if(!f)return;
+                const l=f.learning;
+                const srcDate=l._sourceDate||f.dateStr||(selectionMode==='daily'?selectedDateStr:null);
+                const eisenPayload={item:{id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type},origin:'external',quadKey:null,cellIdx:null};
+                eisenDragPayload=eisenPayload;
+                const learnPayload={learningId:l.id,sourceDate:srcDate};
+                try{
+                    e.dataTransfer.setData(EISEN_MIME,JSON.stringify(eisenPayload));
+                    e.dataTransfer.setData(LEARNING_MIME,JSON.stringify(learnPayload));
+                    e.dataTransfer.setData('text/plain',l.title||(getPreviewContent(l)||''));
+                }catch(err){}
+                e.dataTransfer.effectAllowed='copyMove';
+                if(tile)tile.classList.add('learning-dragging');
+            }
+            function handleLearningDragEnd(e){
+                eisenDragPayload=null;
+                document.querySelectorAll('.learning-dragging').forEach(el=>el.classList.remove('learning-dragging'));
+                calendarGrid.querySelectorAll('.calendar-cell.task-drop-target').forEach(c=>c.classList.remove('task-drop-target'));
+            }
             function anySelectionActive(){return selectedTaskIds.size>0||selectedLearningKeys.size>0||selectedEisenIds.size>0||selectedEisenSourceIds.size>0}
             function toggleLearningSelection(id,source){const k=id+'|'+source;if(selectedLearningKeys.has(k))selectedLearningKeys.delete(k);else selectedLearningKeys.add(k);const sel=document.querySelector(`.learning-select-box[data-select-learning="${id}"][data-select-source="${source}"]`);if(sel){const on=selectedLearningKeys.has(k);sel.classList.toggle('selected',on);const t=sel.closest('.learning-tile');if(t)t.classList.toggle('selected',on)}renderLearningsToolbar()}
             function toggleEisenSelection(id,qk){const k=id+'|'+qk;if(selectedEisenIds.has(k))selectedEisenIds.delete(k);else selectedEisenIds.add(k);const sel=document.querySelector(`.chip-select-box[data-select-chip-id="${id}"][data-select-chip-quad="${qk}"]`);if(sel){const on=selectedEisenIds.has(k);sel.classList.toggle('selected',on);const c=sel.closest('.eisen-chip');if(c)c.classList.toggle('selected',on)}renderEisenSelectionBar()}
@@ -3576,16 +3655,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 learningModalTitle.innerHTML=`${getTypeIcon(l.type)} ${escapeHtml(l.title||'Learning')}`;
                 let b='';
                 if(l.deck&&String(l.deck).trim()){
-                    b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">Deck:</span> <span class="deck-badge">📚 ${escapeHtml(l.deck)}</span></div>`;
+                    b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">Deck:</span> <span class="deck-badge">&#128218; ${escapeHtml(l.deck)}</span></div>`;
                 }
                 b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">SRS:</span> <span class="srs-badge srs-${srs.status}">${srs.label}</span>`;
                 if(l.currentDate)b+=` <small style="color:var(--text-secondary)">(due: ${l.currentDate})</small>`;
                 b+='</div>';
-                if(l.type==='text')b+=`<div class="learning-modal-content">${escapeHtml(l.content||'(no content)')}</div>`;
-                else if(l.type==='youtube'||l.type==='link'){const url=l.content||l.url||'';b+=`<a class="learning-modal-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">🔗 ${escapeHtml(url)}</a>`;if(l.content&&l.content!==url)b+=`<div class="learning-modal-content" style="margin-top:8px;">${escapeHtml(l.content)}</div>`}
-                else if(l.type==='file'){const fp=l.filePath||l.content||'';b+=`<div class="learning-modal-file"><span>📁 ${escapeHtml(fp)}</span><button class="file-path-copy" onclick="copyToClipboard('${escapeHtml(fp).replace(/'/g,"\\'")}')">📋</button></div>`}
-                if(!l.completed){b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Rate:</div><div class="learning-modal-rating-btns"><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="4h">4h</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1d">1d</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1w">1w</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1mo">1mo</button></div>`;b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Defer:</div><div class="learning-modal-defer"><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-7">−1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-1">−1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="1">+1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="7">+1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="30">+1m</button></div>`}
-                b+=`<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">${!l.completed?`<button class="learning-modal-done" data-action="modal-done" data-id="${l.id}" data-source="${found.dateStr}">✓ Done</button>`:''}<button class="learning-modal-delete" data-action="modal-delete" data-id="${l.id}" data-source="${found.dateStr}">🗑 Delete</button><button class="learning-modal-rating-btn" data-action="modal-edit" data-id="${l.id}" data-source="${found.dateStr}" style="border-color:var(--warning-border);color:var(--warning);">✎ Edit</button></div>`;
+                if(l.type==='text')b+=`<div class="learning-modal-content">${l.content?renderMarkdown(l.content):'(no content)'}</div>`;
+                else if(l.type==='youtube'||l.type==='link'){const url=l.content||l.url||'';b+=`<a class="learning-modal-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">&#128279; ${escapeHtml(url)}</a>`;if(l.content&&l.content!==url)b+=`<div class="learning-modal-content" style="margin-top:8px;">${renderMarkdown(l.content)}</div>`}
+                else if(l.type==='file'){const fp=l.filePath||l.content||'';b+=`<div class="learning-modal-file"><span>&#128193; ${escapeHtml(fp)}</span><button class="file-path-copy" onclick="copyToClipboard('${escapeHtml(fp).replace(/'/g,"\\'")}')">&#128203;</button></div>`}
+                if(!l.completed){b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Rate:</div><div class="learning-modal-rating-btns"><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="4h">4h</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1d">1d</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1w">1w</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1mo">1mo</button></div>`;b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Defer:</div><div class="learning-modal-defer"><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-7">&#8722;1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-1">&#8722;1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="1">+1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="7">+1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="30">+1m</button></div>`}
+                b+=`<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">${!l.completed?`<button class="learning-modal-done" data-action="modal-done" data-id="${l.id}" data-source="${found.dateStr}">&#10003; Done</button>`:''}<button class="learning-modal-delete" data-action="modal-delete" data-id="${l.id}" data-source="${found.dateStr}">&#128465; Delete</button><button class="learning-modal-rating-btn" data-action="modal-edit" data-id="${l.id}" data-source="${found.dateStr}" style="border-color:var(--warning-border);color:var(--warning);">&#9998; Edit</button></div>`;
                 learningModalBody.innerHTML=b;learningModalOverlay.classList.add('active');
             }
 
@@ -3599,31 +3678,87 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 try{appStorage.setItem(LEARNING_TYPE_KEY,t)}catch(e){}
             }
             function applyLearningTypeUI(type){
-                const cl=document.querySelector('#learningFormContentGroup label');
+                const cl=document.getElementById('learningFormContentLabel');
                 const ci=document.getElementById('learningFormContent');
-                if(!cl||!ci)return;
-                if(type==='youtube'||type==='link'){cl.textContent='URL';ci.placeholder='https://...';ci.style.minHeight='40px'}
-                else if(type==='file'){cl.textContent='File Path';ci.placeholder='C:\\Users\\...\\file.pdf';ci.style.minHeight='40px'}
-                else{cl.textContent='Content';ci.placeholder='Paste notes...';ci.style.minHeight='70px'}
+                const cprev=document.getElementById('learningFormContentPreview');
+                const tgrp=document.getElementById('learningMdToggleGroup');
+                const mhint=document.getElementById('learningMdHint');
+                const bEdit=document.getElementById('btnLearningModeEdit');
+                const bPrev=document.getElementById('btnLearningModePreview');
+                if(!ci)return;
+                if(cprev)cprev.style.display='none';
+                ci.style.display='block';
+                if(bEdit)bEdit.classList.add('active');
+                if(bPrev)bPrev.classList.remove('active');
+                if(type==='youtube'||type==='link'){
+                    if(cl)cl.textContent='URL';
+                    ci.placeholder='https://...';
+                    ci.style.minHeight='42px';
+                    ci.style.height='42px';
+                    ci.style.resize='vertical';
+                    if(tgrp)tgrp.style.display='none';
+                    if(mhint)mhint.style.display='none';
+                }else if(type==='file'){
+                    if(cl)cl.textContent='File Path';
+                    ci.placeholder='C:\\Users\\...\\file.pdf';
+                    ci.style.minHeight='42px';
+                    ci.style.height='42px';
+                    ci.style.resize='vertical';
+                    if(tgrp)tgrp.style.display='none';
+                    if(mhint)mhint.style.display='none';
+                }else{
+                    if(cl)cl.textContent='Content (Notes & Markdown)';
+                    ci.placeholder='Write or paste notes here...\nSupports **bold**, *italic*, `code`, - bullet lists, # headings, etc.';
+                    ci.style.minHeight='180px';
+                    ci.style.height='220px';
+                    ci.style.maxHeight='52vh';
+                    ci.style.resize='vertical';
+                    ci.style.lineHeight='1.5';
+                    if(tgrp)tgrp.style.display='flex';
+                    if(mhint)mhint.style.display='block';
+                }
+            }
+            function setupLearningFormTabs(){
+                const bEdit=document.getElementById('btnLearningModeEdit');
+                const bPrev=document.getElementById('btnLearningModePreview');
+                const ci=document.getElementById('learningFormContent');
+                const cprev=document.getElementById('learningFormContentPreview');
+                if(bEdit&&bPrev&&ci&&cprev){
+                    bEdit.onclick=function(){
+                        ci.style.display='block';
+                        cprev.style.display='none';
+                        bEdit.classList.add('active');
+                        bPrev.classList.remove('active');
+                        ci.focus();
+                    };
+                    bPrev.onclick=function(){
+                        const raw=ci.value||'';
+                        cprev.innerHTML=raw.trim()?renderMarkdown(raw):'<i style="color:var(--text-secondary);">(empty note)</i>';
+                        ci.style.display='none';
+                        cprev.style.display='block';
+                        bPrev.classList.add('active');
+                        bEdit.classList.remove('active');
+                    };
+                }
             }
 
             function openAddLearningModal(){
                 editingLearningInfo=null;
-                learningModalTitle.innerHTML='🧠 New Learning';
+                learningModalTitle.innerHTML='&#129504; New Learning';
                 const deckListHTML=buildDeckDatalistHTML();
                 const defaultType=getLastLearningType();
                 const defaultDeck=(deckFilter&&deckFilter!==''&&deckFilter!=='__none__')?deckFilter:'';
                 const typeOptions=[
-                    ['text','📝 Text Note'],
-                    ['youtube','▶️ YouTube Link'],
-                    ['link','🔗 Website Link'],
-                    ['file','📁 File Path']
+                    ['text','&#128221; Text Note'],
+                    ['youtube','&#9654;&#65039; YouTube Link'],
+                    ['link','&#128279; Website Link'],
+                    ['file','&#128193; File Path']
                 ].map(p=>`<option value="${p[0]}"${p[0]===defaultType?' selected':''}>${p[1]}</option>`).join('');
                 learningModalBody.innerHTML=
                     `<div class="learning-form-group"><label>Type</label><select id="learningFormType">${typeOptions}</select></div>`+
                     `<div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" placeholder="e.g., React Hooks Tutorial" /></div>`+
                     `<div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(defaultDeck).replace(/"/g,'&quot;')}" placeholder="e.g., Spanish, React, Math" autocomplete="off" />${deckListHTML}</div>`+
-                    `<div class="learning-form-group" id="learningFormContentGroup"><label for="learningFormContent">Content / URL</label><textarea id="learningFormContent" placeholder="Paste notes, link, or file path..."></textarea></div>`+
+                    `<div class="learning-form-group" id="learningFormContentGroup"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;"><label for="learningFormContent" id="learningFormContentLabel">Content</label><div id="learningMdToggleGroup" style="display:none;gap:4px;"><button type="button" class="learning-tab-btn active" id="btnLearningModeEdit">&#9998; Write</button><button type="button" class="learning-tab-btn" id="btnLearningModePreview">&#128065; Preview</button></div></div><textarea id="learningFormContent" placeholder="Write or paste notes..."></textarea><div id="learningFormContentPreview" class="learning-modal-content" style="display:none;min-height:180px;max-height:48vh;overflow-y:auto;"></div><div id="learningMdHint" style="font-size:11px;color:var(--text-secondary);display:none;margin-top:2px;"><span>Markdown supported: <b>**bold**</b>, <i>*italic*</i>, <code>\`code\`</code>, - lists, # headings</span></div></div>`+
                     `<div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Save Learning</button></div>`;
                 learningModalOverlay.classList.add('active');
                 setTimeout(()=>{
@@ -3634,16 +3769,18 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         ts.addEventListener('change',()=>{applyLearningTypeUI(ts.value)});
                     }
                     applyLearningTypeUI(defaultType);
+                    setupLearningFormTabs();
                 },100);
             }
+
             function openEditLearningModal(id,sourceDate){
                 const found=findLearningById(id);if(!found)return;
                 const l=found.learning;editingLearningInfo={id,sourceDate:found.dateStr};
-                learningModalTitle.innerHTML='✎ Edit Learning';
+                learningModalTitle.innerHTML='&#9998; Edit Learning';
                 const to=['text','youtube','link','file'].map(t=>`<option value="${t}" ${l.type===t?'selected':''}>${getTypeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
                 const cv=l.type==='file'?(l.filePath||''):(l.content||l.url||'');
                 const deckListHTML=buildDeckDatalistHTML();
-                learningModalBody.innerHTML=`<div class="learning-form-group"><label>Type</label><select id="learningFormType">${to}</select></div><div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" value="${escapeHtml(l.title||'')}" /></div><div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(l.deck||'')}" placeholder="e.g., Spanish, React" autocomplete="off" />${deckListHTML}</div><div class="learning-form-group" id="learningFormContentGroup"><label for="learningFormContent">${l.type==='youtube'||l.type==='link'?'URL':l.type==='file'?'File Path':'Content'}</label><textarea id="learningFormContent">${escapeHtml(cv)}</textarea></div><div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Update</button></div>`;
+                learningModalBody.innerHTML=`<div class="learning-form-group"><label>Type</label><select id="learningFormType">${to}</select></div><div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" value="${escapeHtml(l.title||'')}" /></div><div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(l.deck||'')}" placeholder="e.g., Spanish, React" autocomplete="off" />${deckListHTML}</div><div class="learning-form-group" id="learningFormContentGroup"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;"><label for="learningFormContent" id="learningFormContentLabel">${l.type==='youtube'||l.type==='link'?'URL':l.type==='file'?'File Path':'Content'}</label><div id="learningMdToggleGroup" style="display:none;gap:4px;"><button type="button" class="learning-tab-btn active" id="btnLearningModeEdit">&#9998; Write</button><button type="button" class="learning-tab-btn" id="btnLearningModePreview">&#128065; Preview</button></div></div><textarea id="learningFormContent">${escapeHtml(cv)}</textarea><div id="learningFormContentPreview" class="learning-modal-content" style="display:none;min-height:180px;max-height:48vh;overflow-y:auto;"></div><div id="learningMdHint" style="font-size:11px;color:var(--text-secondary);display:none;margin-top:2px;"><span>Markdown supported: <b>**bold**</b>, <i>*italic*</i>, <code>\`code\`</code>, - lists, # headings</span></div></div><div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Update</button></div>`;
                 learningModalOverlay.classList.add('active');
                 setTimeout(()=>{
                     document.getElementById('btnCancelLearning')?.addEventListener('click',closeLearningModal);
@@ -3653,8 +3790,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         ts.addEventListener('change',()=>{applyLearningTypeUI(ts.value)});
                     }
                     applyLearningTypeUI(l.type||'text');
+                    setupLearningFormTabs();
                 },100);
             }
+
             function saveNewLearning(){
                 const type=document.getElementById('learningFormType')?.value||'text';
                 const title=document.getElementById('learningFormTitle')?.value?.trim()||'';
@@ -5413,7 +5552,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             const url=l.content||l.url||'';
                             content=`<a class="eisen-item-popup-link" href="${attrEsc(url)}" target="_blank" rel="noopener">🔗 ${escapeHtml(url||'(no url)')}</a>`;
                         }else{
-                            content=`<div class="eisen-item-popup-text">${escapeHtml(l.content||'(no content)')}</div>`;
+                            content=`<div class="eisen-item-popup-text">${renderMarkdown(l.content||'(no content)')}</div>`;
                         }
                         body=`<div class="eisen-item-popup-meta">${meta}</div>${content}`;
                     }
@@ -6381,8 +6520,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(deckFilterSelect)deckFilterSelect.addEventListener('change',()=>{deckFilter=deckFilterSelect.value;renderLearningsSection()});
                 learningsGrid.addEventListener('click',handleLearningsGridClick);
                 learningsGrid.addEventListener('dragstart',handleLearningDragStart);
+                learningsGrid.addEventListener('dragend',handleLearningDragEnd);
                 learningsActiveGrid.addEventListener('click',handleLearningsGridClick);
                 learningsActiveGrid.addEventListener('dragstart',handleLearningDragStart);
+                learningsActiveGrid.addEventListener('dragend',handleLearningDragEnd);
                 learningModalOverlay.addEventListener('click',e=>{if(e.target===learningModalOverlay)closeLearningModal()});
                 learningModalClose.addEventListener('click',closeLearningModal);
                 learningModal.addEventListener('click',handleModalClick);
@@ -6481,7 +6622,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const cell=e.target.closest('.calendar-cell');
                     if(textCalendarMode)return;
                     if(!cell||cell.classList.contains('empty'))return;
-                    if(!e.dataTransfer.types||Array.prototype.indexOf.call(e.dataTransfer.types,TASK_MIME)===-1)return;
+                    const hasTask=e.dataTransfer.types&&Array.prototype.indexOf.call(e.dataTransfer.types,TASK_MIME)!==-1;
+                    const hasLearn=e.dataTransfer.types&&Array.prototype.indexOf.call(e.dataTransfer.types,LEARNING_MIME)!==-1;
+                    if(!hasTask&&!hasLearn)return;
                     e.preventDefault();
                     e.dataTransfer.dropEffect='move';
                     calendarGrid.querySelectorAll('.calendar-cell.task-drop-target').forEach(c=>{if(c!==cell)c.classList.remove('task-drop-target')});
@@ -6494,18 +6637,32 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 calendarGrid.addEventListener('drop',e=>{
                     const cell=e.target.closest('.calendar-cell');
                     if(!cell||cell.classList.contains('empty'))return;
-                    if(!e.dataTransfer.types||Array.prototype.indexOf.call(e.dataTransfer.types,TASK_MIME)===-1)return;
+                    const hasTask=e.dataTransfer.types&&Array.prototype.indexOf.call(e.dataTransfer.types,TASK_MIME)!==-1;
+                    const hasLearn=e.dataTransfer.types&&Array.prototype.indexOf.call(e.dataTransfer.types,LEARNING_MIME)!==-1;
+                    if(!hasTask&&!hasLearn)return;
                     e.preventDefault();
                     e.stopPropagation();
                     calendarGrid.querySelectorAll('.calendar-cell.task-drop-target').forEach(c=>c.classList.remove('task-drop-target'));
-                    let payload;
-                    try{payload=JSON.parse(e.dataTransfer.getData(TASK_MIME))}catch(err){return}
-                    if(!payload||!payload.taskId||!payload.sourceDate)return;
-                    const targetDate=cell.getAttribute('data-date');
-                    if(!targetDate||targetDate===payload.sourceDate)return;
-                    pushUndo('Move task to '+getShortDate(targetDate));
-                    const ok=moveTaskBetweenDates(payload.taskId,payload.sourceDate,targetDate);
-                    if(ok)showToast('📅 Task moved to '+getShortDate(targetDate));
+                    if(hasTask){
+                        let payload;
+                        try{payload=JSON.parse(e.dataTransfer.getData(TASK_MIME))}catch(err){return}
+                        if(!payload||!payload.taskId||!payload.sourceDate)return;
+                        const targetDate=cell.getAttribute('data-date');
+                        if(!targetDate||targetDate===payload.sourceDate)return;
+                        pushUndo('Move task to '+getShortDate(targetDate));
+                        const ok=moveTaskBetweenDates(payload.taskId,payload.sourceDate,targetDate);
+                        if(ok)showToast('\uD83D\uDCC5 Task moved to '+getShortDate(targetDate));
+                    }else if(hasLearn){
+                        let payload;
+                        try{payload=JSON.parse(e.dataTransfer.getData(LEARNING_MIME))}catch(err){return}
+                        if(!payload||!payload.learningId)return;
+                        const targetDate=cell.getAttribute('data-date');
+                        const sourceDate=payload.sourceDate;
+                        if(!targetDate||targetDate===sourceDate)return;
+                        pushUndo('Move learning to '+getShortDate(targetDate));
+                        const ok=moveLearningBetweenDates(payload.learningId,sourceDate,targetDate);
+                        if(ok)showToast('\uD83D\uDCDA Learning moved to '+getShortDate(targetDate));
+                    }
                 });
 
                 taskToolbar.addEventListener('click',e=>{
@@ -9153,9 +9310,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
         let supabaseClient = null;
         let isApplyingRemoteUpdate = false;
-        let lastLocalPushTime = 0;
-        let lastRemoteUpdateTime = 0;
+        let lastAppliedRemoteUpdatedAt = null;
+        let lastPushedUpdatedAt = null;
         let cloudPushTimer = null;
+        let realtimeChannel = null;
         const CLIENT_SESSION_ID = 'client_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now();
 
         const btnCloudSync = document.getElementById('btnCloudSync');
@@ -9167,6 +9325,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         const syncDetailText = document.getElementById('syncDetailText');
         const syncLastTime = document.getElementById('syncLastTime');
         const btnForceSync = document.getElementById('btnForceSync');
+        const btnForcePull = document.getElementById('btnForcePull');
         const btnAccountSettingsOpen = document.getElementById('btnAccountSettingsOpen');
 
         function setSyncStatus(st, msg, detail){
@@ -9223,16 +9382,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const nowIso = now.toISOString();
 
             try {
-                lastLocalPushTime = now.getTime();
-                const { error } = await supabaseClient
+                const { data: upsertData, error } = await supabaseClient
                     .from('app_sync')
-                    .upsert({ id: 'primary', data: payload, updated_at: nowIso });
+                    .upsert({ id: 'primary', data: payload, updated_at: nowIso })
+                    .select('updated_at')
+                    .maybeSingle();
 
                 if(error){
                     console.warn('Cloud sync error:', error);
                     setSyncStatus('error', 'Sync Failed', error.message || 'Error pushing to cloud');
                 } else {
-                    lastRemoteUpdateTime = lastLocalPushTime;
+                    const actualUpdatedAt = (upsertData && upsertData.updated_at) ? upsertData.updated_at : nowIso;
+                    lastPushedUpdatedAt = actualUpdatedAt;
+                    lastAppliedRemoteUpdatedAt = actualUpdatedAt;
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
                     if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
                 }
@@ -9252,11 +9414,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         function applyIncomingPayload(remotePayload, remoteUpdatedAt){
             if(!remotePayload || typeof remotePayload !== 'object') return;
             if(remotePayload._senderId === CLIENT_SESSION_ID) return;
-
-            const remoteTime = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
-            if(remoteTime && lastLocalPushTime && remoteTime <= lastLocalPushTime) {
-                return; // Local push is newer or equal
-            }
+            if(remoteUpdatedAt && lastAppliedRemoteUpdatedAt && remoteUpdatedAt === lastAppliedRemoteUpdatedAt) return;
 
             isApplyingRemoteUpdate = true;
             window.__isApplyingRemoteUpdate = true;
@@ -9312,16 +9470,90 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         renderEisenPresetList();
                     }
                 }
-                const now = new Date();
-                lastRemoteUpdateTime = remoteTime || now.getTime();
+                lastAppliedRemoteUpdatedAt = remoteUpdatedAt;
                 setSyncStatus('connected', 'Live Sync Active', 'Received updates from cloud');
-                if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
+                if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
             } finally {
                 setTimeout(() => {
                     isApplyingRemoteUpdate = false;
                     window.__isApplyingRemoteUpdate = false;
                 }, 200);
             }
+        }
+
+        async function pullFromCloud(force){
+            if(!supabaseClient || isApplyingRemoteUpdate) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('app_sync')
+                    .select('data, updated_at')
+                    .eq('id', 'primary')
+                    .maybeSingle();
+
+                if(!error && data && data.data){
+                    if(!force && data.data._senderId === CLIENT_SESSION_ID) return;
+                    if(!force && data.updated_at && data.updated_at === lastAppliedRemoteUpdatedAt) return;
+                    applyIncomingPayload(data.data, data.updated_at);
+                }
+            } catch(e){
+                console.warn('Pull from cloud error:', e);
+            }
+        }
+
+        function subscribeRealtime(){
+            if(!supabaseClient) return;
+            try {
+                if(realtimeChannel){
+                    supabaseClient.removeChannel(realtimeChannel);
+                }
+            } catch(e){}
+
+            realtimeChannel = supabaseClient
+                .channel('realtime_app_sync_channel_' + Date.now())
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync', filter: 'id=eq.primary' }, (payload) => {
+                    if(payload.new && payload.new.data){
+                        if(payload.new.data._senderId === CLIENT_SESSION_ID) return;
+                        applyIncomingPayload(payload.new.data, payload.new.updated_at);
+                    }
+                })
+                .subscribe((status, err) => {
+                    if(status === 'SUBSCRIBED'){
+                        setSyncStatus('connected', 'Live Sync Active', 'Listening for real-time changes on all devices');
+                    } else if(status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT'){
+                        console.warn('Realtime channel interrupted:', status, err);
+                        setSyncStatus('syncing', 'Reconnecting...', 'Connection interrupted, reconnecting...');
+                        setTimeout(() => {
+                            if(document.visibilityState === 'visible'){
+                                subscribeRealtime();
+                            }
+                        }, 3000);
+                    }
+                });
+        }
+
+        async function pollCheckRemote(forcePull){
+            if(!supabaseClient || isApplyingRemoteUpdate) return;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('app_sync')
+                    .select('updated_at')
+                    .eq('id', 'primary')
+                    .maybeSingle();
+
+                if(!error && data && data.updated_at){
+                    if(forcePull || data.updated_at !== lastAppliedRemoteUpdatedAt){
+                        const fullRes = await supabaseClient
+                            .from('app_sync')
+                            .select('data, updated_at')
+                            .eq('id', 'primary')
+                            .maybeSingle();
+                        if(fullRes.data && fullRes.data.data){
+                            if(fullRes.data.data._senderId === CLIENT_SESSION_ID && !forcePull) return;
+                            applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at);
+                        }
+                    }
+                }
+            } catch(e){}
         }
 
         async function initCloudSync(){
@@ -9417,8 +9649,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(localHasUnique){
                         await pushToCloud();
                     } else {
-                        lastLocalPushTime = new Date(data.updated_at).getTime();
-                        lastRemoteUpdateTime = lastLocalPushTime;
+                        lastAppliedRemoteUpdatedAt = data.updated_at;
                         setSyncStatus('connected', 'Live Sync Active', 'Synced with cloud');
                         if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
                     }
@@ -9428,56 +9659,36 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
                 }
 
-                // 4. Realtime subscription
-                supabaseClient
-                    .channel('realtime_app_sync_channel')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_sync', filter: 'id=eq.primary' }, (payload) => {
-                        if(payload.new && payload.new.data){
-                            if(payload.new.data._senderId === CLIENT_SESSION_ID) return;
-                            applyIncomingPayload(payload.new.data, payload.new.updated_at);
-                        }
-                    })
-                    .subscribe((status) => {
-                        if(status === 'SUBSCRIBED'){
-                            setSyncStatus('connected', 'Live Sync Active', 'Listening for real-time changes on all devices');
-                        }
-                    });
+                // 4. Start Realtime subscription
+                subscribeRealtime();
 
-                // 5. Polling on visibility change / focus
-                async function pollCheckRemote(){
-                    if(!supabaseClient || isApplyingRemoteUpdate) return;
-                    try {
-                        const { data, error } = await supabaseClient
-                            .from('app_sync')
-                            .select('updated_at')
-                            .eq('id', 'primary')
-                            .maybeSingle();
-                        if(!error && data && data.updated_at){
-                            const remoteTime = new Date(data.updated_at).getTime();
-                            if(remoteTime > lastRemoteUpdateTime && (!lastLocalPushTime || remoteTime > lastLocalPushTime)){
-                                const fullRes = await supabaseClient
-                                    .from('app_sync')
-                                    .select('data, updated_at')
-                                    .eq('id', 'primary')
-                                    .maybeSingle();
-                                if(fullRes.data && fullRes.data.data){
-                                    if(fullRes.data.data._senderId === CLIENT_SESSION_ID) return;
-                                    applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at);
-                                }
-                            }
-                        }
-                    } catch(e){}
-                }
-
+                // 5. Lifecycle event listeners for robust mobile sync
                 document.addEventListener('visibilitychange', () => {
                     if(document.visibilityState === 'visible'){
-                        pollCheckRemote();
+                        if(!realtimeChannel || realtimeChannel.state !== 'joined'){
+                            subscribeRealtime();
+                        }
+                        pollCheckRemote(true);
                     } else if(document.visibilityState === 'hidden' && cloudPushTimer){
                         clearTimeout(cloudPushTimer);
                         cloudPushTimer = null;
                         pushToCloud();
                     }
                 });
+
+                window.addEventListener('pageshow', () => {
+                    pollCheckRemote(true);
+                });
+
+                window.addEventListener('focus', () => {
+                    pollCheckRemote(true);
+                });
+
+                window.addEventListener('online', () => {
+                    subscribeRealtime();
+                    pollCheckRemote(true);
+                });
+
                 window.addEventListener('beforeunload', () => {
                     if(cloudPushTimer){
                         clearTimeout(cloudPushTimer);
@@ -9485,8 +9696,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         pushToCloud();
                     }
                 });
-                window.addEventListener('focus', pollCheckRemote);
-                setInterval(pollCheckRemote, 25000);
+
+                setInterval(() => {
+                    if(document.visibilityState === 'visible'){
+                        pollCheckRemote(false);
+                    }
+                }, 25000);
 
             } catch(e){
                 console.warn('Supabase init error:', e);
@@ -9503,10 +9718,23 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             if(cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('active');
         }
         if(btnCloudSyncClose) btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
+        if(btnForcePull){
+            btnForcePull.addEventListener('click', async () => {
+                setSyncStatus('syncing', 'Pulling from cloud...', 'Fetching latest cloud state from Supabase');
+                try {
+                    await pullFromCloud(true);
+                    setSyncStatus('connected', 'Live Sync Active', 'Data pulled successfully from cloud');
+                    alert('Cloud data successfully pulled and applied!');
+                } catch(e){
+                    alert('Pull error: ' + (e.message || e));
+                }
+            });
+        }
         if(btnForceSync) {
             btnForceSync.addEventListener('click', async () => {
                 setSyncStatus('syncing', 'Syncing now...', 'Force syncing data with Supabase');
                 try {
+                    await pullFromCloud(true);
                     await pushToCloud();
                     alert('Cloud sync completed! All data synchronized with Supabase.');
                 } catch(e){
@@ -9525,7 +9753,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
         if('serviceWorker' in navigator){
             window.addEventListener('load', function(){
-                navigator.serviceWorker.register('sw.js').catch(function(err){
+                navigator.serviceWorker.register('sw.js').then(function(reg){
+                    if(reg) reg.update().catch(function(){});
+                }).catch(function(err){
                     console.log('SW registration error:', err);
                 });
             });
