@@ -57,7 +57,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --warning-tint:rgba(217,119,6,.085);--warning-tint-strong:rgba(217,119,6,.17);
   --neutral-tint:rgba(100,116,139,.07);
   --holiday-tint:rgba(245,158,11,.10);--holiday-tint-strong:rgba(245,158,11,.19);
-  --today-ring:#7c5cf0;--today-glow:rgba(124,92,240,.16);
+  --today-ring:#f59e0b;--today-glow:rgba(245,158,11,.28);--today-bg:rgba(245,158,11,.06);
   --selected-bg:rgba(61,107,245,.08);--selected-border:#3d6bf5;
   --error:#d92d2d;--error-bg:rgba(217,45,45,.08);--error-border:rgba(217,45,45,.28);
   --week-accent:#7c5cf0;--week-tint:rgba(124,92,240,.07);--week-tint-strong:rgba(124,92,240,.15);
@@ -91,7 +91,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --warning-tint:rgba(251,191,36,.10);--warning-tint-strong:rgba(251,191,36,.19);
   --neutral-tint:rgba(148,163,184,.10);
   --holiday-tint:rgba(251,191,36,.11);--holiday-tint-strong:rgba(251,191,36,.20);
-  --today-ring:#a78bfa;--today-glow:rgba(167,139,250,.20);
+  --today-ring:#fbbf24;--today-glow:rgba(251,191,36,.30);--today-bg:rgba(251,191,36,.08);
   --selected-bg:rgba(107,147,255,.16);--selected-border:#6b93ff;
   --error:#f87171;--error-bg:rgba(248,113,113,.12);--error-border:rgba(248,113,113,.32);
   --week-accent:#a78bfa;--week-tint:rgba(167,139,250,.10);--week-tint-strong:rgba(167,139,250,.20);
@@ -124,7 +124,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   --warning-tint:rgba(255,203,69,.09);--warning-tint-strong:rgba(255,203,69,.18);
   --neutral-tint:rgba(160,160,160,.10);
   --holiday-tint:rgba(255,203,69,.10);--holiday-tint-strong:rgba(255,203,69,.19);
-  --today-ring:#b39dff;--today-glow:rgba(179,157,255,.22);
+  --today-ring:#fcd34d;--today-glow:rgba(252,211,77,.32);--today-bg:rgba(252,211,77,.09);
   --selected-bg:rgba(122,162,255,.16);--selected-border:#7aa2ff;
   --error:#ff8585;--error-bg:rgba(255,133,133,.11);--error-border:rgba(255,133,133,.34);
   --week-accent:#b39dff;--week-tint:rgba(179,157,255,.10);--week-tint-strong:rgba(179,157,255,.20);
@@ -359,11 +359,13 @@ body{
 .calendar-cell.some-pending:hover{background:var(--warning-tint-strong);box-shadow:inset 0 0 0 1px var(--warning-border),var(--shadow-lg)}
 .calendar-cell.overdue{background:var(--danger-tint);box-shadow:inset 0 0 0 1px var(--danger-tint-strong)}
 .calendar-cell.overdue:hover{background:var(--danger-tint-strong);box-shadow:inset 0 0 0 1px var(--danger-border),var(--shadow-lg)}
-.calendar-cell.today{border-color:var(--today-ring);box-shadow:0 0 0 3px var(--today-glow)}
+.calendar-cell.today{border-color:var(--today-ring) !important;box-shadow:0 0 0 3px var(--today-glow);background:var(--today-bg)}
 .calendar-cell.today:hover{box-shadow:0 0 0 3px var(--today-glow),var(--shadow-lg)}
-.calendar-cell.selected{border-color:var(--selected-border);box-shadow:0 0 0 3px var(--accent-light)}
+.calendar-cell.selected{border-color:var(--selected-border) !important;box-shadow:0 0 0 3px var(--accent-light);background:var(--selected-bg)}
 .calendar-cell.selected:hover{box-shadow:0 0 0 3px var(--accent-light),var(--shadow-lg)}
-.calendar-cell.today.selected{border-color:var(--selected-border);box-shadow:0 0 0 3px var(--accent-light),0 0 0 6px var(--today-glow)}
+.calendar-cell.today.selected{border-color:var(--selected-border) !important;box-shadow:0 0 0 2.5px var(--selected-border),0 0 0 5.5px var(--today-glow);background:linear-gradient(135deg,var(--today-bg) 0%,var(--selected-bg) 100%)}
+.calendar-cell.today .cell-date{color:var(--today-ring);font-weight:700}
+.calendar-cell.today.selected .cell-date{color:var(--today-ring);font-weight:800}
 .calendar-cell.just-saved{animation:cellSavePop .5s var(--ease-spring)}
 .calendar-cell.entering{animation:cellPopIn .38s var(--ease-out) both}
 .week-cell.just-saved{animation:cellSavePop .5s var(--ease-spring)}
@@ -1316,7 +1318,11 @@ body.text-calendar-mode .text-magnifier-btn{
 }
 .learning-tab-btn:hover{color:var(--text);border-color:var(--border-strong)}
 .learning-tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-.learning-modal-content{max-height:55vh !important;line-height:1.6 !important;word-break:break-word}
+.learning-modal-content{white-space:normal !important;max-height:55vh !important;line-height:1.6 !important;word-break:break-word}
+.learning-tile-preview strong{font-weight:700;color:var(--text)}
+.learning-tile-preview em{font-style:italic}
+.learning-tile-preview code{font-family:var(--font-mono);font-size:0.9em;background:var(--neutral-tint);padding:1px 3px;border-radius:3px}
+.learning-tile-preview del{text-decoration:line-through;opacity:0.7}
 .learning-modal-content p{margin:0 0 8px;line-height:1.6}
 .learning-modal-content p:last-child{margin-bottom:0}
 .learning-modal-content strong{font-weight:700}
@@ -3160,7 +3166,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
             function renderMarkdown(text){
                 if(text===undefined||text===null||text==='')return '';
-                let s=escapeHtml(String(text));
+                let s=escapeHtml(String(text).replace(/\r\n/g, "\n").replace(/\r/g, "\n"));
 
                 const codeBlocks=[];
                 s=s.replace(/```([\s\S]*?)```/g,function(m,c){
@@ -3491,11 +3497,23 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
                 renderLearningsToolbar();
             }
+            function renderInlineMarkdown(text){
+                if(text===undefined||text===null||text==='')return '';
+                let s=escapeHtml(String(text)).replace(/\r\n/g,' ').replace(/[\r\n]+/g,' ');
+                s=s.replace(/\*\*([^*\n]+?)\*\*/g,'<strong>$1</strong>');
+                s=s.replace(/__([^_\n]+?)__/g,'<strong>$1</strong>');
+                s=s.replace(/~~([^~\n]+?)~~/g,'<del>$1</del>');
+                s=s.replace(/(^|[^*\w])\*([^*\n\s][^*\n]*?)\*(?!\w)/g,'$1<em>$2</em>');
+                s=s.replace(/(^|[^_\w])_([^_\n\s][^_\n]*?)_(?!\w)/g,'$1<em>$2</em>');
+                s=s.replace(/`([^`\n]+?)`/g,'<code>$1</code>');
+                s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+                return s;
+            }
             function buildLearningTileHTML(l,ia){
                 const s=srsStatus(l);
                 const p=getPreviewContent(l);
                 const pClean=p.replace(/\r?\n+/g,' ');
-                const tp=pClean.length>80?pClean.slice(0,80)+'\u2026':pClean;
+                const tp=pClean.length>100?pClean.slice(0,100)+'\u2026':pClean;
                 const title=l.title||(l.type==='text'?'Note':l.type==='youtube'?'YouTube':l.type==='link'?'Link':'File');
                 const ic=l.completed===true;
                 const v=l.votes||0;
@@ -3503,9 +3521,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const sk=l.id+'|'+l._sourceDate;
                 const is=selectedLearningKeys.has(sk);
                 const deckBadge=(l.deck&&String(l.deck).trim())?`<span class="deck-badge" title="Deck: ${escapeHtml(l.deck)}">&#128218; ${escapeHtml(l.deck)}</span>`:'';
-                return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${escapeHtml(title)}</span></div><div class="learning-tile-preview">${escapeHtml(tp)}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
-            }
-            function handleLearningsGridClick(e){
+                const previewHTML=(l.type==='text'||!l.type)?renderInlineMarkdown(tp):escapeHtml(tp);
+                const titleHTML=renderInlineMarkdown(title);
+                return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
+            }function handleLearningsGridClick(e){
                 const sb=e.target.closest('.learning-select-box');
                 if(sb){e.stopPropagation();toggleLearningSelection(sb.dataset.selectLearning,sb.dataset.selectSource);return}
                 if(e.target.closest('.learning-tile-drag'))return;
@@ -3563,6 +3582,67 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderEisenInboxBar();
             }
             function toggleTaskSelection(id){if(selectedTaskIds.has(id))selectedTaskIds.delete(id);else selectedTaskIds.add(id);const sel=document.querySelector(`.task-select-box[data-id="${id}"]`);if(sel){const on=selectedTaskIds.has(id);sel.classList.toggle('selected',on);const it=sel.closest('.task-item');if(it)it.classList.toggle('selected',on)}renderTaskToolbar()}
+            function selectAllTasks(forceSelect){
+                const data=getCurrentData();
+                const tasks=(data&&Array.isArray(data.tasks))?data.tasks:[];
+                if(tasks.length===0)return;
+                const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedTaskIds.size<tasks.length);
+                if(shouldSelect){
+                    tasks.forEach(t=>{
+                        selectedTaskIds.add(t.id);
+                        const sel=document.querySelector(`.task-select-box[data-id="${t.id}"]`);
+                        if(sel){sel.classList.add('selected');const it=sel.closest('.task-item');if(it)it.classList.add('selected')}
+                    });
+                }else{
+                    selectedTaskIds.clear();
+                    document.querySelectorAll('.task-item.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.task-select-box.selected').forEach(el=>el.classList.remove('selected'));
+                }
+                renderTaskToolbar();
+            }
+            function selectAllLearnings(forceSelect){
+                const tiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
+                if(!tiles||tiles.length===0)return;
+                const allKeys=[];
+                tiles.forEach(sb=>{allKeys.push(sb.dataset.selectLearning+'|'+sb.dataset.selectSource)});
+                const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedLearningKeys.size<allKeys.length);
+                if(shouldSelect){
+                    tiles.forEach(sb=>{
+                        const k=sb.dataset.selectLearning+'|'+sb.dataset.selectSource;
+                        selectedLearningKeys.add(k);
+                        sb.classList.add('selected');
+                        const t=sb.closest('.learning-tile');
+                        if(t)t.classList.add('selected');
+                    });
+                }else{
+                    selectedLearningKeys.clear();
+                    document.querySelectorAll('.learning-tile.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.learning-select-box.selected').forEach(el=>el.classList.remove('selected'));
+                }
+                renderLearningsToolbar();
+            }
+            function selectAllEisen(forceSelect){
+                const chips=document.querySelectorAll('.chip-select-box[data-select-chip-id]');
+                if(!chips||chips.length===0)return;
+                const allKeys=[];
+                chips.forEach(sb=>{allKeys.push(sb.dataset.selectChipId+'|'+sb.dataset.selectChipQuad)});
+                const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedEisenIds.size<allKeys.length);
+                if(shouldSelect){
+                    chips.forEach(sb=>{
+                        const k=sb.dataset.selectChipId+'|'+sb.dataset.selectChipQuad;
+                        selectedEisenIds.add(k);
+                        sb.classList.add('selected');
+                        const c=sb.closest('.eisen-chip');
+                        if(c)c.classList.add('selected');
+                    });
+                }else{
+                    selectedEisenIds.clear();
+                    document.querySelectorAll('.eisen-chip.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.chip-select-box.selected').forEach(el=>el.classList.remove('selected'));
+                }
+                renderEisenSelectionBar();
+            }
+
             function clearAllSelections(){
                 selectedTaskIds.clear();
                 selectedLearningKeys.clear();
@@ -3586,26 +3666,29 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 if(multi){
                     const n=selectedTaskIds.size;
+                    const allTasks=(data.tasks||[]);
+                    const allSelected=allTasks.length>0&&n>=allTasks.length;
                     taskToolbar.classList.remove('disabled');
                     taskToolbarTitle.textContent=n+(n===1?' task':' tasks')+' selected';
                     taskToolbarTitle.classList.remove('empty');
                     taskToolbarFiles.innerHTML='';
                     taskToolbarActions.innerHTML=`
-                        <button class="task-toolbar-btn success" data-tt="bulk-done">✓ Done</button>
-                        <button class="task-toolbar-btn" data-tt="bulk-todo">○ Todo</button>
-                        <button class="task-toolbar-btn" data-tt="bulk-pri" data-pri="high">↑ High</button>
+                        <button class="task-toolbar-btn" data-tt="bulk-select-all" title="${allSelected?'Deselect all tasks':'Select all tasks'}">${allSelected?'&#9744; Deselect All':'&#9745; Select All'}</button>
+                        <button class="task-toolbar-btn success" data-tt="bulk-done">&#10003; Done</button>
+                        <button class="task-toolbar-btn" data-tt="bulk-todo">&#9675; Todo</button>
+                        <button class="task-toolbar-btn" data-tt="bulk-pri" data-pri="high">&#8593; High</button>
                         <button class="task-toolbar-btn" data-tt="bulk-pri" data-pri="medium">= Med</button>
-                        <button class="task-toolbar-btn" data-tt="bulk-pri" data-pri="low">↓ Low</button>
+                        <button class="task-toolbar-btn" data-tt="bulk-pri" data-pri="low">&#8595; Low</button>
                         <div class="task-defer-group">
-                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-1">−1d</button>
-                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-7">−1w</button>
-                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-30">−1m</button>
+                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-1">&#8722;1d</button>
+                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-7">&#8722;1w</button>
+                            <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-30">&#8722;1m</button>
                             <button class="task-defer-btn" data-tt="bulk-defer" data-days="1">+1d</button>
                             <button class="task-defer-btn" data-tt="bulk-defer" data-days="7">+1w</button>
                             <button class="task-defer-btn" data-tt="bulk-defer" data-days="30">+1m</button>
                         </div>
-                        <button class="task-toolbar-btn danger" data-tt="bulk-delete">🗑 Delete</button>
-                        <button class="task-toolbar-btn" data-tt="bulk-clear">✕ Clear</button>
+                        <button class="task-toolbar-btn danger" data-tt="bulk-delete">&#128465; Delete</button>
+                        <button class="task-toolbar-btn" data-tt="bulk-clear">&#10005; Clear</button>
                     `;
                     return;
                 }
@@ -3613,6 +3696,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const t=(data.tasks||[]).find(x=>x.id===activeTaskId);
                 if(!t){
                     activeTaskId=null;
+                    const allTasks=(data.tasks||[]);
+                    if(allTasks.length>0){
+                        taskToolbar.classList.remove('disabled');
+                        taskToolbarTitle.textContent='Select tasks or edit';
+                        taskToolbarTitle.classList.add('empty');
+                        taskToolbarFiles.innerHTML='';
+                        taskToolbarActions.innerHTML=`<button class="task-toolbar-btn" data-tt="bulk-select-all" title="Select all tasks">&#9745; Select All (${allTasks.length})</button>`;
+                        return;
+                    }
                     taskToolbar.classList.add('disabled');
                     taskToolbarTitle.textContent='Select a task to edit it';
                     taskToolbarTitle.classList.add('empty');
@@ -3630,6 +3722,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const em=(t.estimatedMinutes===null||t.estimatedMinutes===undefined||t.estimatedMinutes==='')?'':t.estimatedMinutes;
 
                 taskToolbarActions.innerHTML=`
+                    <button class="task-toolbar-btn" data-tt="bulk-select-all" title="Select all tasks">&#9745; Select All</button>
                     <div class="task-vote-group">
                         <button class="task-vote-btn" data-tt="vote-up" title="Increase votes">▲</button>
                         <input type="number" class="task-vote-input" id="ttVotes" min="0" step="1" value="${v}" title="Votes">
@@ -3727,10 +3820,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 learningsToolbar.classList.remove('disabled');
 
-                if(keys.length>1){
+                const allTiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
+                    const allSelected=allTiles.length>0&&keys.length>=allTiles.length;
                     learningsToolbarTitle.textContent=keys.length+' learnings selected';
                     learningsToolbarTitle.classList.remove('empty');
                     learningsToolbarActions.innerHTML=`
+                        <button class="task-toolbar-btn" data-lt="bulk-select-all" title="${allSelected?'Deselect all learnings':'Select all learnings'}">${allSelected?'&#9744; Deselect All':'&#9745; Select All'}</button>
                         <button class="task-toolbar-btn success" data-lt="bulk-done">✓ Done</button>
                         <div class="task-defer-group">
                             <button class="task-defer-btn neg" data-lt="bulk-defer" data-days="-7">−1w</button>
@@ -3758,6 +3853,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 learningsToolbarTitle.classList.remove('empty');
 
                 learningsToolbarActions.innerHTML=`
+                    <button class="task-toolbar-btn" data-lt="bulk-select-all" title="Select all learnings">&#9745; Select All</button>
                     <div class="learning-vote-group">
                         <button class="task-vote-btn" data-lt="vote-up">▲</button>
                         <input type="number" class="task-vote-input" id="ltVotes" min="0" step="1" value="${l.votes||0}">
@@ -5827,7 +5923,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 eisenSelectionBar.innerHTML=
                     `<span class="eisen-selection-count">🧩 ${n} item${n===1?'':'s'} selected</span>`+
-                    `<button type="button" class="eisen-sel-btn success" data-esel="done">✓ Done</button>`+
+                    `<button type="button" class="eisen-sel-btn" data-esel="select-all" title="Select or deselect all items">&#9745; Select All</button>`+
+                    <button type="button" class="eisen-sel-btn success" data-esel="done">✓ Done</button>`+
                     `<button type="button" class="eisen-sel-btn" data-esel="todo">○ Todo</button>`+
                     `<select class="eisen-sel-select" data-esel-select="tag" title="Set tag for all selected">${tagOpts}</select>`+
                     `<select class="eisen-sel-select" data-esel-select="sub" title="Set status for all selected">${subOpts}</select>`+
@@ -5843,6 +5940,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 e.stopPropagation();
                 const action=btn.dataset.esel;
 
+                if(action==='select-all'){selectAllEisen();return}
                 if(action==='clear'){clearAllSelections();return}
                 if(!eisenDateStr)return;
 
@@ -6869,6 +6967,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(!btn)return;
                     const kind=btn.dataset.tt;
 
+                    if(kind==='bulk-select-all'){selectAllTasks();return}
                     if(kind==='bulk-done'){handleBulkTaskAction('status','done');return}
                     if(kind==='bulk-todo'){handleBulkTaskAction('status','todo');return}
                     if(kind==='bulk-pri'){handleBulkTaskAction('priority',btn.dataset.pri);return}
@@ -6915,6 +7014,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const kind=btn.dataset.lt;
                     const keys=Array.from(selectedLearningKeys);
 
+                    if(kind==='bulk-select-all'){selectAllTasks();return}
+                    if(kind==='bulk-select-all'){selectAllLearnings();return}
                     if(kind==='bulk-done'){
                         if(!confirm(`Mark ${keys.length} learning(s) as done?`))return;
                         const ops=keys.slice();
