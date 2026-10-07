@@ -3450,7 +3450,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function srsSort(arr){return arr.slice().sort((a,b)=>{if((b.votes||0)!==(a.votes||0))return(b.votes||0)-(a.votes||0);if(a.completed&&!b.completed)return 1;if(!a.completed&&b.completed)return-1;const ad=a.currentDate||'9999',bd=b.currentDate||'9999';return ad.localeCompare(bd)})}
             function getLearningsDueForDate(t){const r=[];const s=new Set();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){const data=getData(ds);if(data&&data.learnings&&data.learnings.length>0){data.learnings.forEach(l=>{if(s.has(l.id))return;if(l.currentDate===t){s.add(l.id);r.push({...l,_sourceDate:ds})}else if(!l.currentDate&&ds===t){s.add(l.id);r.push({...l,_sourceDate:ds})}})}}}}return srsSort(r)}
             function getLearningsDueForWeek(wd){const r=[];const s=new Set();wd.forEach(t=>{getLearningsDueForDate(t).forEach(l=>{if(!s.has(l.id)){s.add(l.id);r.push(l)}})});return srsSort(r)}
-            function computeLearningDueMap(y,m){const map={};const totMap={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length;totMap[ds]=due.length}map.__totalMap=totMap;return map}
+            function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length}return map}
 
             function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
             function deferLearning(id,days){pushUndo('Defer learning');const found=findLearningById(id);if(!found)return;const data=getData(found.dateStr);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];const oldDate=l.currentDate||found.dateStr;const newDate=addDaysToDateStr(oldDate,days);data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(found.dateStr,data);else deleteData(found.dateStr);const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);closeLearningModal();renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(newDate)}
@@ -3485,7 +3485,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 learningsCount.textContent=learnings.length>0?`(${learnings.length})`:'';
                 let al=null,ol=[...learnings];
-                if(learnings.length>0){const v=learnings.filter(l=>(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>(b.votes||0)-(a.votes||0));al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
+                if(learnings.length>0){const v=learnings.filter(l=>!l.completed&&(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>(b.votes||0)-(a.votes||0));al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
                 if(al){learningsActiveSection.style.display='block';learningsActiveGrid.innerHTML=buildLearningTileHTML(al,true)}
                 else{learningsActiveSection.style.display='none';learningsActiveGrid.innerHTML=''}
                 if(ol.length===0){
@@ -3585,10 +3585,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function selectAllTasks(forceSelect){
                 const data=getCurrentData();
                 const tasks=(data&&Array.isArray(data.tasks))?data.tasks:[];
-                if(tasks.length===0)return;
-                const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedTaskIds.size<tasks.length);
+                const incTasks=tasks.filter(t=>t.status!=='done');
+                if(incTasks.length===0)return;
+                const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedTaskIds.size<incTasks.length);
                 if(shouldSelect){
-                    tasks.forEach(t=>{
+                    selectedTaskIds.clear();
+                    document.querySelectorAll('.task-item.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.task-select-box.selected').forEach(el=>el.classList.remove('selected'));
+                    incTasks.forEach(t=>{
                         selectedTaskIds.add(t.id);
                         const sel=document.querySelector(`.task-select-box[data-id="${t.id}"]`);
                         if(sel){sel.classList.add('selected');const it=sel.closest('.task-item');if(it)it.classList.add('selected')}
@@ -3601,12 +3605,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderTaskToolbar();
             }
             function selectAllLearnings(forceSelect){
-                const tiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
+                const tiles=document.querySelectorAll('.learning-tile:not(.completed) .learning-select-box[data-select-learning]');
                 if(!tiles||tiles.length===0)return;
                 const allKeys=[];
                 tiles.forEach(sb=>{allKeys.push(sb.dataset.selectLearning+'|'+sb.dataset.selectSource)});
                 const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedLearningKeys.size<allKeys.length);
                 if(shouldSelect){
+                    selectedLearningKeys.clear();
+                    document.querySelectorAll('.learning-tile.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.learning-select-box.selected').forEach(el=>el.classList.remove('selected'));
                     tiles.forEach(sb=>{
                         const k=sb.dataset.selectLearning+'|'+sb.dataset.selectSource;
                         selectedLearningKeys.add(k);
@@ -3622,12 +3629,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderLearningsToolbar();
             }
             function selectAllEisen(forceSelect){
-                const chips=document.querySelectorAll('.chip-select-box[data-select-chip-id]');
+                const chips=document.querySelectorAll('.eisen-chip:not(.chip-done) .chip-select-box[data-select-chip-id]');
                 if(!chips||chips.length===0)return;
                 const allKeys=[];
                 chips.forEach(sb=>{allKeys.push(sb.dataset.selectChipId+'|'+sb.dataset.selectChipQuad)});
                 const shouldSelect=(typeof forceSelect==='boolean')?forceSelect:(selectedEisenIds.size<allKeys.length);
                 if(shouldSelect){
+                    selectedEisenIds.clear();
+                    document.querySelectorAll('.eisen-chip.selected').forEach(el=>el.classList.remove('selected'));
+                    document.querySelectorAll('.chip-select-box.selected').forEach(el=>el.classList.remove('selected'));
                     chips.forEach(sb=>{
                         const k=sb.dataset.selectChipId+'|'+sb.dataset.selectChipQuad;
                         selectedEisenIds.add(k);
@@ -3666,8 +3676,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 if(multi){
                     const n=selectedTaskIds.size;
-                    const allTasks=(data.tasks||[]);
-                    const allSelected=allTasks.length>0&&n>=allTasks.length;
+                    const incTasks=(data.tasks||[]).filter(t=>t.status!=='done');
+                    const allSelected=incTasks.length>0&&n>=incTasks.length;
                     taskToolbar.classList.remove('disabled');
                     taskToolbarTitle.textContent=n+(n===1?' task':' tasks')+' selected';
                     taskToolbarTitle.classList.remove('empty');
@@ -3696,13 +3706,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const t=(data.tasks||[]).find(x=>x.id===activeTaskId);
                 if(!t){
                     activeTaskId=null;
-                    const allTasks=(data.tasks||[]);
-                    if(allTasks.length>0){
+                    const incTasks=(data.tasks||[]).filter(t=>t.status!=='done');
+                    if(incTasks.length>0){
                         taskToolbar.classList.remove('disabled');
                         taskToolbarTitle.textContent='Select tasks or edit';
                         taskToolbarTitle.classList.add('empty');
                         taskToolbarFiles.innerHTML='';
-                        taskToolbarActions.innerHTML=`<button class="task-toolbar-btn" data-tt="bulk-select-all" title="Select all tasks">&#9745; Select All (${allTasks.length})</button>`;
+                        taskToolbarActions.innerHTML=`<button class="task-toolbar-btn" data-tt="bulk-select-all" title="Select all incomplete tasks">&#9745; Select All (${incTasks.length})</button>`;
                         return;
                     }
                     taskToolbar.classList.add('disabled');
@@ -3811,6 +3821,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const keys=Array.from(selectedLearningKeys);
 
                 if(keys.length===0){
+                    const incTiles=document.querySelectorAll('.learning-tile:not(.completed) .learning-select-box[data-select-learning]');
+                    if(incTiles.length>0){
+                        learningsToolbar.classList.remove('disabled');
+                        learningsToolbarTitle.textContent='Select learnings to edit';
+                        learningsToolbarTitle.classList.add('empty');
+                        learningsToolbarActions.innerHTML=`<button class="task-toolbar-btn" data-lt="bulk-select-all" title="Select all incomplete learnings">&#9745; Select All (${incTiles.length})</button>`;
+                        return;
+                    }
                     learningsToolbar.classList.add('disabled');
                     learningsToolbarTitle.textContent='Select learnings to edit';
                     learningsToolbarTitle.classList.add('empty');
@@ -3821,7 +3839,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 learningsToolbar.classList.remove('disabled');
 
                 if(keys.length>1){
-                    const allTiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
+                    const allTiles=document.querySelectorAll('.learning-tile:not(.completed) .learning-select-box[data-select-learning]');
                     const allSelected=allTiles.length>0&&keys.length>=allTiles.length;
                     learningsToolbarTitle.textContent=keys.length+' learnings selected';
                     learningsToolbarTitle.classList.remove('empty');
@@ -4137,11 +4155,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             const pct=stats.total>0?(stats.done/stats.total)*100:0;
                             taskHTML+=`<div class="cell-progress-bar"><div class="cell-progress-fill" style="width:${pct}%"></div></div>`;
                         }
-                        const totTasks=(data.tasks&&Array.isArray(data.tasks))?data.tasks.length:0;
+                        const totTasks=(data.tasks&&Array.isArray(data.tasks))?data.tasks.filter(t=>t.status!=='done').length:0;
                         if(totTasks>0)ti='<div class="cell-task-indicator" title="'+totTasks+' Tasks">'+totTasks+'</div>';
                     }
                 }
-                const totLearnings=(learningDueMap&&learningDueMap.__totalMap&&learningDueMap.__totalMap[ds]!==undefined)?learningDueMap.__totalMap[ds]:(typeof getLearningsDueForDate==='function'?getLearningsDueForDate(ds).length:0);
+                const totLearnings=(learningDueMap&&learningDueMap[ds]!==undefined)?learningDueMap[ds]:(typeof getLearningsDueForDate==='function'?getLearningsDueForDate(ds).filter(l=>!l.completed).length:0);
                 if(!textCalendarMode&&totLearnings>0)li='<div class="cell-learning-indicator" title="'+totLearnings+' Learnings">'+totLearnings+'</div>';
                 let mg='';
                 const counts=eisenCountsMap&&eisenCountsMap[ds];
@@ -6856,6 +6874,29 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     else if(e.key==='Escape'){e.preventDefault();e.target.blur()}
                 });
                 taskList.addEventListener('blur',e=>{
+                    if(!textCalendarMode||!e.target.classList.contains('text-calendar-input'))return;
+                    const idx=parseInt(e.target.dataset.textIndex,10);
+                    const arr=getTextCalendarData().slice();
+                    if(Number.isNaN(idx))return;
+                    arr[idx]=e.target.value.trim();
+                    if(!arr[idx])arr.splice(idx,1);
+                    saveTextCalendarList(arr,true);
+                },true);
+
+                taskList.addEventListener('input',e=>{
+                    if(e.target.classList.contains('text-calendar-input')){
+                        const idx=parseInt(e.target.dataset.textIndex,10);
+                        const arr=getTextCalendarData().slice();
+                        if(!Number.isNaN(idx)){arr[idx]=e.target.value;saveTextCalendarList(arr,false)}
+                        return;
+                    }
+                    if(e.target.classList.contains('task-text')){updateTaskText(e.target.dataset.id,e.target.value);autoResizeTextarea(e.target)}
+                });
+                taskList.addEventListener('focusin',e=>{
+                    const item=e.target.closest('.task-item');
+                    if(item&&!e.target.closest('.task-select-box'))setActiveTask(item.dataset.id);
+                });
+                taskList.addEventListener('blur',e=>{
                     if(e.target.classList.contains('task-text')){
                         const id=e.target.dataset.id;
                         const text=e.target.value;
@@ -6873,16 +6914,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                                 return;
                             }
                             if(text.trim()){
+                                t.text=text;
                                 if(t.draft===true){
-                                    t.text=text;
                                     t.draft=false;
                                     const idx=data.tasks.findIndex(x=>x.id===id);
                                     if(idx!==-1){const [moved]=data.tasks.splice(idx,1);data.tasks.push(moved)}
-                                    currentDataCache=JSON.parse(JSON.stringify(data));
-                                    saveCurrentData(data);
-                                }else{
-                                    flushDebounced();
                                 }
+                                currentDataCache=JSON.parse(JSON.stringify(data));
+                                saveCurrentData(data);
+                                if(typeof flushDebounced==='function')flushDebounced();
                                 if(wrap){
                                     wrap.classList.remove('editing');
                                     const view=wrap.querySelector('.task-text-view');
