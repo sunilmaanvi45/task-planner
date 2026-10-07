@@ -3102,7 +3102,36 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const pertToggle=document.getElementById('pertToggle');
 
             function getStorageKey(d){return STORAGE_PREFIX+d}
-            function getData(d){const r=appStorage.getItem(getStorageKey(d));if(!r)return null;try{const p=JSON.parse(r);return{tasks:Array.isArray(p.tasks)?p.tasks:[],notes:p.notes||'',dayTitle:typeof p.dayTitle==='string'?p.dayTitle:'',holiday:p.holiday===true,attachments:Array.isArray(p.attachments)?p.attachments:[],learnings:Array.isArray(p.learnings)?p.learnings:[],habits:Array.isArray(p.habits)?p.habits:[],textCalendar:Array.isArray(p.textCalendar)?p.textCalendar.filter(x=>typeof x==='string'):[]}}catch(e){return null}}
+            function getData(d){
+                const r=appStorage.getItem(getStorageKey(d));
+                if(!r)return null;
+                try{
+                    const p=JSON.parse(r);
+                    const rawTasks = Array.isArray(p.tasks)?p.tasks:[];
+                    const seenIds = new Set();
+                    const cleanTasks = [];
+                    for(let idx=0; idx<rawTasks.length; idx++){
+                        const item = rawTasks[idx];
+                        if(!item || typeof item !== 'object') continue;
+                        let finalTask = item;
+                        if(!item.id || seenIds.has(item.id)){
+                            finalTask = Object.assign({}, item, { id: generateId() });
+                        }
+                        seenIds.add(finalTask.id);
+                        cleanTasks.push(finalTask);
+                    }
+                    return{
+                        tasks:cleanTasks,
+                        notes:p.notes||'',
+                        dayTitle:typeof p.dayTitle==='string'?p.dayTitle:'',
+                        holiday:p.holiday===true,
+                        attachments:Array.isArray(p.attachments)?p.attachments:[],
+                        learnings:Array.isArray(p.learnings)?p.learnings:[],
+                        habits:Array.isArray(p.habits)?p.habits:[],
+                        textCalendar:Array.isArray(p.textCalendar)?p.textCalendar.filter(x=>typeof x==='string'):[]
+                    };
+                }catch(e){return null}
+            }
             function saveData(d,data){appStorage.setItem(getStorageKey(d),JSON.stringify({tasks:data.tasks||[],notes:data.notes||'',dayTitle:data.dayTitle||'',holiday:data.holiday||false,attachments:data.attachments||[],learnings:data.learnings||[],habits:data.habits||[],textCalendar:Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>typeof x==='string'&&x.trim()):[]}))}
             function deleteData(d){appStorage.removeItem(getStorageKey(d))}
             function getWeekKey(w){return WEEK_PREFIX+w}
@@ -3647,12 +3676,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
                 if(kind==='delete'){
                     if(!confirm(`Delete ${ids.length} task(s)?`))return;
+                    if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
                     pushUndo('Batch delete');
                     data.tasks=(data.tasks||[]).filter(t=>!selectedTaskIds.has(t.id));
                     if(ids.indexOf(activeTaskId)!==-1)activeTaskId=null;
                     selectedTaskIds.clear();
                     currentDataCache=JSON.parse(JSON.stringify(data));
                     saveCurrentData(data);
+                    if(typeof scheduleCloudPush==='function') scheduleCloudPush(50);
                     renderTaskList(data.tasks);
                     if(eisenOverlay.classList.contains('active'))renderEisen();
                     return;
@@ -4453,14 +4484,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 renderTaskList(data.tasks);
             }
             function deleteTask(id){
+                if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
                 pushUndo('Delete task');
                 const el=taskList.querySelector('.task-item[data-id="'+id+'"]');
                 const data=getCurrentData();
-                data.tasks=data.tasks.filter(t=>t.id!==id);
+                data.tasks=(data.tasks||[]).filter(t=>t.id!==id);
                 selectedTaskIds.delete(id);
                 if(activeTaskId===id)activeTaskId=null;
                 currentDataCache=JSON.parse(JSON.stringify(data));
                 saveCurrentData(data);
+                if(typeof scheduleCloudPush==='function') scheduleCloudPush(50);
                 const finish=()=>{renderTaskList(data.tasks);if(eisenOverlay.classList.contains('active'))renderEisen()};
                 if(el){let done=false;const fin=()=>{if(done)return;done=true;finish()};el.classList.add('task-exit');el.addEventListener('animationend',fin,{once:true});setTimeout(fin,220)}else{finish()}
             }
@@ -6724,39 +6757,24 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     else if(e.key==='Escape'){e.preventDefault();e.target.blur()}
                 });
                 taskList.addEventListener('blur',e=>{
-                    if(!textCalendarMode||!e.target.classList.contains('text-calendar-input'))return;
-                    const idx=parseInt(e.target.dataset.textIndex,10);
-                    const arr=getTextCalendarData().slice();
-                    if(Number.isNaN(idx))return;
-                    arr[idx]=e.target.value.trim();
-                    if(!arr[idx])arr.splice(idx,1);
-                    saveTextCalendarList(arr,true);
-                },true);
-
-                taskList.addEventListener('input',e=>{
-                    if(e.target.classList.contains('text-calendar-input')){
-                        const idx=parseInt(e.target.dataset.textIndex,10);
-                        const arr=getTextCalendarData().slice();
-                        if(!Number.isNaN(idx)){arr[idx]=e.target.value;saveTextCalendarList(arr,false)}
-                        return;
-                    }
-                    if(e.target.classList.contains('task-text')){updateTaskText(e.target.dataset.id,e.target.value);autoResizeTextarea(e.target)}
-                });
-                taskList.addEventListener('focusin',e=>{
-                    const item=e.target.closest('.task-item');
-                    if(item&&!e.target.closest('.task-select-box'))setActiveTask(item.dataset.id);
-                });
-                taskList.addEventListener('blur',e=>{
                     if(e.target.classList.contains('task-text')){
                         const id=e.target.dataset.id;
                         const text=e.target.value;
                         const wrap=e.target.closest('.task-text-wrap');
                         setTimeout(()=>{
-                            if(window.__taskToolbarPointerDown){window.__taskToolbarPointerDown=false;return}
+                            if(window.__taskToolbarPointerDown){
+                                window.__taskToolbarPointerDown=false;
+                                if(wrap)wrap.classList.remove('editing');
+                                return;
+                            }
+                            const data=getCurrentData();
+                            const t=(data.tasks||[]).find(x=>x.id===id);
+                            if(!t){
+                                if(wrap)wrap.classList.remove('editing');
+                                return;
+                            }
                             if(text.trim()){
-                                const data=getCurrentData();
-                                const t=(data.tasks||[]).find(x=>x.id===id);
-                                if(t&&t.draft===true){
+                                if(t.draft===true){
                                     t.text=text;
                                     t.draft=false;
                                     const idx=data.tasks.findIndex(x=>x.id===id);
@@ -6789,9 +6807,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     }
                 });
 
-                document.addEventListener('mousedown',e=>{
-                    window.__taskToolbarPointerDown=!!e.target.closest('#taskToolbar');
-                },true);
+                function setToolbarPointerActive(e){
+                    if(e.target.closest('#taskToolbar') || e.target.closest('#taskToolbarActions')){
+                        window.__taskToolbarPointerDown=true;
+                    }
+                }
+                document.addEventListener('mousedown',setToolbarPointerActive,true);
+                document.addEventListener('touchstart',setToolbarPointerActive,{capture:true,passive:true});
+                document.addEventListener('pointerdown',setToolbarPointerActive,true);
                 document.addEventListener('click',handleDocumentTaskSelectionClick);
 
                 calendarGrid.addEventListener('dragover',e=>{
@@ -9493,6 +9516,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         let realtimeChannel = null;
         const CLIENT_SESSION_ID = 'client_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now();
         const KEY_TIMESTAMPS_KEY = 'tp_key_timestamps';
+        const KEY_DELETED_KEY = 'tp_key_deleted';
 
         const btnCloudSync = document.getElementById('btnCloudSync');
         const syncStatusDot = document.getElementById('syncStatusDot');
@@ -9541,6 +9565,34 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             } catch(e){}
         }
 
+        function getLocalDeletedKeys(){
+            try {
+                return JSON.parse(window.localStorage.getItem(KEY_DELETED_KEY) || '{}') || {};
+            } catch(e){
+                return {};
+            }
+        }
+
+        function recordLocalDeletedKey(key, ts){
+            if(!key) return;
+            try {
+                const map = getLocalDeletedKeys();
+                map[key] = ts || Date.now();
+                window.localStorage.setItem(KEY_DELETED_KEY, JSON.stringify(map));
+            } catch(e){}
+        }
+
+        function clearLocalDeletedKey(key){
+            if(!key) return;
+            try {
+                const map = getLocalDeletedKeys();
+                if(map[key]){
+                    delete map[key];
+                    window.localStorage.setItem(KEY_DELETED_KEY, JSON.stringify(map));
+                }
+            } catch(e){}
+        }
+
         function collectSyncPayload(){
             const items = {};
             const storage = getAppStorage();
@@ -9566,6 +9618,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 }
             }
             items._meta_timestamps = getLocalTimestamps();
+            items._meta_deleted = getLocalDeletedKeys();
             return items;
         }
 
@@ -9645,7 +9698,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             let hasLocalNewer = false;
             const storage = getAppStorage();
             const localTimestamps = getLocalTimestamps();
+            const localDeleted = getLocalDeletedKeys();
             const remoteTimestamps = (remotePayload._meta_timestamps && typeof remotePayload._meta_timestamps === 'object') ? remotePayload._meta_timestamps : {};
+            const remoteDeleted = (remotePayload._meta_deleted && typeof remotePayload._meta_deleted === 'object') ? remotePayload._meta_deleted : {};
             const remoteDefaultTs = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
 
             try {
@@ -9656,10 +9711,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                     const cur = storage.getItem(k);
                     const strVal = (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v);
-                    if(cur === strVal) continue;
 
                     const localTs = localTimestamps[k] || 0;
                     const remoteTs = remoteTimestamps[k] || remoteDefaultTs;
+
+                    // If key was deleted locally more recently than remote edit, NEVER RESURRECT IT!
+                    const localDelTs = localDeleted[k] || 0;
+                    if(!force && localDelTs > 0 && localDelTs > remoteTs + 500){
+                        hasLocalNewer = true;
+                        continue;
+                    }
 
                     // If local key exists and was edited more recently than remote, NEVER OVERWRITE LOCAL WORK!
                     if(!force && cur !== null && cur !== undefined && localTs > remoteTs + 500){
@@ -9667,20 +9728,33 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         continue;
                     }
 
-                    // Remote is newer or key didn't exist locally: apply remote value!
+                    if(cur === strVal) continue;
+
+                    // Remote is newer: apply remote value!
                     storage.setItem(k, strVal);
+                    clearLocalDeletedKey(k);
                     localTimestamps[k] = remoteTs || Date.now();
                     changesMade = true;
                 }
 
-                // Check for keys that local has but remote lacks
+                // Check for keys that local has but remote lacks or remote deleted:
                 const localLen = storage ? storage.length : 0;
                 for(let i = 0; i < localLen; i++){
                     const lk = storage.key(i);
                     if(!lk) continue;
                     if(lk.startsWith('td_') || lk.startsWith('tdw_')){
                         if(lk.startsWith('tp_auth_') || lk.startsWith('td_auth_') || lk === 'td_auth_session') continue;
-                        if(remotePayload[lk] === undefined){
+
+                        const localTs = localTimestamps[lk] || 0;
+                        const remoteDelTs = remoteDeleted[lk] || 0;
+
+                        if(!force && remoteDelTs > 0 && remoteDelTs > localTs + 500){
+                            // Remote explicitly deleted this key more recently! Remove it locally!
+                            storage.removeItem(lk);
+                            recordLocalDeletedKey(lk, remoteDelTs);
+                            localTimestamps[lk] = remoteDelTs;
+                            changesMade = true;
+                        } else if(remotePayload[lk] === undefined && !remoteDeleted[lk]){
                             hasLocalNewer = true;
                         }
                     }
@@ -9731,7 +9805,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 setSyncStatus('connected', 'Live Sync Active', changesMade ? 'Applied remote updates' : 'Synced with cloud');
                 if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
 
-                // If local has newer keys or unique keys that remote lacks, push them to cloud immediately!
+                // If local has newer keys or unique keys that remote lacks, push them to cloud!
                 if(hasLocalNewer){
                     scheduleCloudPush(300);
                 }
@@ -9840,6 +9914,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origSet(k, v);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                clearLocalDeletedKey(k);
                                 setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
@@ -9849,8 +9924,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origRem(k);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
-                                setLocalKeyTimestamp(k, Date.now());
-                                scheduleCloudPush();
+                                const delTs = Date.now();
+                                recordLocalDeletedKey(k, delTs);
+                                setLocalKeyTimestamp(k, delTs);
+                                scheduleCloudPush(50);
                             }
                         }
                     };
@@ -9864,6 +9941,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origLsSet(k, v);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                clearLocalDeletedKey(k);
                                 setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
@@ -9873,8 +9951,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origLsRem(k);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
-                                setLocalKeyTimestamp(k, Date.now());
-                                scheduleCloudPush();
+                                const delTs = Date.now();
+                                recordLocalDeletedKey(k, delTs);
+                                setLocalKeyTimestamp(k, delTs);
+                                scheduleCloudPush(50);
                             }
                         }
                     };
@@ -9932,14 +10012,14 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         if(!realtimeChannel || realtimeChannel.state !== 'joined'){
                             subscribeRealtime();
                         }
-                        pollCheckRemote(true);
+                        pollCheckRemote(false);
                     } else if(document.visibilityState === 'hidden'){
                         flushBeforeExit();
                     }
                 });
 
                 window.addEventListener('pageshow', () => {
-                    pollCheckRemote(true);
+                    pollCheckRemote(false);
                 });
 
                 window.addEventListener('pagehide', () => {
@@ -9951,12 +10031,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 });
 
                 window.addEventListener('focus', () => {
-                    pollCheckRemote(true);
+                    pollCheckRemote(false);
                 });
 
                 window.addEventListener('online', () => {
                     subscribeRealtime();
-                    pollCheckRemote(true);
+                    pollCheckRemote(false);
                 });
 
                 setInterval(() => {
@@ -9971,48 +10051,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
         }
 
-        if(btnCloudSync){
-            btnCloudSync.addEventListener('click', function(){
-                if(cloudSyncModalOverlay) cloudSyncModalOverlay.classList.add('active');
-            });
-        }
-        function closeCloudSyncModal(){
-            if(cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('active');
-        }
-        if(btnCloudSyncClose) btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
-        if(btnForcePull){
-            btnForcePull.addEventListener('click', async () => {
-                if(!confirm('Force pull cloud data? Any unpushed local changes will be replaced by the cloud snapshot.')) return;
-                setSyncStatus('syncing', 'Pulling from cloud...', 'Fetching latest cloud state from Supabase');
-                try {
-                    await pullFromCloud(true);
-                    setSyncStatus('connected', 'Live Sync Active', 'Data pulled successfully from cloud');
-                    alert('Cloud data successfully pulled and applied!');
-                } catch(e){
-                    alert('Pull error: ' + (e.message || e));
-                }
-            });
-        }
-        if(btnForceSync) {
-            btnForceSync.addEventListener('click', async () => {
-                setSyncStatus('syncing', 'Syncing now...', 'Force syncing data with Supabase');
-                try {
-                    await pullFromCloud(true);
-                    await pushToCloud();
-                    alert('Cloud sync completed! All data synchronized with Supabase.');
-                } catch(e){
-                    alert('Sync error: ' + (e.message || e));
-                }
-            });
-        }
-        if(btnAccountSettingsOpen) {
-            btnAccountSettingsOpen.addEventListener('click', () => {
-                closeCloudSyncModal();
-                openAccountModal(false);
-            });
-        }
-
         initCloudSync();
+
 
         if('serviceWorker' in navigator){
             window.addEventListener('load', function(){
