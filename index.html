@@ -4041,11 +4041,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             taskHTML+=`<div class="cell-progress-bar"><div class="cell-progress-fill" style="width:${pct}%"></div></div>`;
                         }
                         const totTasks=(data.tasks&&Array.isArray(data.tasks))?data.tasks.length:0;
-                        if(totTasks>0)ti='<div class="cell-task-indicator" title="'+totTasks+' Tasks">T '+totTasks+'</div>';
+                        if(totTasks>0)ti='<div class="cell-task-indicator" title="'+totTasks+' Tasks">'+totTasks+'</div>';
                     }
                 }
                 const totLearnings=(learningDueMap&&learningDueMap.__totalMap&&learningDueMap.__totalMap[ds]!==undefined)?learningDueMap.__totalMap[ds]:(typeof getLearningsDueForDate==='function'?getLearningsDueForDate(ds).length:0);
-                if(!textCalendarMode&&totLearnings>0)li='<div class="cell-learning-indicator" title="'+totLearnings+' Learnings">L '+totLearnings+'</div>';
+                if(!textCalendarMode&&totLearnings>0)li='<div class="cell-learning-indicator" title="'+totLearnings+' Learnings">'+totLearnings+'</div>';
                 let mg='';
                 const counts=eisenCountsMap&&eisenCountsMap[ds];
                 if(!textCalendarMode&&counts){mg=`<div class="cell-eisen-mini"><div class="cell-eisen-mini-cell q-do_now">${counts[0]||''}</div><div class="cell-eisen-mini-cell q-do_later">${counts[1]||''}</div><div class="cell-eisen-mini-cell q-delegate">${counts[2]||''}</div><div class="cell-eisen-mini-cell q-delete">${counts[3]||''}</div></div>`}
