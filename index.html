@@ -392,8 +392,8 @@ body{
 .cell-task-count.overdue{color:var(--danger)}
 .cell-progress-bar{width:74%;height:3px;background:var(--border-strong);border-radius:var(--r-full);margin-top:3px;overflow:hidden}
 .cell-progress-fill{height:100%;background:var(--success);border-radius:var(--r-full);transform-origin:left center;transition:width var(--dur-slow) var(--ease-out)}
-.cell-task-indicator{position:absolute;top:3px;right:3px;background:var(--task-indicator);color:var(--card-bg);font-size:.45rem;font-weight:700;width:12px;height:12px;border-radius:4px;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2}
-.cell-learning-indicator{position:absolute;top:3px;left:3px;background:var(--learning-indicator);color:#fff;font-size:.45rem;font-weight:700;width:12px;height:12px;border-radius:4px;display:flex;align-items:center;justify-content:center;line-height:1;z-index:2}
+.cell-task-indicator{position:absolute;top:3px;right:3px;background:var(--task-indicator);color:var(--card-bg);font-size:.45rem;font-weight:700;min-width:14px;width:auto;height:14px;padding:0 3px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;line-height:1;z-index:2}
+.cell-learning-indicator{position:absolute;top:3px;left:3px;background:var(--learning-indicator);color:#fff;font-size:.45rem;font-weight:700;min-width:14px;width:auto;height:14px;padding:0 3px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;gap:2px;white-space:nowrap;line-height:1;z-index:2}
 .cell-day-title{
   position:absolute;top:2px;left:50%;transform:translateX(-50%);
   font-size:.48rem;font-weight:700;color:var(--text);line-height:1.1;
@@ -1334,6 +1334,58 @@ body.text-calendar-mode .text-magnifier-btn{
 .learning-modal-content h2{font-size:1.15em}
 .learning-modal-content h3{font-size:1.05em}
 .learning-modal-content h4{font-size:0.95em}
+
+/* Text Calendar Reordering */
+.text-calendar-drag-handle{
+  cursor:grab;
+  color:var(--text-secondary);
+  font-size:14px;
+  padding:0 3px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+}
+.text-calendar-drag-handle:active{cursor:grabbing}
+.text-calendar-actions-cell{
+  display:inline-flex;
+  align-items:center;
+  gap:2px;
+  flex-shrink:0;
+}
+.text-calendar-move-btn{
+  width:22px;
+  height:22px;
+  border:0;
+  border-radius:var(--r-xs);
+  background:transparent;
+  color:var(--text-secondary);
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  padding:0;
+  transition:color var(--dur-fast),background-color var(--dur-fast);
+}
+.text-calendar-move-btn:hover:not(:disabled){
+  color:var(--accent);
+  background:var(--accent-light);
+}
+.text-calendar-move-btn:disabled{
+  opacity:0.25;
+  cursor:default;
+}
+.text-calendar-row.text-calendar-dragging{
+  opacity:0.4;
+  border:1px dashed var(--accent);
+}
+.text-calendar-row.text-calendar-drag-over-top{
+  border-top:2px solid var(--accent) !important;
+}
+.text-calendar-row.text-calendar-drag-over-bottom{
+  border-bottom:2px solid var(--accent) !important;
+}
 .learning-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-4)}
 .learning-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);letter-spacing:-.015em;display:flex;align-items:center;gap:var(--sp-2)}
 .learning-modal-close{width:30px;height:30px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:background-color var(--dur-fast) var(--ease-in-out),color var(--dur-fast) var(--ease-in-out),border-color var(--dur-fast) var(--ease-in-out),transform var(--dur-fast) var(--ease-out)}
@@ -2186,7 +2238,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   .calendar-cell .cell-progress-bar{display:none !important}
   .calendar-cell .cell-day-title{display:none !important}
   .calendar-cell .cell-task-indicator,
-  .calendar-cell .cell-learning-indicator,
+  .calendar-cell .cell-learning-indicator{
+    display:inline-flex !important;
+    font-size:0.42rem !important;
+    height:13px !important;
+    min-width:13px !important;
+    width:auto !important;
+    padding:0 2.5px !important;
+    line-height:1 !important;
+    z-index:2 !important;
+  }
   .calendar-cell .cell-eisen-mini{display:none !important}
 
   /* Mobile Calendar Week Tile: Show only week number and tasks remaining (no 0 when 0) */
@@ -2281,18 +2342,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             </div>
             <div class="stats-bar ui-section compact" id="statsBar">
                 <div class="stats-header ui-section-header" id="statsHeader">
-                    <div class="stats-header-title"><span class="stats-toggle-icon">▼</span><span>Monthly Overview</span></div>
-                    <span class="stats-quick-completion positive" id="statsQuickCompletion">—</span>
+                    <div class="stats-header-title"><span class="stats-toggle-icon">&#9660;</span><span>Monthly Overview</span></div>
                 </div>
                 <div class="stats-content ui-section-body" id="statsContent">
-                    <div class="stat-item"><span class="stat-label">Total Tasks</span><span class="stat-value" id="statTotal">0</span></div>
-                    <div class="stat-item"><span class="stat-label">Completed</span><span class="stat-value positive" id="statCompleted">0</span></div>
-                    <div class="stat-item"><span class="stat-label">Pending</span><span class="stat-value warning" id="statPending">0</span></div>
-                    <div class="stat-item"><span class="stat-label">Completion</span><span class="stat-value positive" id="statRate">—</span></div>
-                    <div class="stat-item"><span class="stat-label">High Priority</span><span class="stat-value negative" id="statHigh">0</span></div>
-                    <div class="stat-item"><span class="stat-label">Overdue</span><span class="stat-value negative" id="statOverdue">0</span></div>
-                    <div class="stat-item"><span class="stat-label">Best Day</span><span class="stat-value small positive" id="statBest">—</span></div>
-                    <div class="stat-item"><span class="stat-label">Attachments</span><span class="stat-value small" id="statAttachments">0</span></div>
+                    <div class="stat-item"><span class="stat-label">Due Learnings</span><span class="stat-value warning" id="statDueLearnings">0</span></div>
+                    <div class="stat-item"><span class="stat-label">Due Tasks</span><span class="stat-value" id="statDueTasks">0</span></div>
                 </div>
             </div>
             <div class="calendar-layout">
@@ -2927,15 +2981,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const saveIndicator=document.getElementById('saveIndicator');
             const statsBar=document.getElementById('statsBar');
             const statsHeader=document.getElementById('statsHeader');
-            const statTotal=document.getElementById('statTotal');
-            const statCompleted=document.getElementById('statCompleted');
-            const statPending=document.getElementById('statPending');
-            const statRate=document.getElementById('statRate');
-            const statHigh=document.getElementById('statHigh');
-            const statOverdue=document.getElementById('statOverdue');
-            const statBest=document.getElementById('statBest');
-            const statAttachments=document.getElementById('statAttachments');
-            const statsQuickCompletion=document.getElementById('statsQuickCompletion');
+            const statDueLearnings=document.getElementById('statDueLearnings');
+            const statDueTasks=document.getElementById('statDueTasks');
             const breakToast=document.getElementById('breakToast');
             const breakToastClose=document.getElementById('breakToastClose');
             const progressPercent=document.getElementById('progressPercent');
@@ -3316,7 +3363,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function srsSort(arr){return arr.slice().sort((a,b)=>{if((b.votes||0)!==(a.votes||0))return(b.votes||0)-(a.votes||0);if(a.completed&&!b.completed)return 1;if(!a.completed&&b.completed)return-1;const ad=a.currentDate||'9999',bd=b.currentDate||'9999';return ad.localeCompare(bd)})}
             function getLearningsDueForDate(t){const r=[];const s=new Set();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){const data=getData(ds);if(data&&data.learnings&&data.learnings.length>0){data.learnings.forEach(l=>{if(s.has(l.id))return;if(l.currentDate===t){s.add(l.id);r.push({...l,_sourceDate:ds})}else if(!l.currentDate&&ds===t){s.add(l.id);r.push({...l,_sourceDate:ds})}})}}}}return srsSort(r)}
             function getLearningsDueForWeek(wd){const r=[];const s=new Set();wd.forEach(t=>{getLearningsDueForDate(t).forEach(l=>{if(!s.has(l.id)){s.add(l.id);r.push(l)}})});return srsSort(r)}
-            function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length}return map}
+            function computeLearningDueMap(y,m){const map={};const totMap={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length;totMap[ds]=due.length}map.__totalMap=totMap;return map}
 
             function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
             function deferLearning(id,days){pushUndo('Defer learning');const found=findLearningById(id);if(!found)return;const data=getData(found.dateStr);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];const oldDate=l.currentDate||found.dateStr;const newDate=addDaysToDateStr(oldDate,days);data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(found.dateStr,data);else deleteData(found.dateStr);const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);closeLearningModal();renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(newDate)}
@@ -3910,12 +3957,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             const pct=stats.total>0?(stats.done/stats.total)*100:0;
                             taskHTML+=`<div class="cell-progress-bar"><div class="cell-progress-fill" style="width:${pct}%"></div></div>`;
                         }
-                        const hat=data.tasks&&data.tasks.some(t=>t.status!=='done');
-                        if(hat)ti='<div class="cell-task-indicator" title="Has active task">T</div>';
+                        const totTasks=(data.tasks&&Array.isArray(data.tasks))?data.tasks.length:0;
+                        if(totTasks>0)ti='<div class="cell-task-indicator" title="'+totTasks+' Tasks">T '+totTasks+'</div>';
                     }
                 }
-                const hal=learningDueMap&&learningDueMap[ds]>0;
-                if(!textCalendarMode&&hal)li='<div class="cell-learning-indicator" title="Has due learning">L</div>';
+                const totLearnings=(learningDueMap&&learningDueMap.__totalMap&&learningDueMap.__totalMap[ds]!==undefined)?learningDueMap.__totalMap[ds]:(typeof getLearningsDueForDate==='function'?getLearningsDueForDate(ds).length:0);
+                if(!textCalendarMode&&totLearnings>0)li='<div class="cell-learning-indicator" title="'+totLearnings+' Learnings">L '+totLearnings+'</div>';
                 let mg='';
                 const counts=eisenCountsMap&&eisenCountsMap[ds];
                 if(!textCalendarMode&&counts){mg=`<div class="cell-eisen-mini"><div class="cell-eisen-mini-cell q-do_now">${counts[0]||''}</div><div class="cell-eisen-mini-cell q-do_later">${counts[1]||''}</div><div class="cell-eisen-mini-cell q-delegate">${counts[2]||''}</div><div class="cell-eisen-mini-cell q-delete">${counts[3]||''}</div></div>`}
@@ -3995,21 +4042,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function updateSingleWeekCell(wid,opts={}){const md=getMonthData(currentYear,currentMonth);renderWeekColumn(md);if(opts.pop){const c=weekCells.querySelector(`[data-week="${wid}"]`);if(c){c.classList.remove('just-saved');void c.offsetWidth;c.classList.add('just-saved')}}}
             function renderStats(md){
                 const en=Object.values(md);
-                let tt=0,td=0,tp=0,th=0,to=0,ta=0;
-                const ts=getTodayStr();
-                en.forEach(d=>{const s=getTaskStats(d);tt+=s.total;td+=s.done;tp+=s.pending;th+=s.high;ta+=countAllAttachments(d)});
-                Object.entries(md).forEach(([ds,d])=>{if(ds<ts){const s=getTaskStats(d);if(s.pending>0)to+=s.pending}});
-                const r=tt>0?Math.round((td/tt)*100):0;
-                statTotal.textContent=tt;statCompleted.textContent=td;statPending.textContent=tp;
-                statRate.textContent=tt>0?r+'%':'—';
-                statRate.className='stat-value '+(r>=80?'positive':(r>=50?'warning':''));
-                statHigh.textContent=th;statOverdue.textContent=to;statAttachments.textContent=ta;
-                statsQuickCompletion.textContent=tt>0?r+'%':'—';
-                statsQuickCompletion.className='stats-quick-completion '+(r>=80?'positive':(r>=50?'warning':'neutral'));
-                let bd=null,bn=-1;
-                Object.entries(md).forEach(([ds,d])=>{const s=getTaskStats(d);if(s.total>0&&s.done>bn){bn=s.done;bd=ds}});
-                if(bd&&bn>0){statBest.textContent=getShortDate(bd)+' ('+bn+' done)';statBest.className='stat-value small positive'}
-                else{statBest.textContent='—';statBest.className='stat-value small'}
+                let tp=0;
+                en.forEach(d=>{const s=getTaskStats(d);tp+=s.pending});
+                let tdl=0;
+                const ld=computeLearningDueMap(currentYear,currentMonth);
+                if(ld){Object.values(ld).forEach(c=>{if(typeof c==='number')tdl+=c})};
+                if(statDueLearnings)statDueLearnings.textContent=tdl;
+                if(statDueTasks)statDueTasks.textContent=tp;
             }
             function setMode(m){selectionMode=m;if(m==='weekly')document.body.classList.add('weekly-mode');else document.body.classList.remove('weekly-mode')}
             function selectDate(ds){
@@ -4049,7 +4088,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(!taskList)return;
                 const arr=Array.isArray(texts)?texts.filter(x=>typeof x==='string'):[];
                 const hasRows=arr.length>0;
-                taskList.innerHTML=`<div class="text-calendar-list">${hasRows?arr.map((x,i)=>`<div class="text-calendar-row" data-text-index="${i}"><span class="text-calendar-index">${i+1}</span><input class="text-calendar-input" data-text-index="${i}" type="text" maxlength="160" value="${escapeHtml(x).replace(/"/g,'&quot;')}" placeholder="Day text…"><button class="text-calendar-delete" data-text-delete="${i}" title="Delete text" aria-label="Delete text">✕</button></div>`).join(''):`<div class="text-calendar-empty">No day text yet. Click “Add Day Text” to add the first one.</div>`}</div>`;
+                taskList.innerHTML=`<div class="text-calendar-list">${hasRows?arr.map((x,i)=>`<div class="text-calendar-row" data-text-index="${i}" draggable="true"><span class="text-calendar-drag-handle" title="Drag to reorder" aria-label="Drag to reorder">&#x283F;</span><span class="text-calendar-index">${i+1}</span><input class="text-calendar-input" data-text-index="${i}" type="text" maxlength="160" value="${escapeHtml(x).replace(/"/g,'&quot;')}" placeholder="Day text..."><div class="text-calendar-actions-cell"><button type="button" class="text-calendar-move-btn" data-text-move-up="${i}" title="Move Up" aria-label="Move Up"${i===0?' disabled':''}>&#9650;</button><button type="button" class="text-calendar-move-btn" data-text-move-down="${i}" title="Move Down" aria-label="Move Down"${i===arr.length-1?' disabled':''}>&#9660;</button><button type="button" class="text-calendar-delete" data-text-delete="${i}" title="Delete text" aria-label="Delete text">&#10005;</button></div></div>`).join(''):`<div class="text-calendar-empty">No day text yet. Click "Add Day Text" to add the first one.</div>`}</div>`;
             }
             function getTextCalendarData(){
                 if(selectionMode!=='daily'||!selectedDateStr)return[];
@@ -6533,6 +6572,32 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 habitAddInput.addEventListener('keypress',e=>{if(e.key==='Enter')addNewHabit()});
 
                 taskList.addEventListener('click',e=>{
+                    const upBtn=e.target.closest('[data-text-move-up]');
+                    if(upBtn){
+                        e.preventDefault();
+                        const idx=parseInt(upBtn.dataset.textMoveUp,10);
+                        const arr=getTextCalendarData().slice();
+                        if(!Number.isNaN(idx)&&idx>0&&idx<arr.length){
+                            const temp=arr[idx];
+                            arr[idx]=arr[idx-1];
+                            arr[idx-1]=temp;
+                            saveTextCalendarList(arr,true);
+                        }
+                        return;
+                    }
+                    const downBtn=e.target.closest('[data-text-move-down]');
+                    if(downBtn){
+                        e.preventDefault();
+                        const idx=parseInt(downBtn.dataset.textMoveDown,10);
+                        const arr=getTextCalendarData().slice();
+                        if(!Number.isNaN(idx)&&idx>=0&&idx<arr.length-1){
+                            const temp=arr[idx];
+                            arr[idx]=arr[idx+1];
+                            arr[idx+1]=temp;
+                            saveTextCalendarList(arr,true);
+                        }
+                        return;
+                    }
                     const del=e.target.closest('[data-text-delete]');
                     if(!del)return;
                     e.preventDefault();
@@ -6541,6 +6606,65 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(Number.isNaN(idx)||idx<0||idx>=arr.length)return;
                     arr.splice(idx,1);
                     saveTextCalendarList(arr);
+                });
+                let textCalendarDragSrc=null;
+                taskList.addEventListener('dragstart',e=>{
+                    if(!textCalendarMode)return;
+                    const row=e.target.closest('.text-calendar-row');
+                    if(!row)return;
+                    textCalendarDragSrc=parseInt(row.dataset.textIndex,10);
+                    e.dataTransfer.effectAllowed='move';
+                    e.dataTransfer.setData('text/plain',String(textCalendarDragSrc));
+                    row.classList.add('text-calendar-dragging');
+                });
+                taskList.addEventListener('dragover',e=>{
+                    if(!textCalendarMode||textCalendarDragSrc===null)return;
+                    const row=e.target.closest('.text-calendar-row');
+                    if(!row)return;
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect='move';
+                    const rect=row.getBoundingClientRect();
+                    const midY=rect.top+rect.height/2;
+                    if(e.clientY<midY){
+                        row.classList.add('text-calendar-drag-over-top');
+                        row.classList.remove('text-calendar-drag-over-bottom');
+                    }else{
+                        row.classList.add('text-calendar-drag-over-bottom');
+                        row.classList.remove('text-calendar-drag-over-top');
+                    }
+                });
+                taskList.addEventListener('dragleave',e=>{
+                    const row=e.target.closest('.text-calendar-row');
+                    if(row)row.classList.remove('text-calendar-drag-over-top','text-calendar-drag-over-bottom');
+                });
+                taskList.addEventListener('drop',e=>{
+                    if(!textCalendarMode||textCalendarDragSrc===null)return;
+                    const row=e.target.closest('.text-calendar-row');
+                    if(!row)return;
+                    e.preventDefault();
+                    const targetIdx=parseInt(row.dataset.textIndex,10);
+                    const rect=row.getBoundingClientRect();
+                    const midY=rect.top+rect.height/2;
+                    const placeAfter=e.clientY>=midY;
+                    row.classList.remove('text-calendar-drag-over-top','text-calendar-drag-over-bottom');
+                    const fromIdx=textCalendarDragSrc;
+                    textCalendarDragSrc=null;
+                    if(Number.isNaN(fromIdx)||Number.isNaN(targetIdx)||fromIdx===targetIdx)return;
+                    const arr=getTextCalendarData().slice();
+                    const moved=arr.splice(fromIdx,1)[0];
+                    let insertAt=targetIdx;
+                    if(fromIdx<targetIdx)insertAt=placeAfter?targetIdx:targetIdx-1;
+                    else insertAt=placeAfter?targetIdx+1:targetIdx;
+                    if(insertAt<0)insertAt=0;
+                    if(insertAt>arr.length)insertAt=arr.length;
+                    arr.splice(insertAt,0,moved);
+                    saveTextCalendarList(arr,true);
+                });
+                taskList.addEventListener('dragend',e=>{
+                    textCalendarDragSrc=null;
+                    taskList.querySelectorAll('.text-calendar-row').forEach(r=>{
+                        r.classList.remove('text-calendar-dragging','text-calendar-drag-over-top','text-calendar-drag-over-bottom');
+                    });
                 });
                 taskList.addEventListener('keydown',e=>{
                     if(!textCalendarMode||!e.target.classList.contains('text-calendar-input'))return;
