@@ -3820,7 +3820,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                 learningsToolbar.classList.remove('disabled');
 
-                const allTiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
+                if(keys.length>1){
+                    const allTiles=document.querySelectorAll('.learning-select-box[data-select-learning]');
                     const allSelected=allTiles.length>0&&keys.length>=allTiles.length;
                     learningsToolbarTitle.textContent=keys.length+' learnings selected';
                     learningsToolbarTitle.classList.remove('empty');
@@ -5924,7 +5925,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 eisenSelectionBar.innerHTML=
                     `<span class="eisen-selection-count">🧩 ${n} item${n===1?'':'s'} selected</span>`+
                     `<button type="button" class="eisen-sel-btn" data-esel="select-all" title="Select or deselect all items">&#9745; Select All</button>`+
-                    <button type="button" class="eisen-sel-btn success" data-esel="done">✓ Done</button>`+
+                    `<button type="button" class="eisen-sel-btn success" data-esel="done">✓ Done</button>`+
                     `<button type="button" class="eisen-sel-btn" data-esel="todo">○ Todo</button>`+
                     `<select class="eisen-sel-select" data-esel-select="tag" title="Set tag for all selected">${tagOpts}</select>`+
                     `<select class="eisen-sel-select" data-esel-select="sub" title="Set status for all selected">${subOpts}</select>`+
@@ -7014,7 +7015,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const kind=btn.dataset.lt;
                     const keys=Array.from(selectedLearningKeys);
 
-                    if(kind==='bulk-select-all'){selectAllTasks();return}
                     if(kind==='bulk-select-all'){selectAllLearnings();return}
                     if(kind==='bulk-done'){
                         if(!confirm(`Mark ${keys.length} learning(s) as done?`))return;
