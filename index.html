@@ -2761,13 +2761,33 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 /* ============================================================
    IndexedDB persistence layer
    ============================================================ */
+/* ============================================================
+   Dual-Layer Persistence Engine (localStorage + IndexedDB)
+   ============================================================ */
 (function(){
     const DB_NAME='TaskPlannerIndexedDB';
     const DB_VERSION=1;
     const STORE_NAME='kv';
-    const legacyPrefix=/^td_/;
+    const legacyPrefix=/^(td_|tdw_)/;
     const cache=new Map();
     let db=null;
+
+    // 1. SYNCHRONOUS IMMEDIATE PRE-POPULATION
+    // Pre-populate cache synchronously from window.localStorage immediately upon script parse!
+    // This ensures cache is NEVER empty and getItem works synchronously from microsecond 0.
+    try {
+        if(window.localStorage){
+            for(let i=0; i<window.localStorage.length; i++){
+                const k = window.localStorage.key(i);
+                if(k && (k.startsWith('td_') || k.startsWith('tdw_'))){
+                    const val = window.localStorage.getItem(k);
+                    if(val !== null && val !== undefined){
+                        cache.set(k, val);
+                    }
+                }
+            }
+        }
+    } catch(e){}
 
     function openDB(){
         return new Promise((resolve,reject)=>{
@@ -2816,7 +2836,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         const legacy=[];
         for(let i=0;i<window.localStorage.length;i++){
             const key=window.localStorage.key(i);
-            if(key && legacyPrefix.test(key)){
+            if(key && (key.startsWith('td_') || key.startsWith('tdw_') || legacyPrefix.test(key))){
                 const value=window.localStorage.getItem(key);
                 cache.set(key,value);
                 legacy.push({key,value});
@@ -2830,9 +2850,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const store=tx.objectStore(STORE_NAME);
                 legacy.forEach(r=>store.put({key:r.key,value:String(r.value)}));
                 tx.oncomplete=()=>{
-                    legacy.forEach(r=>{
-                        try{window.localStorage.removeItem(r.key);}catch(e){}
-                    });
+                    // PRESERVE localStorage! Do NOT removeItem from localStorage!
                     resolve(true);
                 };
                 tx.onerror=()=>reject(tx.error||new Error('Legacy migration failed.'));
@@ -2842,13 +2860,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
     }
 
     function installFallback(){
-        cache.clear();
-        for(let i=0;i<window.localStorage.length;i++){
-            const key=window.localStorage.key(i);
-            if(key && legacyPrefix.test(key)){
-                cache.set(key,window.localStorage.getItem(key));
+        try {
+            if(window.localStorage){
+                for(let i=0;i<window.localStorage.length;i++){
+                    const key=window.localStorage.key(i);
+                    if(key && (key.startsWith('td_') || key.startsWith('tdw_') || legacyPrefix.test(key))){
+                        cache.set(key,window.localStorage.getItem(key));
+                    }
+                }
             }
-        }
+        } catch(e){}
     }
 
     window.appStorage={
@@ -2859,21 +2880,44 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         },
         getItem(key){
             key=String(key);
-            return cache.has(key)?cache.get(key):null;
+            if(cache.has(key)) return cache.get(key);
+            try {
+                if(window.localStorage && window.localStorage.getItem(key) !== null){
+                    const val = window.localStorage.getItem(key);
+                    cache.set(key, val);
+                    return val;
+                }
+            } catch(e){}
+            return null;
         },
         setItem(key,value){
             key=String(key); value=String(value);
             cache.set(key,value);
+            try {
+                if(window.localStorage){
+                    window.localStorage.setItem(key, value);
+                }
+            } catch(e){}
             putRecord(key,value);
         },
         removeItem(key){
             key=String(key);
             cache.delete(key);
+            try {
+                if(window.localStorage){
+                    window.localStorage.removeItem(key);
+                }
+            } catch(e){}
             deleteRecord(key);
         },
         clear(){
             const keys=Array.from(cache.keys());
             cache.clear();
+            try {
+                keys.forEach(k => {
+                    try { window.localStorage.removeItem(k); } catch(e){}
+                });
+            } catch(e){}
             if(db){
                 try{
                     const tx=db.transaction(STORE_NAME,'readwrite');
@@ -2890,10 +2934,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             const records=await getAllRecords();
 
             if(records.length){
-                cache.clear();
                 records.forEach(r=>{
-                    if(r && r.key!==undefined)cache.set(String(r.key),String(r.value));
+                    if(r && r.key!==undefined){
+                        const sk = String(r.key);
+                        const sv = String(r.value);
+                        if(!cache.has(sk)){
+                            cache.set(sk, sv);
+                            try { window.localStorage.setItem(sk, sv); } catch(e){}
+                        }
+                    }
                 });
+                for(const [k, v] of cache.entries()){
+                    putRecord(k, v);
+                }
             }else{
                 await migrateLegacy();
             }
@@ -2907,8 +2960,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             return false;
         }
     })();
-})();
-</script>
+})();</script>
 <script>
         (function(){
             const STORAGE_PREFIX='td_',WEEK_PREFIX='tdw_',THEME_KEY='td_theme',PREFIX_KEY='td_file_prefix';
@@ -7076,7 +7128,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 getSelectedDateStr: () => selectedDateStr,
                 getSelectedWeekId: () => selectedWeekId,
                 getSelectionMode: () => selectionMode,
-                clearDataCache: () => { currentDataCache = null; }
+                clearDataCache: () => { currentDataCache = null; },
+                flushDebounced
             };
             window.__taskPlannerIDBReady.then(()=>init());
         })();
@@ -9439,6 +9492,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         let cloudPushTimer = null;
         let realtimeChannel = null;
         const CLIENT_SESSION_ID = 'client_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now();
+        const KEY_TIMESTAMPS_KEY = 'tp_key_timestamps';
 
         const btnCloudSync = document.getElementById('btnCloudSync');
         const syncStatusDot = document.getElementById('syncStatusDot');
@@ -9470,6 +9524,23 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             return (window.appStorage && typeof window.appStorage.getItem === 'function') ? window.appStorage : window.localStorage;
         }
 
+        function getLocalTimestamps(){
+            try {
+                return JSON.parse(window.localStorage.getItem(KEY_TIMESTAMPS_KEY) || '{}') || {};
+            } catch(e){
+                return {};
+            }
+        }
+
+        function setLocalKeyTimestamp(key, ts){
+            if(!key) return;
+            try {
+                const map = getLocalTimestamps();
+                map[key] = ts || Date.now();
+                window.localStorage.setItem(KEY_TIMESTAMPS_KEY, JSON.stringify(map));
+            } catch(e){}
+        }
+
         function collectSyncPayload(){
             const items = {};
             const storage = getAppStorage();
@@ -9494,6 +9565,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     }
                 }
             }
+            items._meta_timestamps = getLocalTimestamps();
             return items;
         }
 
@@ -9528,6 +9600,33 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
         }
 
+        function pushToCloudKeepalive(){
+            try {
+                const payload = collectSyncPayload();
+                payload._senderId = CLIENT_SESSION_ID;
+                const nowIso = new Date().toISOString();
+                const bodyStr = JSON.stringify({
+                    id: 'primary',
+                    data: payload,
+                    updated_at: nowIso
+                });
+
+                if(window.fetch){
+                    fetch(SUPABASE_CONFIG.url + '/rest/v1/app_sync?on_conflict=id', {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_CONFIG.anonKey,
+                            'Authorization': 'Bearer ' + SUPABASE_CONFIG.anonKey,
+                            'Content-Type': 'application/json',
+                            'Prefer': 'resolution=merge-duplicates'
+                        },
+                        body: bodyStr,
+                        keepalive: true
+                    }).catch(() => {});
+                }
+            } catch(e){}
+        }
+
         function scheduleCloudPush(delay){
             if(cloudPushTimer) clearTimeout(cloudPushTimer);
             cloudPushTimer = setTimeout(() => {
@@ -9535,28 +9634,61 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }, delay || 1000);
         }
 
-        function applyIncomingPayload(remotePayload, remoteUpdatedAt){
+        function applyIncomingPayload(remotePayload, remoteUpdatedAt, force){
             if(!remotePayload || typeof remotePayload !== 'object') return;
-            if(remotePayload._senderId === CLIENT_SESSION_ID) return;
-            if(remoteUpdatedAt && lastAppliedRemoteUpdatedAt && remoteUpdatedAt === lastAppliedRemoteUpdatedAt) return;
+            if(!force && remotePayload._senderId === CLIENT_SESSION_ID) return;
+            if(!force && remoteUpdatedAt && lastAppliedRemoteUpdatedAt && remoteUpdatedAt === lastAppliedRemoteUpdatedAt) return;
 
             isApplyingRemoteUpdate = true;
             window.__isApplyingRemoteUpdate = true;
             let changesMade = false;
+            let hasLocalNewer = false;
             const storage = getAppStorage();
+            const localTimestamps = getLocalTimestamps();
+            const remoteTimestamps = (remotePayload._meta_timestamps && typeof remotePayload._meta_timestamps === 'object') ? remotePayload._meta_timestamps : {};
+            const remoteDefaultTs = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
 
             try {
                 for(const [k, v] of Object.entries(remotePayload)){
-                    if(!k || (!k.startsWith('td_') && !k.startsWith('tdw_'))) continue;
+                    if(!k || k.startsWith('_')) continue;
+                    if(!k.startsWith('td_') && !k.startsWith('tdw_')) continue;
                     if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') continue;
 
                     const cur = storage.getItem(k);
                     const strVal = (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v);
-                    if(cur !== strVal){
-                        storage.setItem(k, strVal);
-                        changesMade = true;
+                    if(cur === strVal) continue;
+
+                    const localTs = localTimestamps[k] || 0;
+                    const remoteTs = remoteTimestamps[k] || remoteDefaultTs;
+
+                    // If local key exists and was edited more recently than remote, NEVER OVERWRITE LOCAL WORK!
+                    if(!force && cur !== null && cur !== undefined && localTs > remoteTs + 500){
+                        hasLocalNewer = true;
+                        continue;
+                    }
+
+                    // Remote is newer or key didn't exist locally: apply remote value!
+                    storage.setItem(k, strVal);
+                    localTimestamps[k] = remoteTs || Date.now();
+                    changesMade = true;
+                }
+
+                // Check for keys that local has but remote lacks
+                const localLen = storage ? storage.length : 0;
+                for(let i = 0; i < localLen; i++){
+                    const lk = storage.key(i);
+                    if(!lk) continue;
+                    if(lk.startsWith('td_') || lk.startsWith('tdw_')){
+                        if(lk.startsWith('tp_auth_') || lk.startsWith('td_auth_') || lk === 'td_auth_session') continue;
+                        if(remotePayload[lk] === undefined){
+                            hasLocalNewer = true;
+                        }
                     }
                 }
+
+                try {
+                    window.localStorage.setItem(KEY_TIMESTAMPS_KEY, JSON.stringify(localTimestamps));
+                } catch(e){}
 
                 if(changesMade){
                     const bridge = window.__taskPlannerAppBridge;
@@ -9594,9 +9726,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         renderEisenPresetList();
                     }
                 }
+
                 lastAppliedRemoteUpdatedAt = remoteUpdatedAt;
-                setSyncStatus('connected', 'Live Sync Active', 'Received updates from cloud');
+                setSyncStatus('connected', 'Live Sync Active', changesMade ? 'Applied remote updates' : 'Synced with cloud');
                 if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
+
+                // If local has newer keys or unique keys that remote lacks, push them to cloud immediately!
+                if(hasLocalNewer){
+                    scheduleCloudPush(300);
+                }
             } finally {
                 setTimeout(() => {
                     isApplyingRemoteUpdate = false;
@@ -9617,7 +9755,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(!error && data && data.data){
                     if(!force && data.data._senderId === CLIENT_SESSION_ID) return;
                     if(!force && data.updated_at && data.updated_at === lastAppliedRemoteUpdatedAt) return;
-                    applyIncomingPayload(data.data, data.updated_at);
+                    applyIncomingPayload(data.data, data.updated_at, force);
                 }
             } catch(e){
                 console.warn('Pull from cloud error:', e);
@@ -9673,7 +9811,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             .maybeSingle();
                         if(fullRes.data && fullRes.data.data){
                             if(fullRes.data.data._senderId === CLIENT_SESSION_ID && !forcePull) return;
-                            applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at);
+                            applyIncomingPayload(fullRes.data.data, fullRes.data.updated_at, forcePull);
                         }
                     }
                 }
@@ -9702,6 +9840,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origSet(k, v);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
                         }
@@ -9710,6 +9849,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origRem(k);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
                         }
@@ -9724,6 +9864,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origLsSet(k, v);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
                         }
@@ -9732,6 +9873,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         origLsRem(k);
                         if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_'))){
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
+                                setLocalKeyTimestamp(k, Date.now());
                                 scheduleCloudPush();
                             }
                         }
@@ -9762,21 +9904,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     setSyncStatus('error', 'Connection Error', error.message);
                 } else if(remoteKeys.length > 0){
                     applyIncomingPayload(remotePayload, data.updated_at);
-
-                    let localHasUnique = false;
-                    for(const k of localKeys){
-                        if(remotePayload[k] === undefined){
-                            localHasUnique = true;
-                            break;
-                        }
-                    }
-                    if(localHasUnique){
-                        await pushToCloud();
-                    } else {
-                        lastAppliedRemoteUpdatedAt = data.updated_at;
-                        setSyncStatus('connected', 'Live Sync Active', 'Synced with cloud');
-                        if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
-                    }
                 } else if(localKeys.length > 0){
                     await pushToCloud();
                 } else {
@@ -9786,22 +9913,41 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 // 4. Start Realtime subscription
                 subscribeRealtime();
 
-                // 5. Lifecycle event listeners for robust mobile sync
+                // 5. Lifecycle event listeners for robust desktop & mobile sync
+                function flushBeforeExit(){
+                    try {
+                        if(window.__taskPlannerAppBridge && typeof window.__taskPlannerAppBridge.flushDebounced === 'function'){
+                            window.__taskPlannerAppBridge.flushDebounced();
+                        }
+                    } catch(e){}
+                    if(cloudPushTimer){
+                        clearTimeout(cloudPushTimer);
+                        cloudPushTimer = null;
+                    }
+                    pushToCloudKeepalive();
+                }
+
                 document.addEventListener('visibilitychange', () => {
                     if(document.visibilityState === 'visible'){
                         if(!realtimeChannel || realtimeChannel.state !== 'joined'){
                             subscribeRealtime();
                         }
                         pollCheckRemote(true);
-                    } else if(document.visibilityState === 'hidden' && cloudPushTimer){
-                        clearTimeout(cloudPushTimer);
-                        cloudPushTimer = null;
-                        pushToCloud();
+                    } else if(document.visibilityState === 'hidden'){
+                        flushBeforeExit();
                     }
                 });
 
                 window.addEventListener('pageshow', () => {
                     pollCheckRemote(true);
+                });
+
+                window.addEventListener('pagehide', () => {
+                    flushBeforeExit();
+                });
+
+                window.addEventListener('beforeunload', () => {
+                    flushBeforeExit();
                 });
 
                 window.addEventListener('focus', () => {
@@ -9811,14 +9957,6 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 window.addEventListener('online', () => {
                     subscribeRealtime();
                     pollCheckRemote(true);
-                });
-
-                window.addEventListener('beforeunload', () => {
-                    if(cloudPushTimer){
-                        clearTimeout(cloudPushTimer);
-                        cloudPushTimer = null;
-                        pushToCloud();
-                    }
                 });
 
                 setInterval(() => {
@@ -9844,6 +9982,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         if(btnCloudSyncClose) btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
         if(btnForcePull){
             btnForcePull.addEventListener('click', async () => {
+                if(!confirm('Force pull cloud data? Any unpushed local changes will be replaced by the cloud snapshot.')) return;
                 setSyncStatus('syncing', 'Pulling from cloud...', 'Fetching latest cloud state from Supabase');
                 try {
                     await pullFromCloud(true);
