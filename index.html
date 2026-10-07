@@ -4532,7 +4532,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(selectionMode==='weekly')return{tasks:cache.tasks||[],notes:inputNotes.value,learnings:cache.learnings||[],textCalendar:cache.textCalendar||[]};
                 return{tasks:cache.tasks||[],notes:inputNotes.value,dayTitle:inputDayTitle.value.trim(),holiday:false,attachments:cache.attachments||[],learnings:cache.learnings||[],habits:cache.habits||[],textCalendar:cache.textCalendar||[]};
             }
-            function performSave(){const data=gatherDetailData();saveCurrentData(data)}
+            function performSave(){if(window.__isApplyingRemoteUpdate)return;const data=gatherDetailData();saveCurrentData(data)}
             function flushDebounced(){if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null;performSave()}}
             function scheduleSave(){showSavingPending();if(debounceTimeout)clearTimeout(debounceTimeout);debounceTimeout=setTimeout(()=>{debounceTimeout=null;performSave()},DEBOUNCE_MS)}
             function clearEntry(){if(selectionMode==='daily'){if(!selectedDateStr)return;if(!confirm('Delete all tasks and notes for '+getFormattedDate(selectedDateStr)+'?'))return;pushUndo('Clear entry');deleteData(selectedDateStr);currentDataCache={tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[],textCalendar:[]};isUpdatingFromCode=true;activeTaskId=null;renderTaskList([]);inputNotes.value='';inputDayTitle.value='';renderAttachments([]);updateProgressViz({tasks:[]});renderHabits();requestAnimationFrame(()=>{isUpdatingFromCode=false});updateSingleCell(selectedDateStr,{pop:true});showSaved();renderLearningsSection();clearAllSelections();window.dispatchEvent(new CustomEvent('td-tasks-changed'))}else if(selectionMode==='weekly'){if(!selectedWeekId)return;if(!confirm('Delete all tasks and notes for '+selectedWeekId+'?'))return;pushUndo('Clear week');deleteWeekData(selectedWeekId);currentDataCache={tasks:[],notes:''};isUpdatingFromCode=true;activeTaskId=null;renderTaskList([]);inputNotes.value='';updateProgressViz({tasks:[]});renderHabits();requestAnimationFrame(()=>{isUpdatingFromCode=false});updateSingleWeekCell(selectedWeekId,{pop:true});showSaved();renderLearningsSection();clearAllSelections()}}
@@ -9510,6 +9510,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
         let supabaseClient = null;
         let isApplyingRemoteUpdate = false;
+        let hasPendingLocalEdits = false;
+        let isTabResuming = false;
         let lastAppliedRemoteUpdatedAt = null;
         let lastPushedUpdatedAt = null;
         let cloudPushTimer = null;
@@ -9623,7 +9625,39 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         }
 
         async function pushToCloud(){
-            if(!supabaseClient || isApplyingRemoteUpdate) return;
+            if(!supabaseClient || isApplyingRemoteUpdate || isTabResuming) return;
+            if(!hasPendingLocalEdits && lastAppliedRemoteUpdatedAt) return;
+
+            // Optimistic concurrency freshness check before overwriting remote row
+            try {
+                const { data: remoteMeta, error: checkErr } = await supabaseClient
+                    .from('app_sync')
+                    .select('updated_at')
+                    .eq('id', 'primary')
+                    .maybeSingle();
+
+                if(!checkErr && remoteMeta && remoteMeta.updated_at){
+                    const remoteTime = new Date(remoteMeta.updated_at).getTime();
+                    const localAppliedTime = lastAppliedRemoteUpdatedAt ? new Date(lastAppliedRemoteUpdatedAt).getTime() : 0;
+                    if(remoteTime > localAppliedTime + 500){
+                        // Remote in cloud has been updated by another client since our last sync!
+                        // Pull remote changes first to prevent overwriting newer changes!
+                        const { data: fullRemote } = await supabaseClient
+                            .from('app_sync')
+                            .select('data, updated_at')
+                            .eq('id', 'primary')
+                            .maybeSingle();
+                        if(fullRemote && fullRemote.data){
+                            applyIncomingPayload(fullRemote.data, fullRemote.updated_at, false);
+                        }
+                        if(hasPendingLocalEdits){
+                            scheduleCloudPush(300);
+                        }
+                        return;
+                    }
+                }
+            } catch(e){}
+
             setSyncStatus('syncing', 'Syncing to cloud...', 'Uploading local updates to Supabase');
             const payload = collectSyncPayload();
             payload._senderId = CLIENT_SESSION_ID;
@@ -9644,6 +9678,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     const actualUpdatedAt = (upsertData && upsertData.updated_at) ? upsertData.updated_at : nowIso;
                     lastPushedUpdatedAt = actualUpdatedAt;
                     lastAppliedRemoteUpdatedAt = actualUpdatedAt;
+                    hasPendingLocalEdits = false;
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
                     if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
                 }
@@ -9654,6 +9689,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
         }
 
         function pushToCloudKeepalive(){
+            if(!hasPendingLocalEdits) return;
             try {
                 const payload = collectSyncPayload();
                 payload._senderId = CLIENT_SESSION_ID;
@@ -9675,12 +9711,15 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         },
                         body: bodyStr,
                         keepalive: true
+                    }).then(() => {
+                        hasPendingLocalEdits = false;
                     }).catch(() => {});
                 }
             } catch(e){}
         }
 
         function scheduleCloudPush(delay){
+            if(isTabResuming) return;
             if(cloudPushTimer) clearTimeout(cloudPushTimer);
             cloudPushTimer = setTimeout(() => {
                 pushToCloud();
@@ -9717,13 +9756,13 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
                     // If key was deleted locally more recently than remote edit, NEVER RESURRECT IT!
                     const localDelTs = localDeleted[k] || 0;
-                    if(!force && localDelTs > 0 && localDelTs > remoteTs + 500){
+                    if(!force && hasPendingLocalEdits && localDelTs > 0 && localDelTs > remoteTs + 500){
                         hasLocalNewer = true;
                         continue;
                     }
 
                     // If local key exists and was edited more recently than remote, NEVER OVERWRITE LOCAL WORK!
-                    if(!force && cur !== null && cur !== undefined && localTs > remoteTs + 500){
+                    if(!force && hasPendingLocalEdits && cur !== null && cur !== undefined && localTs > remoteTs + 500){
                         hasLocalNewer = true;
                         continue;
                     }
@@ -9755,7 +9794,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             localTimestamps[lk] = remoteDelTs;
                             changesMade = true;
                         } else if(remotePayload[lk] === undefined && !remoteDeleted[lk]){
-                            hasLocalNewer = true;
+                            if(hasPendingLocalEdits){
+                                hasLocalNewer = true;
+                            }
                         }
                     }
                 }
@@ -9805,8 +9846,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 setSyncStatus('connected', 'Live Sync Active', changesMade ? 'Applied remote updates' : 'Synced with cloud');
                 if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
 
-                // If local has newer keys or unique keys that remote lacks, push them to cloud!
-                if(hasLocalNewer){
+                // If local has newer keys from pending edits, push them to cloud!
+                if(hasLocalNewer && hasPendingLocalEdits){
                     scheduleCloudPush(300);
                 }
             } finally {
@@ -9916,6 +9957,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
                                 clearLocalDeletedKey(k);
                                 setLocalKeyTimestamp(k, Date.now());
+                                hasPendingLocalEdits = true;
                                 scheduleCloudPush();
                             }
                         }
@@ -9927,6 +9969,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                                 const delTs = Date.now();
                                 recordLocalDeletedKey(k, delTs);
                                 setLocalKeyTimestamp(k, delTs);
+                                hasPendingLocalEdits = true;
                                 scheduleCloudPush(50);
                             }
                         }
@@ -9943,6 +9986,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                             if(!k.startsWith('tp_auth_') && !k.startsWith('td_auth_') && k !== 'td_auth_session'){
                                 clearLocalDeletedKey(k);
                                 setLocalKeyTimestamp(k, Date.now());
+                                hasPendingLocalEdits = true;
                                 scheduleCloudPush();
                             }
                         }
@@ -9954,6 +9998,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                                 const delTs = Date.now();
                                 recordLocalDeletedKey(k, delTs);
                                 setLocalKeyTimestamp(k, delTs);
+                                hasPendingLocalEdits = true;
                                 scheduleCloudPush(50);
                             }
                         }
@@ -9984,7 +10029,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     setSyncStatus('error', 'Connection Error', error.message);
                 } else if(remoteKeys.length > 0){
                     applyIncomingPayload(remotePayload, data.updated_at);
-                } else if(localKeys.length > 0){
+                } else if(localKeys.length > 0 && hasPendingLocalEdits){
                     await pushToCloud();
                 } else {
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
@@ -10004,22 +10049,37 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         clearTimeout(cloudPushTimer);
                         cloudPushTimer = null;
                     }
-                    pushToCloudKeepalive();
+                    if(hasPendingLocalEdits){
+                        pushToCloudKeepalive();
+                    }
+                }
+
+                function onTabResume(){
+                    isTabResuming = true;
+                    if(cloudPushTimer){
+                        clearTimeout(cloudPushTimer);
+                        cloudPushTimer = null;
+                    }
+                    if(!realtimeChannel || realtimeChannel.state !== 'joined'){
+                        subscribeRealtime();
+                    }
+                    pollCheckRemote(false).finally(() => {
+                        setTimeout(() => {
+                            isTabResuming = false;
+                        }, 400);
+                    });
                 }
 
                 document.addEventListener('visibilitychange', () => {
                     if(document.visibilityState === 'visible'){
-                        if(!realtimeChannel || realtimeChannel.state !== 'joined'){
-                            subscribeRealtime();
-                        }
-                        pollCheckRemote(false);
+                        onTabResume();
                     } else if(document.visibilityState === 'hidden'){
                         flushBeforeExit();
                     }
                 });
 
                 window.addEventListener('pageshow', () => {
-                    pollCheckRemote(false);
+                    onTabResume();
                 });
 
                 window.addEventListener('pagehide', () => {
@@ -10044,6 +10104,34 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         pollCheckRemote(false);
                     }
                 }, 25000);
+
+                if(btnCloudSync && cloudSyncModalOverlay){
+                    btnCloudSync.addEventListener('click', () => {
+                        cloudSyncModalOverlay.classList.add('visible');
+                    });
+                }
+                if(btnCloudSyncClose && cloudSyncModalOverlay){
+                    btnCloudSyncClose.addEventListener('click', () => {
+                        cloudSyncModalOverlay.classList.remove('visible');
+                    });
+                }
+                if(cloudSyncModalOverlay){
+                    cloudSyncModalOverlay.addEventListener('click', (e) => {
+                        if(e.target === cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('visible');
+                    });
+                }
+                if(btnForceSync){
+                    btnForceSync.addEventListener('click', () => {
+                        pollCheckRemote(true).then(() => {
+                            if(hasPendingLocalEdits) pushToCloud();
+                        });
+                    });
+                }
+                if(btnForcePull){
+                    btnForcePull.addEventListener('click', () => {
+                        pullFromCloud(true);
+                    });
+                }
 
             } catch(e){
                 console.warn('Supabase init error:', e);
