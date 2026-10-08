@@ -2555,6 +2555,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-manual-merge-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .pj-profile-dup-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(234,179,8,.12);border:1.5px solid rgba(234,179,8,.35);border-radius:var(--r-md);margin-bottom:12px;font-size:var(--fs-xs);color:var(--text)}
 @media(max-width:600px){.pj-dup-comparison{flex-direction:column}.pj-dup-merge-arrow{transform:rotate(90deg);padding:4px 0}.pj-manual-merge-form{grid-template-columns:1fr}}
+.pj-danger-pill{color:var(--danger) !important;border-color:rgba(239,68,68,.3) !important}
+.pj-danger-pill:hover{background:var(--danger-bg) !important;color:var(--danger) !important;border-color:var(--danger) !important}
 
 
 </style>
@@ -3053,6 +3055,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">🔀 Merge Duplicates</button>
                 <span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary);margin-left:auto" id="pjPeopleCount">0 people</span>
                 <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">⬇ CSV</button>
+                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteAllPjContacts" title="Delete all saved contacts">🗑️ Delete All Contacts</button>
                 <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">✕</button>
             </div>
             <div class="pj-dir-body">
@@ -4910,7 +4913,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             };
 
             let pjMeta = {profiles:{},customTags:[],savedViews:[],history:[],backups:[],notContactedDays:60};
-            let pjDupCriteria = {phone:true,email:true,nameExact:true,nameNoPhone:true,nameSimilar:false,matchMode:'any'};
+            let pjDupCriteria = {phone:true,email:true,nameExact:true,nameNoPhone:true,similarNoPhone:true,nameSimilar:false,matchMode:'any'};
             let pjActiveTab = 'dashboard', pjSort = 'recent', pjSelectedPid = null, pjSearch = '';
             let selectedPersonId = null, peopleFilter = '', peopleViewMode = 'all';
             let editingEncounterId = null, editingEncounterDay = null;
@@ -4976,6 +4979,34 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             function savePjContacts(arr){
                 appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(Array.isArray(arr) ? arr : []));
                 invalidatePjCache();
+            }
+
+            function deleteAllPjContacts(options){
+                const contacts = loadPjContacts();
+                if(!contacts.length){
+                    alert('There are no saved contacts to delete.');
+                    return { success: false, count: 0 };
+                }
+                if(!options?.skipConfirm){
+                    const confirmed = confirm(`Are you sure you want to delete all ${contacts.length} saved contact(s)?\n\nThis will remove all contact cards from the directory.\nNote: Historical encounters and notes recorded on calendar dates will remain safe.\n\nYou can restore this via Undo.`);
+                    if(!confirmed) return { success: false, canceled: true };
+                }
+                pushUndo(`Delete all ${contacts.length} contacts`);
+                savePjContacts([]);
+                invalidatePjCache();
+                selectedPersonId = null;
+                if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                    renderPjDirectory();
+                }
+                if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                    renderPjCenter();
+                }
+                if(document.getElementById('pjMergeModalOverlay')?.classList.contains('active')){
+                    renderPjMergeModal();
+                }
+                renderCalendar();
+                showToast(`✓ Successfully deleted ${contacts.length} contact(s)`);
+                return { success: true, count: contacts.length };
             }
 
             function loadPjMeta(){
@@ -5730,10 +5761,11 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const checkEmail = !!crit.email;
                 const checkNameExact = !!crit.nameExact;
                 const checkNameNoPhone = !!crit.nameNoPhone;
+                const checkSimilarNoPhone = !!crit.similarNoPhone;
                 const checkNameSimilar = !!crit.nameSimilar;
                 const isModeAll = crit.matchMode === 'all';
 
-                if(!checkPhone && !checkEmail && !checkNameExact && !checkNameNoPhone && !checkNameSimilar){
+                if(!checkPhone && !checkEmail && !checkNameExact && !checkNameNoPhone && !checkSimilarNoPhone && !checkNameSimilar){
                     return [];
                 }
 
@@ -5751,7 +5783,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         const pairKey = [p1.personId, p2.personId].sort().join(':::');
                         if(seenPairKeys.has(pairKey)) continue;
 
-                        let phoneMatched = false, emailMatched = false, nameExactMatched = false, nameNoPhoneMatched = false, nameSimilarMatched = false;
+                        let phoneMatched = false, emailMatched = false, nameExactMatched = false, nameNoPhoneMatched = false, similarNoPhoneMatched = false, nameSimilarMatched = false;
                         let matchedPhoneVal = '', matchedEmailVal = '';
 
                         // 1. Phone match
@@ -5775,34 +5807,39 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         }
 
                         // 3. Exact normalized name match
-                        if(checkNameExact && p1Norm && p1Norm === normalizePjName(p2.name)){
+                        const isExactName = (p1Norm && p1Norm === normalizePjName(p2.name));
+                        if(checkNameExact && isExactName){
                             nameExactMatched = true;
                         }
 
-                        // 4. Name match where one (or neither) contact has no phone number
+                        // 4. Token overlap / subset (e.g. "Ravi" in "Ravi Sharma")
+                        let isSimilarName = false;
+                        const p2Tokens = tokenizeName(p2.name);
+                        if(p1Tokens.length >= 1 && p2Tokens.length >= 1){
+                            const p1InP2 = p1Tokens.every(t => p2Tokens.includes(t));
+                            const p2InP1 = p2Tokens.every(t => p1Tokens.includes(t));
+                            if(p1InP2 || p2InP1){
+                                isSimilarName = true;
+                            }
+                        }
+
                         const p2Phones = (p2.phones||[]).map(normalizePhoneForCompare).filter(Boolean);
                         const oneHasNoPhone = (p1Phones.length === 0 && p2Phones.length > 0) || (p2Phones.length === 0 && p1Phones.length > 0);
                         const neitherHasPhone = (p1Phones.length === 0 && p2Phones.length === 0);
 
-                        const namesMatch = (p1Norm && p1Norm === normalizePjName(p2.name)) || (checkNameSimilar && (() => {
-                            const p2Tokens = tokenizeName(p2.name);
-                            return p1Tokens.length >= 1 && p2Tokens.length >= 1 && (p1Tokens.every(t => p2Tokens.includes(t)) || p2Tokens.every(t => p1Tokens.includes(t)));
-                        })());
-
-                        if(checkNameNoPhone && namesMatch && (oneHasNoPhone || neitherHasPhone)){
+                        // 5. Exact name where one (or neither) contact has no phone number
+                        if(checkNameNoPhone && isExactName && (oneHasNoPhone || neitherHasPhone)){
                             nameNoPhoneMatched = true;
                         }
 
-                        // 5. Token overlap / subset (e.g. "Ravi" in "Ravi Sharma")
-                        if(checkNameSimilar){
-                            const p2Tokens = tokenizeName(p2.name);
-                            if(p1Tokens.length >= 1 && p2Tokens.length >= 1){
-                                const p1InP2 = p1Tokens.every(t => p2Tokens.includes(t));
-                                const p2InP1 = p2Tokens.every(t => p1Tokens.includes(t));
-                                if(p1InP2 || p2InP1){
-                                    nameSimilarMatched = true;
-                                }
-                            }
+                        // 6. Similar name where one (or neither) contact has no phone number
+                        if(checkSimilarNoPhone && isSimilarName && !isExactName && (oneHasNoPhone || neitherHasPhone)){
+                            similarNoPhoneMatched = true;
+                        }
+
+                        // 7. General similar name match
+                        if(checkNameSimilar && isSimilarName && !isExactName){
+                            nameSimilarMatched = true;
                         }
 
                         let isMatch = false;
@@ -5811,9 +5848,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                       (!checkEmail || emailMatched) &&
                                       (!checkNameExact || nameExactMatched) &&
                                       (!checkNameNoPhone || nameNoPhoneMatched) &&
+                                      (!checkSimilarNoPhone || similarNoPhoneMatched) &&
                                       (!checkNameSimilar || nameSimilarMatched);
                         } else {
-                            isMatch = phoneMatched || emailMatched || nameExactMatched || nameNoPhoneMatched || nameSimilarMatched;
+                            isMatch = phoneMatched || emailMatched || nameExactMatched || nameNoPhoneMatched || similarNoPhoneMatched || nameSimilarMatched;
                         }
 
                         if(isMatch){
@@ -5828,17 +5866,23 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             } else if(nameExactMatched){
                                 reasons.push(`Exact name match ("${p1.name}")`);
                             }
-                            if(nameSimilarMatched && !nameNoPhoneMatched) reasons.push(`Similar name ("${p1.name}" & "${p2.name}")`);
+                            if(similarNoPhoneMatched){
+                                if(oneHasNoPhone) reasons.push(`Similar name, one has no phone ("${p1.name}" & "${p2.name}")`);
+                                else reasons.push(`Similar name, no phone ("${p1.name}" & "${p2.name}")`);
+                            } else if(nameSimilarMatched && !similarNoPhoneMatched){
+                                reasons.push(`Similar name ("${p1.name}" & "${p2.name}")`);
+                            }
 
                             if(reasons.length === 1){
                                 if(phoneMatched) matchType = 'phone';
                                 else if(emailMatched) matchType = 'email';
                                 else if(nameNoPhoneMatched) matchType = 'name_no_phone';
+                                else if(similarNoPhoneMatched) matchType = 'similar_no_phone';
                                 else if(nameExactMatched) matchType = 'name_exact';
                                 else if(nameSimilarMatched) matchType = 'name_similar';
                             }
 
-                            const confidence = (phoneMatched || emailMatched || nameExactMatched || (nameNoPhoneMatched && p1Norm === normalizePjName(p2.name)) || reasons.length > 1) ? 'high' : 'medium';
+                            const confidence = (phoneMatched || emailMatched || nameExactMatched || (nameNoPhoneMatched && isExactName) || reasons.length > 1) ? 'high' : 'medium';
                             const p1Score = (p1.encounters.length * 3) + (p1.isContact ? 4 : 0) + (p1.phones.length) + (p1.emails.length);
                             const p2Score = (p2.encounters.length * 3) + (p2.isContact ? 4 : 0) + (p2.phones.length) + (p2.emails.length);
                             const primary = p1Score >= p2Score ? p1 : p2;
@@ -6226,13 +6270,17 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 <input type="checkbox" id="pjCritNameExact" ${pjDupCriteria.nameExact?'checked':''}>
                                 <span>👤 Exact Name</span>
                             </label>
-                            <label class="pj-dup-check-pill ${pjDupCriteria.nameNoPhone?'active':''}" title="Detect contacts with matching names where one contact has no phone number">
+                            <label class="pj-dup-check-pill ${pjDupCriteria.nameNoPhone?'active':''}" title="Detect exact matching names where one contact has no phone number">
                                 <input type="checkbox" id="pjCritNameNoPhone" ${pjDupCriteria.nameNoPhone?'checked':''}>
-                                <span>📱 Name Match, One No Phone</span>
+                                <span>📱 Exact Name, One No Phone</span>
                             </label>
-                            <label class="pj-dup-check-pill ${pjDupCriteria.nameSimilar?'active':''}" title="Detect contacts with similar names (e.g. 'Ravi' and 'Ravi Sharma')">
+                            <label class="pj-dup-check-pill ${pjDupCriteria.similarNoPhone?'active':''}" title="Detect similar names (e.g. 'Ravi' and 'Ravi Sharma') where one contact has no phone number">
+                                <input type="checkbox" id="pjCritSimilarNoPhone" ${pjDupCriteria.similarNoPhone?'checked':''}>
+                                <span>🔤 Similar Name, One No Phone</span>
+                            </label>
+                            <label class="pj-dup-check-pill ${pjDupCriteria.nameSimilar?'active':''}" title="Detect similar names regardless of phone number presence">
                                 <input type="checkbox" id="pjCritNameSimilar" ${pjDupCriteria.nameSimilar?'checked':''}>
-                                <span>🔤 Similar Name</span>
+                                <span>👥 Similar Name (All)</span>
                             </label>
                         </div>
                     </div>
@@ -6266,7 +6314,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 return `
                                     <div class="pj-dup-card" data-idx="${idx}">
                                         <div class="pj-dup-badge ${isHigh?'high':''}">
-                                            <span>${d.matchType === 'phone' ? '📞' : (d.matchType === 'email' ? '✉️' : (d.matchType === 'name_no_phone' ? '📱' : '👤'))}</span>
+                                            <span>${d.matchType === 'phone' ? '📞' : (d.matchType === 'email' ? '✉️' : ((d.matchType === 'name_no_phone' || d.matchType === 'similar_no_phone') ? '📱' : '👤'))}</span>
                                             <span>${escapeHtml(d.reason)}</span>
                                         </div>
                                         <div class="pj-dup-comparison">
@@ -9496,6 +9544,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(btnPjFindDuplicates)btnPjFindDuplicates.addEventListener('click',()=>openPjMergeModal());
                 const btnExportPjPeopleCsv=document.getElementById('btnExportPjPeopleCsv');
                 if(btnExportPjPeopleCsv)btnExportPjPeopleCsv.addEventListener('click',exportPjPeopleCSV);
+                const btnDeleteAllPjContacts=document.getElementById('btnDeleteAllPjContacts');
+                if(btnDeleteAllPjContacts)btnDeleteAllPjContacts.addEventListener('click',()=>deleteAllPjContacts());
                 const pjPeopleList=document.getElementById('pjPeopleList');
                 if(pjPeopleList)pjPeopleList.addEventListener('click',e=>{const it=e.target.closest('.pj-dir-item');if(it){selectedPersonId=it.dataset.pid;renderPjPersonDetail();pjPeopleList.querySelectorAll('.pj-dir-item').forEach(x=>x.classList.toggle('active',x===it));}});
                 const pjPeopleMain=document.getElementById('pjPeopleMain');
@@ -9548,6 +9598,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         if(e.target.id==='pjCritEmail'){setPjDupCriteria({email:e.target.checked});return;}
                         if(e.target.id==='pjCritNameExact'){setPjDupCriteria({nameExact:e.target.checked});return;}
                         if(e.target.id==='pjCritNameNoPhone'){setPjDupCriteria({nameNoPhone:e.target.checked});return;}
+                        if(e.target.id==='pjCritSimilarNoPhone'){setPjDupCriteria({similarNoPhone:e.target.checked});return;}
                         if(e.target.id==='pjCritNameSimilar'){setPjDupCriteria({nameSimilar:e.target.checked});return;}
                         if(e.target.name==='pjDupMatchMode'){setPjDupCriteria({matchMode:e.target.value});return;}
                     });
@@ -10161,6 +10212,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 findPjDuplicatesForPerson,
                 mergePjPeople,
                 mergeAllPjDuplicates,
+                deleteAllPjContacts,
                 setPjDupCriteria,
                 getPjDupCriteria: () => pjDupCriteria,
                 openPjMergeModal,
