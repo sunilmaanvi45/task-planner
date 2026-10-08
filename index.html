@@ -2340,6 +2340,22 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 /* ============================================================
    PEOPLE & TEXT CALENDAR INTEGRATION (v21)
    ============================================================ */
+body:not(.text-calendar-mode) #pjTopToolbar{display:none !important}
+body.text-calendar-mode .app-container{flex-wrap:wrap}
+body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center;justify-content:space-between;gap:12px;width:100%;flex:0 0 100%;padding:10px 16px;background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-md);margin-bottom:4px;flex-wrap:wrap;box-sizing:border-box}
+.pj-top-toolbar-left,.pj-top-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pj-top-toolbar-divider{width:1px;height:22px;background:var(--border-strong);margin:0 4px}
+.pj-top-btn{padding:6px 14px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);background:var(--surface-2);color:var(--text);font-size:var(--fs-xs);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all var(--dur-fast) var(--ease-in-out);white-space:nowrap}
+.pj-top-btn:hover{background:var(--cell-hover);transform:translateY(-1px);box-shadow:var(--shadow)}
+.pj-top-btn:active{transform:translateY(0) scale(.97)}
+.pj-top-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 1px 3px rgba(61,107,245,.25)}
+.pj-top-btn.primary:hover{filter:brightness(1.08)}
+.pj-top-btn.accent{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
+.pj-top-btn.accent:hover{background:var(--accent-hover)}
+.pj-top-btn.pill{background:var(--surface-2);color:var(--text-secondary)}
+.pj-top-btn.pill:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
+@media(max-width:900px){body.text-calendar-mode #pjTopToolbar{padding:8px 12px;gap:8px}.pj-top-toolbar-divider{display:none}}
+
 .pj-actions-top-row{display:flex;gap:6px;width:100%;margin-bottom:6px}
 .btn-add-pj-encounter{background:var(--accent-light) !important;color:var(--accent) !important;border-color:var(--accent-border) !important}
 .btn-add-pj-encounter:hover{background:var(--accent-hover) !important}
@@ -2510,7 +2526,19 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 </style>
 </head>
 <body>
-    <div class="app-container">
+        <div class="app-container">
+        <div class="pj-top-toolbar" id="pjTopToolbar">
+            <div class="pj-top-toolbar-left">
+                <button type="button" class="pj-top-btn primary" id="btnTopAddText"><span>+</span> Add Day Text</button>
+                <button type="button" class="pj-top-btn accent" id="btnTopAddEncounter"><span>+</span> Add Person Met</button>
+            </div>
+            <div class="pj-top-toolbar-divider"></div>
+            <div class="pj-top-toolbar-right">
+                <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">👥 People Directory</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">♥ Relationship Center</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">🔍 Search</button>
+            </div>
+        </div>
         <div class="calendar-panel" id="calendarPanel">
             <div class="calendar-header">
                 <div class="header-left">
@@ -8356,6 +8384,16 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 btnTheme.addEventListener('click',toggleTheme);
                 btnTextCalendar.addEventListener('click',toggleTextCalendar);
                 btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
+                const btnTopAddText=document.getElementById('btnTopAddText');
+                if(btnTopAddText)btnTopAddText.addEventListener('click',addTextCalendarEntry);
+                const btnTopAddEncounter=document.getElementById('btnTopAddEncounter');
+                if(btnTopAddEncounter)btnTopAddEncounter.addEventListener('click',openAddPjEncounter);
+                const btnTopDirectory=document.getElementById('btnTopDirectory');
+                if(btnTopDirectory)btnTopDirectory.addEventListener('click',openPjDirectory);
+                const btnTopCenter=document.getElementById('btnTopCenter');
+                if(btnTopCenter)btnTopCenter.addEventListener('click',()=>openPjCenter('dashboard'));
+                const btnTopSearch=document.getElementById('btnTopSearch');
+                if(btnTopSearch)btnTopSearch.addEventListener('click',()=>openPjSearch());
                 const btnAddPjEncounter=document.getElementById('btnAddPjEncounter');
                 if(btnAddPjEncounter)btnAddPjEncounter.addEventListener('click',openAddPjEncounter);
                 const btnPjDirectory=document.getElementById('btnPjDirectory');
