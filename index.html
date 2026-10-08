@@ -2518,6 +2518,32 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
   .pj-dir-sidebar{flex:0 0 auto;max-height:180px;border-right:none;border-bottom:1px solid var(--border)}
 }
 
+/* Duplicate Detection & Merge Modal Styles */
+.pj-merge-modal{width:min(740px,96vw);max-height:88vh;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.pj-merge-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
+.pj-dup-summary-banner{padding:10px 14px;border-radius:var(--r-md);background:var(--accent-light);border:1px solid var(--accent-border);color:var(--text);font-size:var(--fs-xs);display:flex;align-items:center;gap:10px}
+.pj-dup-summary-banner.clean{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:var(--text)}
+.pj-dup-card{background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:14px;display:flex;flex-direction:column;gap:10px;transition:border-color var(--dur-fast),box-shadow var(--dur-fast)}
+.pj-dup-card:hover{border-color:var(--border-strong);box-shadow:var(--shadow-md)}
+.pj-dup-badge{display:inline-flex;align-items:center;gap:6px;font-size:var(--fs-2xs);font-weight:700;padding:3px 8px;border-radius:var(--r-full);background:rgba(234,179,8,.15);color:#b45309;border:1px solid rgba(234,179,8,.3);align-self:flex-start}
+.pj-dup-badge.high{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25)}
+.pj-dup-comparison{display:flex;align-items:stretch;gap:10px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-md);padding:10px}
+.pj-dup-side{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:4px}
+.pj-dup-name-row{display:flex;align-items:center;gap:8px}
+.pj-dup-name{font-weight:700;font-size:var(--fs-sm);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-dup-meta{font-size:var(--fs-2xs);color:var(--text-secondary)}
+.pj-dup-contacts{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px;font-size:var(--fs-2xs);color:var(--text-secondary);font-family:var(--font-mono)}
+.pj-dup-merge-arrow{display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--accent);font-weight:700;padding:0 6px}
+.pj-dup-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:4px;border-top:1px dashed var(--border)}
+.pj-dup-keep-label{display:flex;align-items:center;gap:8px;font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary)}
+.pj-dup-name-select{padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--border-strong);background:var(--card-bg);color:var(--text);font-family:inherit;font-size:var(--fs-xs)}
+.pj-dup-actions{display:flex;align-items:center;gap:8px}
+.pj-manual-merge-box{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:12px;margin-top:4px}
+.pj-manual-merge-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.pj-profile-dup-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(234,179,8,.12);border:1.5px solid rgba(234,179,8,.35);border-radius:var(--r-md);margin-bottom:12px;font-size:var(--fs-xs);color:var(--text)}
+@media(max-width:600px){.pj-dup-comparison{flex-direction:column}.pj-dup-merge-arrow{transform:rotate(90deg);padding:4px 0}.pj-manual-merge-form{grid-template-columns:1fr}}
+
+
 </style>
 </head>
 <body>
@@ -3011,6 +3037,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email…" autocomplete="off" spellcheck="false">
                 <button type="button" class="pj-toolbar-pill" id="pjFilterContacts" title="Show only contacts">📇 Contacts only</button>
                 <button type="button" class="pj-toolbar-pill" id="pjFilterEncounters" title="Show only people with encounters">👥 With encounters</button>
+                <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">🔀 Merge Duplicates</button>
                 <span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary);margin-left:auto" id="pjPeopleCount">0 people</span>
                 <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">⬇ CSV</button>
                 <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">✕</button>
@@ -3085,6 +3112,19 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 <button class="pj-modal-close" id="pjProfileClose" aria-label="Close">✕</button>
             </div>
             <div class="modal-body" id="pjProfileBody"></div>
+        </div>
+    </div>
+
+    <div class="pj-overlay" id="pjMergeModalOverlay">
+        <div class="pj-modal-card pj-merge-modal" id="pjMergeModal" role="dialog" aria-modal="true" aria-label="Duplicate detection and merge">
+            <div class="pj-modal-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:1.1rem;">🔀</span>
+                    <span class="pj-modal-title" id="pjMergeModalTitle">Duplicate Detection & Merge</span>
+                </div>
+                <button class="pj-modal-close" id="pjMergeModalClose" aria-label="Close">✕</button>
+            </div>
+            <div class="pj-merge-body" id="pjMergeModalBody"></div>
         </div>
     </div>
 
@@ -5635,6 +5675,358 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 showToast('Encounter deleted');
             }
 
+            // Duplicate Detection & Merge Logic
+            function normalizePhoneForCompare(ph){
+                const digits = String(ph||'').replace(/\D/g, '');
+                return digits.length >= 7 ? digits.slice(-10) : '';
+            }
+
+            function normalizeEmailForCompare(em){
+                return String(em||'').trim().toLowerCase();
+            }
+
+            function tokenizeName(n){
+                return normalizePjName(n).split(' ').filter(w => w.length > 1);
+            }
+
+            function findPjDuplicates(){
+                const all = getPjPeopleRegistry();
+                const pairs = [];
+                const seenPairKeys = new Set();
+
+                for(let i = 0; i < all.length; i++){
+                    const p1 = all[i];
+                    const p1Phones = (p1.phones||[]).map(normalizePhoneForCompare).filter(Boolean);
+                    const p1Emails = (p1.emails||[]).map(normalizeEmailForCompare).filter(Boolean);
+                    const p1Norm = normalizePjName(p1.name);
+                    const p1Tokens = tokenizeName(p1.name);
+
+                    for(let j = i + 1; j < all.length; j++){
+                        const p2 = all[j];
+                        if(p1.personId === p2.personId) continue;
+
+                        const pairKey = [p1.personId, p2.personId].sort().join(':::');
+                        if(seenPairKeys.has(pairKey)) continue;
+
+                        let matchReason = null;
+                        let matchType = null;
+                        let confidence = 'medium';
+
+                        // 1. Phone match
+                        const p2Phones = (p2.phones||[]).map(normalizePhoneForCompare).filter(Boolean);
+                        const matchedPhone = p1Phones.find(ph => p2Phones.includes(ph));
+                        if(matchedPhone){
+                            const orig = (p1.phones||[]).find(p => normalizePhoneForCompare(p) === matchedPhone) || matchedPhone;
+                            matchReason = `Same phone number (${orig})`;
+                            matchType = 'phone';
+                            confidence = 'high';
+                        }
+
+                        // 2. Email match
+                        if(!matchReason){
+                            const p2Emails = (p2.emails||[]).map(normalizeEmailForCompare).filter(Boolean);
+                            const matchedEmail = p1Emails.find(em => p2Emails.includes(em));
+                            if(matchedEmail){
+                                matchReason = `Same email address (${matchedEmail})`;
+                                matchType = 'email';
+                                confidence = 'high';
+                            }
+                        }
+
+                        // 3. Exact normalized name match with different ID
+                        const p2Norm = normalizePjName(p2.name);
+                        if(!matchReason && p1Norm === p2Norm){
+                            matchReason = `Exact name match ("${p1.name}")`;
+                            matchType = 'name_exact';
+                            confidence = 'high';
+                        }
+
+                        // 4. Token overlap / subset (e.g. "Ravi" in "Ravi Sharma")
+                        if(!matchReason){
+                            const p2Tokens = tokenizeName(p2.name);
+                            if(p1Tokens.length >= 1 && p2Tokens.length >= 1){
+                                const p1InP2 = p1Tokens.every(t => p2Tokens.includes(t));
+                                const p2InP1 = p2Tokens.every(t => p1Tokens.includes(t));
+                                if(p1InP2 || p2InP1){
+                                    matchReason = `Similar name ("${p1.name}" & "${p2.name}")`;
+                                    matchType = 'name_similar';
+                                    confidence = 'medium';
+                                }
+                            }
+                        }
+
+                        if(matchReason){
+                            seenPairKeys.add(pairKey);
+                            const p1Score = (p1.encounters.length * 3) + (p1.isContact ? 4 : 0) + (p1.phones.length) + (p1.emails.length);
+                            const p2Score = (p2.encounters.length * 3) + (p2.isContact ? 4 : 0) + (p2.phones.length) + (p2.emails.length);
+                            const primary = p1Score >= p2Score ? p1 : p2;
+                            const secondary = p1Score >= p2Score ? p2 : p1;
+
+                            pairs.push({
+                                p1: primary,
+                                p2: secondary,
+                                reason: matchReason,
+                                matchType,
+                                confidence
+                            });
+                        }
+                    }
+                }
+                return pairs;
+            }
+
+            function findPjDuplicatesForPerson(pid){
+                if(!pid) return [];
+                return findPjDuplicates().filter(d => d.p1.personId === pid || d.p2.personId === pid);
+            }
+
+            function mergePjPeople(primaryPid, secondaryPid, chosenName, options){
+                if(!primaryPid || !secondaryPid || primaryPid === secondaryPid){
+                    alert('Please choose two different people to merge.');
+                    return { success: false, message: 'Invalid people to merge' };
+                }
+                const all = getPjPeopleRegistry();
+                const p1 = all.find(x => x.personId === primaryPid);
+                const p2 = all.find(x => x.personId === secondaryPid);
+                if(!p1 || !p2){
+                    alert('Could not find the records to merge.');
+                    return { success: false, message: 'Records not found' };
+                }
+
+                const targetName = (chosenName || p1.name || p2.name).trim();
+                const targetPid = primaryPid;
+                const sourcePid = secondaryPid;
+
+                if(!options?.skipConfirm){
+                    if(!confirm(`Merge "${p2.name}" into "${targetName}"?\n\nThis will combine all phone numbers, email addresses, tags, notes, and update all daily encounters.`)){
+                        return { success: false, canceled: true };
+                    }
+                }
+
+                pushUndo(`Merge "${p2.name}" into "${targetName}"`);
+
+                // 1. Combine phones, emails, tags
+                const combinedPhones = Array.from(new Set([...(p1.phones||[]), ...(p2.phones||[])]));
+                const combinedEmails = Array.from(new Set([...(p1.emails||[]), ...(p2.emails||[])]));
+                const combinedTags = Array.from(new Set([...(p1.tags||[]), ...(p2.tags||[])]));
+
+                // 2. Update tp_contacts
+                const contacts = loadPjContacts();
+                let targetContact = contacts.find(c => c.personId === targetPid);
+                const sourceContactIdx = contacts.findIndex(c => c.personId === sourcePid);
+                if(sourceContactIdx !== -1){
+                    const sc = contacts[sourceContactIdx];
+                    contacts.splice(sourceContactIdx, 1);
+                    if(!targetContact && (p1.isContact || p2.isContact)){
+                        targetContact = {
+                            personId: targetPid,
+                            name: targetName,
+                            phones: combinedPhones,
+                            emails: combinedEmails,
+                            tags: combinedTags,
+                            source: sc.source || 'csv'
+                        };
+                        contacts.push(targetContact);
+                    }
+                }
+                if(targetContact){
+                    targetContact.name = targetName;
+                    targetContact.phones = combinedPhones;
+                    targetContact.emails = combinedEmails;
+                    targetContact.tags = combinedTags;
+                }
+                savePjContacts(contacts);
+
+                // 3. Update encounters across all td_pj_* dates
+                let encountersUpdated = 0;
+                for(let i = 0; i < appStorage.length; i++){
+                    const k = appStorage.key(i);
+                    if(k && k.startsWith(PJ_DAYS_PREFIX)){
+                        const ds = k.slice(PJ_DAYS_PREFIX.length);
+                        const dayData = getPjDayData(ds);
+                        if(dayData && Array.isArray(dayData.encounters)){
+                            let modified = false;
+                            dayData.encounters.forEach(e => {
+                                const norm = normalizePjName(e.name);
+                                if(e.personId === sourcePid || norm === sourcePid || e.personId === targetPid){
+                                    e.personId = targetPid;
+                                    e.name = targetName;
+                                    if(!Array.isArray(e.phones) || !e.phones.length) e.phones = combinedPhones.slice();
+                                    if(!Array.isArray(e.emails) || !e.emails.length) e.emails = combinedEmails.slice();
+                                    modified = true;
+                                    encountersUpdated++;
+                                }
+                            });
+                            if(modified){
+                                savePjDayData(ds, dayData);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Update profile in tp_people_meta
+                if(pjMeta && pjMeta.profiles){
+                    const pSource = pjMeta.profiles[sourcePid];
+                    if(pSource){
+                        const pTarget = pjProfile(targetPid);
+                        Object.keys(pSource).forEach(k => {
+                            if(pSource[k] && !pTarget[k]) pTarget[k] = pSource[k];
+                        });
+                        delete pjMeta.profiles[sourcePid];
+                        savePjMeta();
+                    }
+                }
+
+                // 5. Invalidate caches & refresh
+                invalidatePjCache();
+                selectedPersonId = targetPid;
+
+                if(document.getElementById('pjMergeModalOverlay')?.classList.contains('active')){
+                    renderPjMergeModal();
+                }
+                if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                    renderPjDirectory();
+                }
+                if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                    renderPjCenter();
+                }
+                if(selectedDateStr){
+                    renderPjDailySection(selectedDateStr);
+                }
+                renderCalendar();
+
+                showToast(`✓ Successfully merged "${p2.name}" into "${targetName}"`);
+                return { success: true, targetPid, targetName, encountersUpdated };
+            }
+
+            let pjMergeModalPreset = null;
+            function openPjMergeModal(presetPid, secondPid){
+                pjMergeModalPreset = { p1: presetPid || null, p2: secondPid || null };
+                document.getElementById('pjMergeModalOverlay').classList.add('active');
+                renderPjMergeModal();
+            }
+
+            function closePjMergeModal(){
+                document.getElementById('pjMergeModalOverlay').classList.remove('active');
+                document.getElementById('pjMergeModalBody').innerHTML = '';
+                pjMergeModalPreset = null;
+            }
+
+            function renderPjMergeModal(){
+                const body = document.getElementById('pjMergeModalBody');
+                if(!body) return;
+                const dups = findPjDuplicates();
+                const all = getPjPeopleRegistry().slice().sort((a,b)=>a.name.localeCompare(b.name));
+
+                let dupsHtml = '';
+                if(dups.length === 0){
+                    dupsHtml = `
+                        <div class="pj-dup-summary-banner clean">
+                            <span style="font-size:1.2rem;">✨</span>
+                            <div><strong>No duplicates detected!</strong> All contacts and encounters have distinct names, mobile numbers, and emails.</div>
+                        </div>
+                    `;
+                } else {
+                    dupsHtml = `
+                        <div class="pj-dup-summary-banner">
+                            <span style="font-size:1.2rem;">🔍</span>
+                            <div>Found <strong>${dups.length} potential duplicate pair(s)</strong>. Merging combines phones, emails, tags, notes, and unifies all encounter history into one profile.</div>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:12px;">
+                            ${dups.map((d, idx) => {
+                                const p1 = d.p1, p2 = d.p2;
+                                const initials1 = initialsOfPj(p1.name), initials2 = initialsOfPj(p2.name);
+                                const isHigh = d.confidence === 'high';
+                                return `
+                                    <div class="pj-dup-card" data-idx="${idx}">
+                                        <div class="pj-dup-badge ${isHigh?'high':''}">
+                                            <span>${d.matchType === 'phone' ? '📞' : (d.matchType === 'email' ? '✉️' : '👤')}</span>
+                                            <span>${escapeHtml(d.reason)}</span>
+                                        </div>
+                                        <div class="pj-dup-comparison">
+                                            <div class="pj-dup-side">
+                                                <div class="pj-dup-name-row">
+                                                    <div class="pj-encounter-avatar ${p1.isContact?'contact-marker':''}" style="width:32px;height:32px;font-size:0.75rem;">${escapeHtml(initials1)}</div>
+                                                    <div style="flex:1;min-width:0;">
+                                                        <div class="pj-dup-name">${escapeHtml(p1.name)}</div>
+                                                        <div class="pj-dup-meta">${p1.encounters.length} encounter(s) · ${p1.isContact?'Saved Contact':'Encounter log'}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="pj-dup-contacts">
+                                                    ${p1.phones.map(ph=>`<span class="pj-contact-pill">📞 ${escapeHtml(ph)}</span>`).join('')}
+                                                    ${p1.emails.map(em=>`<span class="pj-contact-pill">✉️ ${escapeHtml(em)}</span>`).join('')}
+                                                </div>
+                                            </div>
+                                            <div class="pj-dup-merge-arrow">➔</div>
+                                            <div class="pj-dup-side">
+                                                <div class="pj-dup-name-row">
+                                                    <div class="pj-encounter-avatar ${p2.isContact?'contact-marker':''}" style="width:32px;height:32px;font-size:0.75rem;">${escapeHtml(initials2)}</div>
+                                                    <div style="flex:1;min-width:0;">
+                                                        <div class="pj-dup-name">${escapeHtml(p2.name)}</div>
+                                                        <div class="pj-dup-meta">${p2.encounters.length} encounter(s) · ${p2.isContact?'Saved Contact':'Encounter log'}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="pj-dup-contacts">
+                                                    ${p2.phones.map(ph=>`<span class="pj-contact-pill">📞 ${escapeHtml(ph)}</span>`).join('')}
+                                                    ${p2.emails.map(em=>`<span class="pj-contact-pill">✉️ ${escapeHtml(em)}</span>`).join('')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="pj-dup-footer">
+                                            <div class="pj-dup-keep-label">
+                                                Keep Name:
+                                                <select class="pj-dup-name-select" id="pjDupSelect_${idx}">
+                                                    <option value="${escapeHtml(p1.personId)}::${escapeHtml(p1.name)}">${escapeHtml(p1.name)} (Primary)</option>
+                                                    <option value="${escapeHtml(p2.personId)}::${escapeHtml(p2.name)}">${escapeHtml(p2.name)}</option>
+                                                </select>
+                                            </div>
+                                            <div class="pj-dup-actions">
+                                                <button type="button" class="btn-primary btn-merge-dup-pair" data-p1="${escapeHtml(p1.personId)}" data-p2="${escapeHtml(p2.personId)}" data-idx="${idx}">🔀 Merge Records</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                const presetP1 = pjMergeModalPreset?.p1 || '';
+                const presetP2 = pjMergeModalPreset?.p2 || '';
+
+                const manualMergeHtml = `
+                    <details class="pj-manual-merge-box" ${presetP1?'open':''}>
+                        <summary style="cursor:pointer;font-weight:700;font-size:var(--fs-xs);color:var(--text);display:flex;align-items:center;gap:6px;">
+                            <span>🛠️</span><span>Manual Merge: Choose any two people to combine</span>
+                        </summary>
+                        <div class="pj-manual-merge-form">
+                            <div>
+                                <label style="display:block;font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Primary Person (Keep Record)</label>
+                                <select id="pjManualMergeP1" class="pj-dup-name-select" style="width:100%;">
+                                    <option value="">-- Select Person A --</option>
+                                    ${all.map(p=>`<option value="${escapeHtml(p.personId)}" ${p.personId===presetP1?'selected':''}>${escapeHtml(p.name)} (${p.phones[0]||`${p.encounters.length} met`})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);margin-bottom:4px;">Duplicate Person (Merge into Person A)</label>
+                                <select id="pjManualMergeP2" class="pj-dup-name-select" style="width:100%;">
+                                    <option value="">-- Select Person B --</option>
+                                    ${all.map(p=>`<option value="${escapeHtml(p.personId)}" ${p.personId===presetP2?'selected':''}>${escapeHtml(p.name)} (${p.phones[0]||`${p.encounters.length} met`})</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:10px;">
+                            <button type="button" class="btn-primary" id="btnExecuteManualMerge">🔀 Merge Selected People</button>
+                        </div>
+                    </details>
+                `;
+
+                body.innerHTML = `
+                    ${dupsHtml}
+                    ${manualMergeHtml}
+                `;
+            }
+
             // People Directory Modal
             function openPjDirectory(){
                 document.getElementById('pjPeopleOverlay').classList.add('active');
@@ -5653,6 +6045,13 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(peopleFilter.trim()){
                     const q = peopleFilter.trim().toLowerCase();
                     filtered = filtered.filter(p => (p.name + ' ' + (p.phones||[]).join(' ') + ' ' + (p.emails||[]).join(' ')).toLowerCase().includes(q));
+                }
+
+                // Update duplicate badge
+                const dups = findPjDuplicates();
+                const dupBtn = document.getElementById('btnPjFindDuplicates');
+                if(dupBtn){
+                    dupBtn.innerHTML = `🔀 Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
                 }
 
                 document.getElementById('pjPeopleCount').textContent = filtered.length + (filtered.length===1?' person':' people');
@@ -5701,6 +6100,22 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 (p.phones||[]).forEach(ph=>{ contactsPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(ph)}">📋</button></span>`; });
                 (p.emails||[]).forEach(em=>{ contactsPills += `<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}">📋</button></span>`; });
 
+                const pDups = findPjDuplicatesForPerson(p.personId);
+                let dupBannerHtml = '';
+                if(pDups.length > 0){
+                    const d = pDups[0];
+                    const other = d.p1.personId === p.personId ? d.p2 : d.p1;
+                    dupBannerHtml = `
+                        <div class="pj-profile-dup-banner">
+                            <span style="font-size:1.15rem;">⚠️</span>
+                            <div style="flex:1;min-width:0;">
+                                <strong>Potential duplicate detected:</strong> "${escapeHtml(other.name)}" (${escapeHtml(d.reason)})
+                            </div>
+                            <button type="button" class="pj-toolbar-pill" style="background:var(--accent);color:#fff;" id="btnQuickMergeDup" data-p1="${escapeHtml(p.personId)}" data-p2="${escapeHtml(other.personId)}">Review & Merge</button>
+                        </div>
+                    `;
+                }
+
                 const timelineHtml = encs.map(e => `
                     <div class="pj-dir-timeline-item">
                         <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--accent);margin-bottom:2px;">${getShortDate(e._date)}</div>
@@ -5714,10 +6129,14 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 `).join('');
 
                 mainEl.innerHTML = `
+                    ${dupBannerHtml}
                     <div style="display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;">
                         <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:48px;height:48px;font-size:1.1rem;">${escapeHtml(initials)}</div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
+                                <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeHtml(p.personId)}" title="Merge with another person">🔀 Merge Person</button>
+                            </div>
                             ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);">${escapeHtml(profile.relation)}</div>` : ''}
                             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactsPills}</div>
                         </div>
@@ -8746,12 +9165,51 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(pjFilterContacts)pjFilterContacts.addEventListener('click',()=>{peopleViewMode=peopleViewMode==='contacts'?'all':'contacts';renderPjDirectory();});
                 const pjFilterEncounters=document.getElementById('pjFilterEncounters');
                 if(pjFilterEncounters)pjFilterEncounters.addEventListener('click',()=>{peopleViewMode=peopleViewMode==='encounters'?'all':'encounters';renderPjDirectory();});
+                const btnPjFindDuplicates=document.getElementById('btnPjFindDuplicates');
+                if(btnPjFindDuplicates)btnPjFindDuplicates.addEventListener('click',()=>openPjMergeModal());
                 const btnExportPjPeopleCsv=document.getElementById('btnExportPjPeopleCsv');
                 if(btnExportPjPeopleCsv)btnExportPjPeopleCsv.addEventListener('click',exportPjPeopleCSV);
                 const pjPeopleList=document.getElementById('pjPeopleList');
                 if(pjPeopleList)pjPeopleList.addEventListener('click',e=>{const it=e.target.closest('.pj-dir-item');if(it){selectedPersonId=it.dataset.pid;renderPjPersonDetail();pjPeopleList.querySelectorAll('.pj-dir-item').forEach(x=>x.classList.toggle('active',x===it));}});
                 const pjPeopleMain=document.getElementById('pjPeopleMain');
-                if(pjPeopleMain)pjPeopleMain.addEventListener('click',e=>{const cb=e.target.closest('.pj-contact-copy');if(cb&&cb.dataset.copy){copyToClipboard(cb.dataset.copy);showToast('Copied to clipboard');}});
+                if(pjPeopleMain)pjPeopleMain.addEventListener('click',e=>{
+                    const cb=e.target.closest('.pj-contact-copy');
+                    if(cb&&cb.dataset.copy){copyToClipboard(cb.dataset.copy);showToast('Copied to clipboard');return;}
+                    const qMerge=e.target.closest('#btnQuickMergeDup');
+                    if(qMerge){openPjMergeModal(qMerge.dataset.p1,qMerge.dataset.p2);return;}
+                    const mMerge=e.target.closest('#btnManualMergePerson');
+                    if(mMerge){openPjMergeModal(mMerge.dataset.pid);return;}
+                });
+                const btnPjMergeClose=document.getElementById('pjMergeModalClose');
+                if(btnPjMergeClose)btnPjMergeClose.addEventListener('click',closePjMergeModal);
+                const pjMergeOverlay=document.getElementById('pjMergeModalOverlay');
+                if(pjMergeOverlay)pjMergeOverlay.addEventListener('click',e=>{if(e.target===pjMergeOverlay)closePjMergeModal();});
+                const pjMergeBody=document.getElementById('pjMergeModalBody');
+                if(pjMergeBody)pjMergeBody.addEventListener('click',e=>{
+                    const btnMerge=e.target.closest('.btn-merge-dup-pair');
+                    if(btnMerge){
+                        const idx=btnMerge.dataset.idx;
+                        const p1=btnMerge.dataset.p1, p2=btnMerge.dataset.p2;
+                        const sel=document.getElementById('pjDupSelect_'+idx);
+                        let targetPid=p1, sourcePid=p2, chosenName='';
+                        if(sel&&sel.value){
+                            const parts=sel.value.split('::');
+                            if(parts[0]===p2){targetPid=p2;sourcePid=p1;}
+                            chosenName=parts[1]||'';
+                        }
+                        mergePjPeople(targetPid,sourcePid,chosenName);
+                        return;
+                    }
+                    const btnManual=e.target.closest('#btnExecuteManualMerge');
+                    if(btnManual){
+                        const p1=document.getElementById('pjManualMergeP1')?.value;
+                        const p2=document.getElementById('pjManualMergeP2')?.value;
+                        if(!p1||!p2){alert('Please select both Person A and Person B.');return;}
+                        if(p1===p2){alert('Please select two different people.');return;}
+                        mergePjPeople(p1,p2);
+                        return;
+                    }
+                });
                 const pjCenterClose=document.getElementById('pjCenterClose');
                 if(pjCenterClose)pjCenterClose.addEventListener('click',closePjCenter);
                 const pjCenterOverlay=document.getElementById('pjCenterOverlay');
@@ -9315,6 +9773,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPjSearch();return}
                         if(e.key==='Escape'){
                             if(document.getElementById('pjGlobalSearchOverlay')?.classList.contains('active')){e.preventDefault();closePjSearch();return}
+                            if(document.getElementById('pjMergeModalOverlay')?.classList.contains('active')){e.preventDefault();closePjMergeModal();return}
                             if(document.getElementById('pjEncounterModalOverlay')?.classList.contains('active')){e.preventDefault();closePjEncounterModal();return}
                             if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){e.preventDefault();closePjDirectory();return}
                             if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){e.preventDefault();closePjCenter();return}
@@ -9356,6 +9815,11 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 exportPjEnhancedBackup,
                 importPjEnhancedBackup,
                 parseGoogleContactsCSV,
+                findPjDuplicates,
+                findPjDuplicatesForPerson,
+                mergePjPeople,
+                openPjMergeModal,
+                closePjMergeModal,
                 renderCalendar,
                 renderLearningsSection,
                 renderHabits,
