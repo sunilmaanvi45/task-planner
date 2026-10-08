@@ -2342,10 +2342,10 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
    ============================================================ */
 body:not(.text-calendar-mode) #pjTopToolbar{display:none !important}
 body.text-calendar-mode .app-container{flex-wrap:wrap}
-body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center;justify-content:space-between;gap:12px;width:100%;flex:0 0 100%;padding:10px 16px;background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-md);margin-bottom:4px;flex-wrap:wrap;box-sizing:border-box}
-.pj-top-toolbar-left,.pj-top-toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center;justify-content:flex-start;gap:8px;width:100%;flex:0 0 100%;padding:10px 16px;background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-md);margin-bottom:4px;flex-wrap:wrap;box-sizing:border-box}
+.pj-top-toolbar-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .pj-top-toolbar-divider{width:1px;height:22px;background:var(--border-strong);margin:0 4px}
-.pj-top-btn{padding:6px 14px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);background:var(--surface-2);color:var(--text);font-size:var(--fs-xs);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all var(--dur-fast) var(--ease-in-out);white-space:nowrap}
+.pj-top-btn{padding:6px 13px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);background:var(--surface-2);color:var(--text);font-size:var(--fs-xs);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all var(--dur-fast) var(--ease-in-out);white-space:nowrap}
 .pj-top-btn:hover{background:var(--cell-hover);transform:translateY(-1px);box-shadow:var(--shadow)}
 .pj-top-btn:active{transform:translateY(0) scale(.97)}
 .pj-top-btn.primary{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 1px 3px rgba(61,107,245,.25)}
@@ -2354,15 +2354,10 @@ body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center
 .pj-top-btn.accent:hover{background:var(--accent-hover)}
 .pj-top-btn.pill{background:var(--surface-2);color:var(--text-secondary)}
 .pj-top-btn.pill:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
-@media(max-width:900px){body.text-calendar-mode #pjTopToolbar{padding:8px 12px;gap:8px}.pj-top-toolbar-divider{display:none}}
+@media(max-width:900px){body.text-calendar-mode #pjTopToolbar{padding:8px 12px;gap:6px}.pj-top-toolbar-divider{display:none}}
 
-.pj-actions-top-row{display:flex;gap:6px;width:100%;margin-bottom:6px}
-.btn-add-pj-encounter{background:var(--accent-light) !important;color:var(--accent) !important;border-color:var(--accent-border) !important}
-.btn-add-pj-encounter:hover{background:var(--accent-hover) !important}
-.pj-mode-toolbar-pills{display:flex;gap:4px;flex-wrap:wrap;width:100%;align-items:center}
-.pj-toolbar-pill{width:auto !important;padding:3px 9px !important;font-size:var(--fs-xs) !important;font-weight:600 !important;cursor:pointer;border-radius:var(--r-full) !important;border:1px solid var(--border-strong) !important;background:var(--surface-2) !important;color:var(--text-secondary) !important;transition:all var(--dur-fast) var(--ease-in-out)}
-.pj-toolbar-pill:hover{background:var(--accent-light) !important;color:var(--accent) !important;border-color:var(--accent-border) !important}
-
+/* Hide redundant detail panel actions when in People & Text mode */
+body.text-calendar-mode .text-calendar-actions{display:none !important}
 body:not(.text-calendar-mode) .pj-daily-section{display:none !important}
 body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--border);padding-top:var(--sp-3)}
 
@@ -2528,15 +2523,25 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 <body>
         <div class="app-container">
         <div class="pj-top-toolbar" id="pjTopToolbar">
-            <div class="pj-top-toolbar-left">
+            <div class="pj-top-toolbar-group">
                 <button type="button" class="pj-top-btn primary" id="btnTopAddText"><span>+</span> Add Day Text</button>
                 <button type="button" class="pj-top-btn accent" id="btnTopAddEncounter"><span>+</span> Add Person Met</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
-            <div class="pj-top-toolbar-right">
+            <div class="pj-top-toolbar-group">
                 <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">👥 People Directory</button>
                 <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">♥ Relationship Center</button>
                 <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">🔍 Search</button>
+            </div>
+            <div class="pj-top-toolbar-divider"></div>
+            <div class="pj-top-toolbar-group">
+                <button type="button" class="pj-top-btn pill" id="btnTopImportCsv" title="Import Contacts from Google / Phone CSV">📇 Import CSV</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopExportCsv" title="Export People Directory to CSV">⬇ Export CSV</button>
+            </div>
+            <div class="pj-top-toolbar-divider"></div>
+            <div class="pj-top-toolbar-group">
+                <button type="button" class="pj-top-btn pill" id="btnTopBackup" title="Backup People & Text Data (JSON)">💾 Backup</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopRestore" title="Restore People & Text Data (JSON)">📂 Restore</button>
             </div>
         </div>
         <div class="calendar-panel" id="calendarPanel">
@@ -5216,8 +5221,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         }).join('');
 
                         let contactPills = '';
-                        const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
-                        const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+                        const ePhones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                        const phones = ePhones.length ? ePhones : (known && known.phones ? known.phones : []);
+                        const eEmails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+                        const emails = eEmails.length ? eEmails : (known && known.emails ? known.emails : []);
                         phones.forEach(p => {
                             contactPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(p)}">${escapeHtml(p)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(p)}" title="Copy">📋</button></span>`;
                         });
@@ -5656,12 +5663,16 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     listEl.innerHTML = filtered.map(p => {
                         const isActive = p.personId === selectedPersonId;
                         const initials = initialsOfPj(p.name);
+                        const firstPhone = (p.phones && p.phones.length) ? p.phones[0] : '';
                         return `
                             <div class="pj-dir-item ${isActive?'active':''}" data-pid="${escapeHtml(p.personId)}">
                                 <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:30px;height:30px;font-size:0.7rem;">${escapeHtml(initials)}</div>
                                 <div style="flex:1;min-width:0;">
                                     <div style="font-size:var(--fs-xs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
-                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s)</div>
+                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);display:flex;align-items:center;gap:6px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                        ${firstPhone ? `<span style="color:var(--accent);font-weight:600;font-family:var(--font-mono);">📞 ${escapeHtml(firstPhone)}</span>` : ''}
+                                        <span>${p.encounters.length} met</span>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -5840,58 +5851,352 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 `).join('');
             }
 
-            // CSV Import & Export
-            function parseGoogleContactsCSV(text){
+            // RFC-4180 CSV Parser & Google Contacts Engine
+            function parseCSV(text){
                 if(typeof text !== 'string') return [];
-                const lines = text.split(/\r?\n/).filter(Boolean);
-                if(lines.length < 2) return [];
-                const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g,'').trim().toLowerCase());
-                const nameIdx = headers.findIndex(h => h.includes('name'));
-                const phoneIdx = headers.findIndex(h => h.includes('phone') || h.includes('mobile'));
-                const emailIdx = headers.findIndex(h => h.includes('email') || h.includes('e-mail'));
-                const list = [];
-                for(let i=1; i<lines.length; i++){
-                    const parts = lines[i].split(',').map(p => p.replace(/^["']|["']$/g,'').trim());
-                    const name = nameIdx !== -1 ? parts[nameIdx] : '';
-                    if(!name) continue;
-                    list.push({
-                        personId: normalizePjName(name),
+                if(text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+                const rows = [];
+                let row = [];
+                let cur = '';
+                let inQuotes = false;
+                for(let i = 0; i < text.length; i++){
+                    const ch = text[i];
+                    if(inQuotes){
+                        if(ch === '"'){
+                            if(text[i+1] === '"'){ cur += '"'; i++; }
+                            else inQuotes = false;
+                        } else cur += ch;
+                    } else {
+                        if(ch === '"') inQuotes = true;
+                        else if(ch === ','){ row.push(cur); cur = ''; }
+                        else if(ch === '\n'){ row.push(cur); rows.push(row); row = []; cur = ''; }
+                        else if(ch === '\r'){
+                            if(text[i+1] === '\n') i++;
+                            row.push(cur); rows.push(row); row = []; cur = '';
+                        } else cur += ch;
+                    }
+                }
+                if(cur !== '' || row.length > 0){ row.push(cur); rows.push(row); }
+                return rows;
+            }
+
+            function parseGoogleContactsCSV(text){
+                const rows = parseCSV(text);
+                if(rows.length < 2) return [];
+                const headers = rows[0].map(h => String(h||'').trim().toLowerCase());
+
+                // Find name columns
+                const nameCandidates = ['name', 'full name', 'display name', 'contact name', 'person name'];
+                let nameIdx = headers.findIndex(h => nameCandidates.includes(h));
+                if(nameIdx === -1) nameIdx = headers.findIndex(h => h === 'name');
+                const givenIdx = headers.findIndex(h => ['given name', 'first name', 'first'].includes(h));
+                const familyIdx = headers.findIndex(h => ['family name', 'last name', 'surname', 'last'].includes(h));
+                const middleIdx = headers.findIndex(h => ['additional name', 'middle name', 'middle'].includes(h));
+
+                // Phone columns: match "phone * - value", "mobile", "cell", "phone", etc. BUT ignore headers with "type"
+                const phoneIdxs = [];
+                headers.forEach((h, idx) => {
+                    if(h.includes('type')) return;
+                    if(h.includes('phone') || h.includes('mobile') || h.includes('cell') || h === 'tel' || h.includes('contact number') || h.includes('telephone')){
+                        phoneIdxs.push(idx);
+                    }
+                });
+
+                // Email columns: match "e-mail * - value", "email", etc. BUT ignore headers with "type"
+                const emailIdxs = [];
+                headers.forEach((h, idx) => {
+                    if(h.includes('type')) return;
+                    if(h.includes('email') || h.includes('e-mail') || h === 'mail'){
+                        emailIdxs.push(idx);
+                    }
+                });
+
+                const contacts = [];
+                const typeLabels = ['mobile', 'home', 'work', 'main', 'cell', 'fax', 'other', 'custom', '*'];
+
+                for(let i = 1; i < rows.length; i++){
+                    const row = rows[i];
+                    if(!row || !row.length) continue;
+
+                    const phones = [];
+                    phoneIdxs.forEach(idx => {
+                        let val = String(row[idx]||'').trim().replace(/^["']|["']$/g, '').trim();
+                        if(val && !typeLabels.includes(val.toLowerCase()) && !phones.includes(val)){
+                            phones.push(val);
+                        }
+                    });
+
+                    const emails = [];
+                    emailIdxs.forEach(idx => {
+                        let val = String(row[idx]||'').trim().replace(/^["']|["']$/g, '').trim();
+                        if(val && val.includes('@') && !emails.includes(val)){
+                            emails.push(val);
+                        }
+                    });
+
+                    let name = nameIdx !== -1 ? String(row[nameIdx]||'').replace(/^["']|["']$/g, '').trim() : '';
+                    if(!name){
+                        const g = givenIdx !== -1 ? String(row[givenIdx]||'').replace(/^["']|["']$/g, '').trim() : '';
+                        const m = middleIdx !== -1 ? String(row[middleIdx]||'').replace(/^["']|["']$/g, '').trim() : '';
+                        const f = familyIdx !== -1 ? String(row[familyIdx]||'').replace(/^["']|["']$/g, '').trim() : '';
+                        name = [g, m, f].filter(Boolean).join(' ');
+                    }
+                    if(!name){
+                        if(phones.length > 0) name = 'Contact (' + phones[0] + ')';
+                        else if(emails.length > 0) name = emails[0].split('@')[0];
+                        else continue;
+                    }
+
+                    const personId = normalizePjName(name);
+                    if(!personId) continue;
+
+                    contacts.push({
+                        personId: personId,
                         name: name,
-                        phones: phoneIdx !== -1 && parts[phoneIdx] ? [parts[phoneIdx]] : [],
-                        emails: emailIdx !== -1 && parts[emailIdx] ? [parts[emailIdx]] : [],
+                        phones: phones,
+                        emails: emails,
                         source: 'csv'
                     });
                 }
-                return list;
+                return contacts;
             }
+
             function importGoogleContactsCSV(file){
                 if(!file) return;
                 const r = new FileReader();
                 r.onload = (ev)=>{
-                    const parsed = parseGoogleContactsCSV(ev.target.result);
-                    if(!parsed.length){ alert('No contacts found in CSV.'); return; }
-                    const existing = loadPjContacts();
-                    const map = new Map(existing.map(x => [x.personId, x]));
-                    parsed.forEach(p => { if(!map.has(p.personId)) map.set(p.personId, p); });
-                    savePjContacts(Array.from(map.values()));
-                    showToast(`📇 Imported ${parsed.length} contacts`);
+                    try {
+                        const parsed = parseGoogleContactsCSV(ev.target.result);
+                        if(!parsed.length){ alert('No contacts found in CSV.'); return; }
+                        const existing = loadPjContacts();
+                        const map = new Map(existing.map(x => [x.personId, x]));
+                        let newCount = 0;
+                        let mergedCount = 0;
+                        parsed.forEach(p => {
+                            if(!map.has(p.personId)){
+                                map.set(p.personId, p);
+                                newCount++;
+                            } else {
+                                const ext = map.get(p.personId);
+                                const phSet = new Set(Array.isArray(ext.phones) ? ext.phones : (ext.phone ? [ext.phone] : []));
+                                (p.phones||[]).forEach(ph => phSet.add(ph));
+                                ext.phones = Array.from(phSet);
+
+                                const emSet = new Set(Array.isArray(ext.emails) ? ext.emails : (ext.email ? [ext.email] : []));
+                                (p.emails||[]).forEach(em => emSet.add(em));
+                                ext.emails = Array.from(emSet);
+
+                                if(p.name) ext.name = p.name;
+                                mergedCount++;
+                            }
+                        });
+                        savePjContacts(Array.from(map.values()));
+                        invalidatePjCache();
+
+                        if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                            renderPjDirectory();
+                        }
+                        if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                            renderPjCenter();
+                        }
+                        if(selectedDateStr){
+                            renderPjDailySection(selectedDateStr);
+                        }
+                        renderCalendar();
+
+                        showToast(`📇 Imported ${parsed.length} contacts (${newCount} new, ${mergedCount} updated)`);
+                    } catch(err){
+                        console.error('CSV import error:', err);
+                        alert('Failed to import CSV: ' + err.message);
+                    }
                 };
                 r.readAsText(file);
             }
+
             function exportPjPeopleCSV(){
                 const all = getPjPeopleRegistry();
                 if(!all.length){ showToast('No people to export'); return; }
                 const rows = ['Name,Phones,Emails,First Met,Last Met,Encounters'];
                 all.forEach(p => {
-                    rows.push(`"${p.name}","${(p.phones||[]).join(' | ')}","${(p.emails||[]).join(' | ')}","${p.firstMet||''}","${p.lastSeen||''}","${p.encounters.length}"`);
+                    const name = String(p.name||'').replace(/"/g, '""');
+                    const phones = (p.phones||[]).join('; ').replace(/"/g, '""');
+                    const emails = (p.emails||[]).join('; ').replace(/"/g, '""');
+                    rows.push(`"${name}","${phones}","${emails}","${p.firstMet||''}","${p.lastSeen||''}","${(p.encounters||[]).length}"`);
                 });
-                const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+                const blob = new Blob([rows.join('\r\n')], { type: 'text/csv;charset=utf-8' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url; a.download = 'people-directory-' + getTodayStr() + '.csv';
-                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                a.href = url;
+                a.download = 'people-directory-' + getTodayStr() + '.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 setTimeout(()=>URL.revokeObjectURL(url), 4000);
                 showToast('⬇ Exported ' + all.length + ' people');
+            }
+
+            function exportPjEnhancedBackup(){
+                try {
+                    const backup = {
+                        version: 1,
+                        exportType: 'people-text-complete-backup',
+                        exportedAt: new Date().toISOString(),
+                        contacts: loadPjContacts(),
+                        meta: pjMeta || {},
+                        days: {},
+                        textCalendar: {}
+                    };
+                    for(let i = 0; i < appStorage.length; i++){
+                        const k = appStorage.key(i);
+                        if(!k) continue;
+                        if(k.startsWith(PJ_DAYS_PREFIX)){
+                            const ds = k.slice(PJ_DAYS_PREFIX.length);
+                            try { backup.days[ds] = JSON.parse(appStorage.getItem(k)); } catch(e){}
+                        } else if(k.startsWith('td_') && !k.startsWith('td_pj_') && !k.startsWith('td_week_') && !k.startsWith('td_eisen_') && !k.startsWith('td_lt_') && !k.startsWith('td_backup_')){
+                            try {
+                                const parsed = JSON.parse(appStorage.getItem(k));
+                                if(parsed && Array.isArray(parsed.textCalendar) && parsed.textCalendar.length > 0){
+                                    const ds = k.slice(3);
+                                    backup.textCalendar[ds] = parsed.textCalendar;
+                                }
+                            } catch(e){}
+                        }
+                    }
+                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'people-text-backup-' + getTodayStr() + '.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+                    showToast('💾 People & Text backup downloaded');
+                } catch(err){
+                    console.error('Backup error:', err);
+                    alert('Failed to export backup: ' + err.message);
+                }
+            }
+
+            function importPjEnhancedBackup(file){
+                if(!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const parsed = JSON.parse(ev.target.result);
+                        if(!parsed || typeof parsed !== 'object'){
+                            alert('Invalid backup file: not a JSON object.');
+                            return;
+                        }
+                        const isPjBackup = parsed.exportType === 'people-text-complete-backup' || parsed.contacts || parsed.days;
+                        const isTodoBackup = parsed.exportType === 'todo-complete-backup' || parsed.entries;
+
+                        if(!isPjBackup && !isTodoBackup){
+                            alert('Unrecognized backup format. Please select a valid backup JSON file.');
+                            return;
+                        }
+
+                        if(!confirm('Restore People & Text data from this backup? Existing data will be merged.')){
+                            return;
+                        }
+
+                        let restoredContacts = 0;
+                        let restoredEncounters = 0;
+                        let restoredTexts = 0;
+
+                        if(Array.isArray(parsed.contacts) && parsed.contacts.length > 0){
+                            const current = loadPjContacts();
+                            const cMap = new Map(current.map(c => [c.personId, c]));
+                            parsed.contacts.forEach(c => {
+                                if(c && c.personId){
+                                    if(!cMap.has(c.personId)){
+                                        cMap.set(c.personId, c);
+                                    } else {
+                                        const ext = cMap.get(c.personId);
+                                        const phSet = new Set(Array.isArray(ext.phones) ? ext.phones : (ext.phone ? [ext.phone] : []));
+                                        (Array.isArray(c.phones) ? c.phones : (c.phone ? [c.phone] : [])).forEach(p => phSet.add(p));
+                                        ext.phones = Array.from(phSet);
+                                        const emSet = new Set(Array.isArray(ext.emails) ? ext.emails : (ext.email ? [ext.email] : []));
+                                        (Array.isArray(c.emails) ? c.emails : (c.email ? [c.email] : [])).forEach(em => emSet.add(em));
+                                        ext.emails = Array.from(emSet);
+                                        if(c.name) ext.name = c.name;
+                                    }
+                                    restoredContacts++;
+                                }
+                            });
+                            savePjContacts(Array.from(cMap.values()));
+                        }
+
+                        if(parsed.meta && typeof parsed.meta === 'object'){
+                            pjMeta = Object.assign({}, pjMeta, parsed.meta);
+                            savePjMeta();
+                        }
+
+                        if(parsed.days && typeof parsed.days === 'object'){
+                            Object.keys(parsed.days).forEach(ds => {
+                                const dayData = parsed.days[ds];
+                                if(dayData && Array.isArray(dayData.encounters) && dayData.encounters.length > 0){
+                                    const existing = getPjDayData(ds) || { encounters: [] };
+                                    const encMap = new Map((existing.encounters||[]).map(e => [e.id, e]));
+                                    dayData.encounters.forEach(e => {
+                                        if(e && e.id) encMap.set(e.id, e);
+                                        restoredEncounters++;
+                                    });
+                                    savePjDayData(ds, { encounters: Array.from(encMap.values()) });
+                                }
+                            });
+                        }
+
+                        if(parsed.textCalendar && typeof parsed.textCalendar === 'object'){
+                            Object.keys(parsed.textCalendar).forEach(ds => {
+                                const texts = parsed.textCalendar[ds];
+                                if(Array.isArray(texts) && texts.length > 0){
+                                    const key = 'td_' + ds;
+                                    let dObj = null;
+                                    try { dObj = JSON.parse(appStorage.getItem(key)); } catch(e){}
+                                    if(!dObj || typeof dObj !== 'object') dObj = { tasks: [], learnings: [], textCalendar: [] };
+                                    if(!Array.isArray(dObj.textCalendar)) dObj.textCalendar = [];
+                                    const set = new Set(dObj.textCalendar);
+                                    texts.forEach(t => { if(t && !set.has(t)){ dObj.textCalendar.push(t); restoredTexts++; } });
+                                    appStorage.setItem(key, JSON.stringify(dObj));
+                                }
+                            });
+                        } else if(isTodoBackup && parsed.entries && typeof parsed.entries === 'object'){
+                            Object.keys(parsed.entries).forEach(ds => {
+                                const entry = parsed.entries[ds];
+                                if(entry && Array.isArray(entry.textCalendar) && entry.textCalendar.length > 0){
+                                    const key = 'td_' + ds;
+                                    let dObj = null;
+                                    try { dObj = JSON.parse(appStorage.getItem(key)); } catch(e){}
+                                    if(!dObj || typeof dObj !== 'object') dObj = { tasks: [], learnings: [], textCalendar: [] };
+                                    if(!Array.isArray(dObj.textCalendar)) dObj.textCalendar = [];
+                                    const set = new Set(dObj.textCalendar);
+                                    entry.textCalendar.forEach(t => { if(t && !set.has(t)){ dObj.textCalendar.push(t); restoredTexts++; } });
+                                    appStorage.setItem(key, JSON.stringify(dObj));
+                                }
+                            });
+                        }
+
+                        invalidatePjCache();
+                        renderCalendar({ animate: true });
+                        if(selectedDateStr){
+                            selectDate(selectedDateStr);
+                            renderPjDailySection(selectedDateStr);
+                        }
+                        if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                            renderPjDirectory();
+                        }
+                        if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                            renderPjCenter();
+                        }
+
+                        showToast(`📂 Restored ${restoredContacts} contacts, ${restoredEncounters} encounters`);
+                    } catch(err){
+                        console.error('Restore error:', err);
+                        alert('Failed to parse and restore backup: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
             }
 
             loadPjMeta();
@@ -8394,6 +8699,24 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(btnTopCenter)btnTopCenter.addEventListener('click',()=>openPjCenter('dashboard'));
                 const btnTopSearch=document.getElementById('btnTopSearch');
                 if(btnTopSearch)btnTopSearch.addEventListener('click',()=>openPjSearch());
+                const btnTopImportCsv=document.getElementById('btnTopImportCsv');
+                if(btnTopImportCsv){
+                    const inp=document.getElementById('pjContactsCsvInput');
+                    btnTopImportCsv.addEventListener('click',()=>{if(inp)inp.click();});
+                }
+                const btnTopExportCsv=document.getElementById('btnTopExportCsv');
+                if(btnTopExportCsv)btnTopExportCsv.addEventListener('click',exportPjPeopleCSV);
+                const btnTopBackup=document.getElementById('btnTopBackup');
+                if(btnTopBackup)btnTopBackup.addEventListener('click',exportPjEnhancedBackup);
+                const btnTopRestore=document.getElementById('btnTopRestore');
+                if(btnTopRestore){
+                    const binp=document.getElementById('pjEnhancedBackupInput');
+                    btnTopRestore.addEventListener('click',()=>{if(binp)binp.click();});
+                }
+                const pjCsvInp=document.getElementById('pjContactsCsvInput');
+                if(pjCsvInp)pjCsvInp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importGoogleContactsCSV(f);ev.target.value='';});
+                const pjBackupInp=document.getElementById('pjEnhancedBackupInput');
+                if(pjBackupInp)pjBackupInp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importPjEnhancedBackup(f);ev.target.value='';});
                 const btnAddPjEncounter=document.getElementById('btnAddPjEncounter');
                 if(btnAddPjEncounter)btnAddPjEncounter.addEventListener('click',openAddPjEncounter);
                 const btnPjDirectory=document.getElementById('btnPjDirectory');
@@ -8406,7 +8729,6 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(btnPjImportCsv){
                     const inp=document.getElementById('pjContactsCsvInput');
                     btnPjImportCsv.addEventListener('click',()=>{if(inp)inp.click();});
-                    if(inp)inp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importGoogleContactsCSV(f);ev.target.value='';});
                 }
                 const pjDailySec=document.getElementById('pjDailySection');
                 if(pjDailySec)pjDailySec.addEventListener('click',handlePjDailySectionClick);
@@ -8428,6 +8750,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(btnExportPjPeopleCsv)btnExportPjPeopleCsv.addEventListener('click',exportPjPeopleCSV);
                 const pjPeopleList=document.getElementById('pjPeopleList');
                 if(pjPeopleList)pjPeopleList.addEventListener('click',e=>{const it=e.target.closest('.pj-dir-item');if(it){selectedPersonId=it.dataset.pid;renderPjPersonDetail();pjPeopleList.querySelectorAll('.pj-dir-item').forEach(x=>x.classList.toggle('active',x===it));}});
+                const pjPeopleMain=document.getElementById('pjPeopleMain');
+                if(pjPeopleMain)pjPeopleMain.addEventListener('click',e=>{const cb=e.target.closest('.pj-contact-copy');if(cb&&cb.dataset.copy){copyToClipboard(cb.dataset.copy);showToast('Copied to clipboard');}});
                 const pjCenterClose=document.getElementById('pjCenterClose');
                 if(pjCenterClose)pjCenterClose.addEventListener('click',closePjCenter);
                 const pjCenterOverlay=document.getElementById('pjCenterOverlay');
@@ -9027,6 +9351,11 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 openPjDirectory,
                 openPjCenter,
                 openPjSearch,
+                exportPjPeopleCSV,
+                importGoogleContactsCSV,
+                exportPjEnhancedBackup,
+                importPjEnhancedBackup,
+                parseGoogleContactsCSV,
                 renderCalendar,
                 renderLearningsSection,
                 renderHabits,
