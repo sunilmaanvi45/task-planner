@@ -889,7 +889,21 @@ body{
 .learning-tile:hover{border-color:var(--accent-border);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
 .learning-tile:active{transform:translateY(-1px) scale(.99)}
 .learning-tile.completed{opacity:.62;border-color:var(--success-border);background:var(--success-tint)}
-.learning-tile.completed .learning-tile-title{text-decoration:line-through}
+.learning-tile.completed .learning-tile-title,
+.learning-tile.completed .learning-tile-title *,
+.learning-tile.completed .learning-tile-preview,
+.learning-tile.completed .learning-tile-preview *{
+  text-decoration:line-through !important;
+  text-decoration-color:var(--text-secondary) !important;
+  color:var(--text-secondary) !important;
+}
+.learning-modal.completed .learning-modal-title,
+.learning-modal.completed .learning-modal-title *,
+.learning-modal.completed .learning-modal-content,
+.learning-modal.completed .learning-modal-content *{
+  text-decoration:line-through !important;
+  color:var(--text-secondary) !important;
+}
 .learning-tile.selected{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-light),var(--shadow-md);background:var(--accent-light)}
 .learning-tile.active-learning{border-color:var(--accent-border);background:linear-gradient(180deg,var(--accent-light),transparent 70%),var(--learning-tile-bg);box-shadow:0 0 0 1px var(--accent-border),var(--shadow-md)}
 .learning-tile-top{display:flex;align-items:flex-start;gap:var(--sp-2)}
@@ -3921,7 +3935,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 else if(l.type==='file'){const fp=l.filePath||l.content||'';b+=`<div class="learning-modal-file"><span>&#128193; ${escapeHtml(fp)}</span><button class="file-path-copy" onclick="copyToClipboard('${escapeHtml(fp).replace(/'/g,"\\'")}')">&#128203;</button></div>`}
                 if(!l.completed){b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Rate:</div><div class="learning-modal-rating-btns"><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="4h">4h</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1d">1d</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1w">1w</button><button class="learning-modal-rating-btn" data-action="modal-rate" data-id="${l.id}" data-source="${found.dateStr}" data-rating="1mo">1mo</button></div>`;b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Defer:</div><div class="learning-modal-defer"><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-7">&#8722;1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-1">&#8722;1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="1">+1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="7">+1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="30">+1m</button></div>`}
                 b+=`<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">${!l.completed?`<button class="learning-modal-done" data-action="modal-done" data-id="${l.id}" data-source="${found.dateStr}">&#10003; Done</button>`:''}<button class="learning-modal-delete" data-action="modal-delete" data-id="${l.id}" data-source="${found.dateStr}">&#128465; Delete</button><button class="learning-modal-rating-btn" data-action="modal-edit" data-id="${l.id}" data-source="${found.dateStr}" style="border-color:var(--warning-border);color:var(--warning);">&#9998; Edit</button></div>`;
-                learningModalBody.innerHTML=b;learningModalOverlay.classList.add('active');
+                learningModalBody.innerHTML=b;if(l.completed){learningModal.classList.add('completed')}else{learningModal.classList.remove('completed')}learningModalOverlay.classList.add('active');
             }
 
             const LEARNING_TYPES=['text','youtube','link','file'];
@@ -4032,7 +4046,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function openEditLearningModal(id,sourceDate){
                 const found=findLearningById(id);if(!found)return;
                 const l=found.learning;editingLearningInfo={id,sourceDate:found.dateStr};
-                learningModalTitle.innerHTML='&#9998; Edit Learning';
+                learningModal.classList.remove('completed');learningModalTitle.innerHTML='&#9998; Edit Learning';
                 const to=['text','youtube','link','file'].map(t=>`<option value="${t}" ${l.type===t?'selected':''}>${getTypeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
                 const cv=l.type==='file'?(l.filePath||''):(l.content||l.url||'');
                 const deckListHTML=buildDeckDatalistHTML();
@@ -4088,7 +4102,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 refreshDetailAfterLearningChange(src);
                 editingLearningInfo=null;
             }
-            function closeLearningModal(){learningModalOverlay.classList.remove('active');learningModalBody.innerHTML='';editingLearningInfo=null}
+            function closeLearningModal(){learningModalOverlay.classList.remove('active');learningModal.classList.remove('completed');learningModalBody.innerHTML='';editingLearningInfo=null}
             function handleModalClick(e){const rb=e.target.closest('[data-action="modal-rate"]');const db=e.target.closest('[data-action="modal-delete"]');const dn=e.target.closest('[data-action="modal-done"]');const eb=e.target.closest('[data-action="modal-edit"]');const df=e.target.closest('[data-action="modal-defer"]');if(rb){rateLearning(rb.dataset.id,rb.dataset.source,rb.dataset.rating);closeLearningModal();return}if(db){if(confirm('Delete this learning?')){deleteLearning(db.dataset.id,db.dataset.source);closeLearningModal()}return}if(dn){markLearningDone(dn.dataset.id,dn.dataset.source);closeLearningModal();return}if(eb){const id=eb.dataset.id;const source=eb.dataset.source;closeLearningModal();openEditLearningModal(id,source);return}if(df){const days=parseInt(df.dataset.days,10);deferLearning(df.dataset.id,days,df.dataset.source);return}}
             function goToOldestDue(){const todayStr=getTodayStr();let od=null;for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);const data=getData(ds);if(data&&data.learnings){data.learnings.forEach(l=>{if(l.completed)return;const cur=l.currentDate;if(cur&&cur<=todayStr){if(!od||cur<od)od=cur}})}}}if(!od){alert('No due learnings found.');return}const[y,m]=od.split('-').map(Number);flushDebounced();if(currentYear!==y||currentMonth!==m){currentYear=y;currentMonth=m;renderCalendar({animate:true})}selectDate(od)}
 
