@@ -3330,36 +3330,90 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
 
             function moveTaskBetweenDates(taskId,fromDate,toDate,opts){
                 opts=opts||{};
-                if(!taskId||!fromDate||!toDate||fromDate===toDate)return false;
+                if(!taskId||!toDate)return false;
+                if(typeof flushDebounced==='function')flushDebounced();
+                if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
+                let task=null;
+                if(fromDate){
+                    const fdData=getData(fromDate);
+                    if(fdData&&Array.isArray(fdData.tasks)){
+                        const idx=fdData.tasks.findIndex(t=>t.id===taskId);
+                        if(idx!==-1){
+                            task=fdData.tasks[idx];
+                        }
+                    }
+                }
+                if(!task){
+                    const found=findTaskByIdGlobal(taskId);
+                    if(found){
+                        task=found.task;
+                        if(!fromDate)fromDate=found.dateStr;
+                    }
+                }
+                if(!task)return false;
+                if(!fromDate)return false;
+                if(fromDate===toDate)return false;
+
                 const fromData=getData(fromDate);
-                if(!fromData||!Array.isArray(fromData.tasks))return false;
-                const idx=fromData.tasks.findIndex(t=>t.id===taskId);
-                if(idx===-1)return false;
-                const task=fromData.tasks[idx];
-                fromData.tasks.splice(idx,1);
-                const fromEmpty=!fromData.tasks.length&&!fromData.notes?.trim()&&!fromData.dayTitle?.trim()&&!fromData.attachments?.length&&!fromData.learnings?.length&&!fromData.habits?.length&&!fromData.holiday&&!fromData.textCalendar?.length;
-                if(fromEmpty)deleteData(fromDate);else saveData(fromDate,fromData);
+                if(fromData&&Array.isArray(fromData.tasks)){
+                    fromData.tasks=fromData.tasks.filter(t=>t.id!==taskId);
+                    const fromEmpty=!fromData.tasks.length&&!fromData.notes?.trim()&&!fromData.dayTitle?.trim()&&!fromData.attachments?.length&&!fromData.learnings?.length&&!fromData.habits?.length&&!fromData.holiday&&!fromData.textCalendar?.length;
+                    if(fromEmpty)deleteData(fromDate);else saveData(fromDate,fromData);
+                }
+
+                for(let i=0;i<appStorage.length;i++){
+                    const k=appStorage.key(i);
+                    if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){
+                        const ds=k.slice(STORAGE_PREFIX.length);
+                        if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==toDate&&ds!==fromDate){
+                            const otherData=getData(ds);
+                            if(otherData&&Array.isArray(otherData.tasks)&&otherData.tasks.some(x=>x.id===taskId)){
+                                otherData.tasks=otherData.tasks.filter(x=>x.id!==taskId);
+                                const sc=otherData.tasks.length>0||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.learnings?.length||otherData.habits?.length||otherData.textCalendar?.length;
+                                if(sc)saveData(ds,otherData);else deleteData(ds);
+                            }
+                        }
+                    }
+                }
 
                 const toData=getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
                 toData.tasks=toData.tasks||[];
+                toData.tasks=toData.tasks.filter(t=>t.id!==taskId);
                 toData.tasks.push(task);
                 saveData(toDate,toData);
 
+                selectedTaskIds.delete(taskId);
+                if(activeTaskId===taskId)activeTaskId=null;
+
                 if(!opts.silent){
                     currentDataCache=null;
+                    if(selectionMode==='daily'&&selectedDateStr){
+                        const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+                        currentDataCache=JSON.parse(JSON.stringify(curD));
+                    }
                     renderCalendar();
                     renderLearningsSection();
-                    if(selectionMode==='daily'&&selectedDateStr===fromDate){
-                        updateDetailPanel(getData(fromDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},fromDate);
+                    if(selectionMode==='daily'){
+                        if(selectedDateStr===fromDate){
+                            updateDetailPanel(getData(fromDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},fromDate);
+                        }else if(selectedDateStr===toDate){
+                            updateDetailPanel(getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},toDate);
+                        }
                     }
+                    renderTaskToolbar();
                     if(eisenOverlay.classList.contains('active'))renderEisen();
                     updateSingleCell(fromDate,{pop:true});
                     updateSingleCell(toDate,{pop:true});
+                    showSaved();
+                    if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
                 }
                 return true;
             }
+
             function moveLearningBetweenDates(learningId,toDateOrFromDate,optsOrToDate,maybeOpts){
+                if(typeof flushDebounced==='function')flushDebounced();
+                if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
                 let fromDate, toDate, opts;
                 if(typeof optsOrToDate === 'string'){
                     fromDate = toDateOrFromDate;
@@ -3370,39 +3424,86 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     opts = optsOrToDate || {};
                 }
                 opts = opts || {};
-                const found = findLearningById(learningId);
+                if(!learningId||!toDate) return false;
+
+                let found = null;
+                if(fromDate){
+                    const fdData = getData(fromDate);
+                    if(fdData && Array.isArray(fdData.learnings)){
+                        const item = fdData.learnings.find(x => x.id === learningId);
+                        if(item) found = { dateStr: fromDate, learning: item };
+                    }
+                }
+                if(!found) found = findLearningById(learningId);
                 if(!found) return false;
-                if(!fromDate) fromDate = found.dateStr;
-                if(!toDate || fromDate === toDate) return false;
-                const fromData = getData(fromDate);
-                if(!fromData || !Array.isArray(fromData.learnings)) return false;
-                const idx = fromData.learnings.findIndex(l => l.id === learningId);
-                if(idx === -1) return false;
-                const l = fromData.learnings[idx];
-                fromData.learnings.splice(idx, 1);
-                const fromEmpty = !fromData.tasks?.length && !fromData.notes?.trim() && !fromData.dayTitle?.trim() && !fromData.attachments?.length && !fromData.learnings?.length && !fromData.habits?.length && !fromData.holiday && !fromData.textCalendar?.length;
-                if(fromEmpty) deleteData(fromDate); else saveData(fromDate, fromData);
+                const l = found.learning;
+                const originDate = found.dateStr;
+                if(!fromDate) fromDate = originDate;
+                if(fromDate === toDate) return false;
+
+                const origData = getData(originDate);
+                if(origData && Array.isArray(origData.learnings)){
+                    origData.learnings = origData.learnings.filter(x => x.id !== learningId);
+                    const sc = origData.learnings.length > 0 || origData.tasks?.length || origData.notes?.trim() || origData.dayTitle?.trim() || origData.holiday || origData.attachments?.length || origData.habits?.length || origData.textCalendar?.length;
+                    if(sc) saveData(originDate, origData); else deleteData(originDate);
+                }
+
+                if(fromDate && fromDate !== originDate){
+                    const fData = getData(fromDate);
+                    if(fData && Array.isArray(fData.learnings)){
+                        fData.learnings = fData.learnings.filter(x => x.id !== learningId);
+                        const sc = fData.learnings.length > 0 || fData.tasks?.length || fData.notes?.trim() || fData.dayTitle?.trim() || fData.holiday || fData.attachments?.length || fData.habits?.length || fData.textCalendar?.length;
+                        if(sc) saveData(fromDate, fData); else deleteData(fromDate);
+                    }
+                }
+
+                for(let i = 0; i < appStorage.length; i++){
+                    const k = appStorage.key(i);
+                    if(k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)){
+                        const ds = k.slice(STORAGE_PREFIX.length);
+                        if(/^\d{4}-\d{2}-\d{2}$/.test(ds) && ds !== toDate && ds !== originDate && ds !== fromDate){
+                            const otherData = getData(ds);
+                            if(otherData && Array.isArray(otherData.learnings) && otherData.learnings.some(x => x.id === learningId)){
+                                otherData.learnings = otherData.learnings.filter(x => x.id !== learningId);
+                                const sc = otherData.learnings.length > 0 || otherData.tasks?.length || otherData.notes?.trim() || otherData.dayTitle?.trim() || otherData.holiday || otherData.attachments?.length || otherData.habits?.length || otherData.textCalendar?.length;
+                                if(sc) saveData(ds, otherData); else deleteData(ds);
+                            }
+                        }
+                    }
+                }
 
                 const toData = getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
                 toData.learnings = toData.learnings || [];
+                toData.learnings=toData.learnings.filter(x=>x.id!==learningId);
                 l.currentDate = toDate;
                 toData.learnings.push(l);
                 saveData(toDate, toData);
 
+                selectedLearningKeys.clear();
+
                 if(!opts.silent){
                     currentDataCache = null;
-                    renderCalendar();
+                    if(selectionMode === 'daily' && selectedDateStr){
+                        const curD = getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+                        currentDataCache = JSON.parse(JSON.stringify(curD));
+                    }
+                    closeLearningModal();
                     renderLearningsSection();
+                    renderCalendar();
+                    renderLearningsToolbar();
                     if(selectionMode === 'daily'){
-                        if(selectedDateStr === fromDate){
-                            updateDetailPanel(getData(fromDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, fromDate);
+                        if(selectedDateStr === fromDate || selectedDateStr === originDate){
+                            updateDetailPanel(getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, selectedDateStr);
                         } else if(selectedDateStr === toDate){
                             updateDetailPanel(getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, toDate);
                         }
                     }
                     if(eisenOverlay.classList.contains('active')) renderEisen();
-                    updateSingleCell(fromDate, {pop:true});
+                    updateSingleCell(originDate, {pop:true});
+                    if(fromDate && fromDate !== originDate) updateSingleCell(fromDate, {pop:true});
                     updateSingleCell(toDate, {pop:true});
+                    showSaved();
+                    if(typeof scheduleCloudPush==='function') scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
                 }
                 return true;
@@ -7018,11 +7119,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(hasTask){
                         let payload;
                         try{payload=JSON.parse(e.dataTransfer.getData(TASK_MIME))}catch(err){return}
-                        if(!payload||!payload.taskId||!payload.sourceDate)return;
+                        if(!payload||!payload.taskId)return;
+                        const fromDate=payload.sourceDate||(selectionMode==='daily'?selectedDateStr:null);
                         const targetDate=cell.getAttribute('data-date');
-                        if(!targetDate||targetDate===payload.sourceDate)return;
+                        if(!targetDate||targetDate===fromDate)return;
                         pushUndo('Move task to '+getShortDate(targetDate));
-                        const ok=moveTaskBetweenDates(payload.taskId,payload.sourceDate,targetDate);
+                        const ok=moveTaskBetweenDates(payload.taskId,fromDate,targetDate);
                         if(ok)showToast('\uD83D\uDCC5 Task moved to '+getShortDate(targetDate));
                     }else if(hasLearn){
                         let payload;
@@ -7327,7 +7429,9 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 getSelectedWeekId: () => selectedWeekId,
                 getSelectionMode: () => selectionMode,
                 clearDataCache: () => { currentDataCache = null; },
-                flushDebounced
+                flushDebounced,
+                moveTaskBetweenDates,
+                moveLearningBetweenDates
             };
             window.__taskPlannerIDBReady.then(()=>init());
         })();
