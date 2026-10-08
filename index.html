@@ -2336,6 +2336,177 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
   .calendar-cell:hover,.week-cell:hover,.learning-tile:hover,.stat-item:hover,.eisen-chip:hover{transform:none}
 }
+
+/* ============================================================
+   PEOPLE & TEXT CALENDAR INTEGRATION (v21)
+   ============================================================ */
+.pj-actions-top-row{display:flex;gap:6px;width:100%;margin-bottom:6px}
+.btn-add-pj-encounter{background:var(--accent-light) !important;color:var(--accent) !important;border-color:var(--accent-border) !important}
+.btn-add-pj-encounter:hover{background:var(--accent-hover) !important}
+.pj-mode-toolbar-pills{display:flex;gap:4px;flex-wrap:wrap;width:100%;align-items:center}
+.pj-toolbar-pill{width:auto !important;padding:3px 9px !important;font-size:var(--fs-xs) !important;font-weight:600 !important;cursor:pointer;border-radius:var(--r-full) !important;border:1px solid var(--border-strong) !important;background:var(--surface-2) !important;color:var(--text-secondary) !important;transition:all var(--dur-fast) var(--ease-in-out)}
+.pj-toolbar-pill:hover{background:var(--accent-light) !important;color:var(--accent) !important;border-color:var(--accent-border) !important}
+
+body:not(.text-calendar-mode) .pj-daily-section{display:none !important}
+body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--border);padding-top:var(--sp-3)}
+
+.pj-day-summary{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);display:flex;flex-direction:column;gap:4px}
+.pj-day-summary-row{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);font-size:var(--fs-xs)}
+.pj-day-summary-label{display:flex;align-items:center;gap:6px;color:var(--text-secondary);font-weight:500}
+.pj-day-summary-value{font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.pj-day-summary-value.accent{color:var(--accent)}
+.pj-day-summary-value.success{color:var(--success)}
+.pj-day-summary-value.warning{color:var(--warning)}
+
+.pj-encounter-list{display:flex;flex-direction:column;gap:var(--sp-2)}
+.pj-encounter-empty{text-align:center;padding:var(--sp-5) var(--sp-3);color:var(--text-secondary);font-size:var(--fs-xs);font-style:italic;border:1px dashed var(--border-strong);border-radius:var(--r-md);background:var(--surface-2)}
+.pj-encounter-card{background:var(--surface-2);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-3);display:flex;flex-direction:column;gap:6px;transition:border-color var(--dur-fast),box-shadow var(--dur-fast),background-color var(--dur-fast)}
+.pj-encounter-card:hover{border-color:var(--border-strong);background:var(--card-bg);box-shadow:var(--shadow-md)}
+.pj-encounter-header{display:flex;align-items:flex-start;gap:10px}
+.pj-encounter-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c5cf0);color:#fff;font-weight:700;font-size:var(--fs-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;position:relative}
+.pj-encounter-avatar.contact-marker::after{content:'📇';position:absolute;bottom:-3px;right:-3px;font-size:.5rem;line-height:1;background:var(--card-bg);border-radius:50%;padding:1px;border:1px solid var(--border-strong)}
+.pj-encounter-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pj-encounter-name-row{font-size:var(--fs-sm);font-weight:600;color:var(--text);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.pj-encounter-relation{font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:var(--r-full);background:rgba(124,92,240,.12);color:#7c5cf0;border:1px solid rgba(124,92,240,.25);white-space:nowrap}
+.pj-encounter-actions{display:flex;gap:2px;flex-shrink:0;align-items:center}
+.pj-action-btn{width:24px;height:24px;border-radius:var(--r-xs);border:1px solid transparent;background:transparent;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;padding:0;transition:all var(--dur-fast)}
+.pj-action-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
+.pj-action-btn.delete:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-border)}
+.pj-collapse-btn{transition:transform var(--dur-fast)}
+.pj-encounter-card.collapsed .pj-collapse-btn{transform:rotate(-90deg)}
+.pj-encounter-card.collapsed .pj-encounter-details{display:none !important}
+.pj-contact-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.pj-contact-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:var(--r-full);background:var(--card-bg);border:1px solid var(--border);font-size:var(--fs-2xs);font-weight:600;color:var(--text-secondary);font-family:var(--font-mono)}
+.pj-contact-pill a{color:inherit;text-decoration:none}
+.pj-contact-pill a:hover{color:var(--accent);text-decoration:underline}
+.pj-contact-copy{width:14px;height:14px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:.55rem;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.pj-contact-copy:hover{color:var(--accent)}
+.pj-tags-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.pj-tag{display:inline-flex;align-items:center;gap:3px;font-size:.55rem;font-weight:700;padding:2px 6px;border-radius:var(--r-full);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;line-height:1.35;border:1px solid transparent}
+.pj-tag.family{background:rgba(236,72,153,.13);color:#be185d;border-color:rgba(236,72,153,.26)}
+.pj-tag.friend{background:rgba(34,197,94,.13);color:#15803d;border-color:rgba(34,197,94,.26)}
+.pj-tag.work{background:rgba(61,107,245,.13);color:var(--accent);border-color:var(--accent-border)}
+.pj-tag.service{background:rgba(245,158,11,.13);color:#b45309;border-color:rgba(245,158,11,.26)}
+.pj-tag.other{background:rgba(100,116,139,.13);color:#475569;border-color:rgba(100,116,139,.26)}
+.pj-encounter-details{display:flex;flex-direction:column;gap:6px;padding-top:6px;border-top:1px dashed var(--border)}
+.pj-detail-row{display:flex;align-items:flex-start;gap:6px;font-size:var(--fs-xs);color:var(--text-secondary);line-height:1.4}
+.pj-detail-label{flex-shrink:0;font-weight:600;color:var(--text-secondary)}
+.pj-detail-value{color:var(--text);font-weight:500;word-break:break-word}
+.pj-md-content{font-size:var(--fs-xs);color:var(--text);line-height:1.5;padding:4px 8px;background:var(--card-bg);border-left:2px solid var(--accent-border);border-radius:0 var(--r-xs) var(--r-xs) 0;max-height:160px;overflow-y:auto}
+.pj-md-label{font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin-bottom:2px}
+.pj-followup-badge-btn{display:inline-flex;align-items:center;gap:5px;font-size:var(--fs-2xs);font-weight:700;padding:3px 8px;border-radius:var(--r-full);background:rgba(217,119,6,.1);color:var(--warning);border:1px solid rgba(217,119,6,.28);align-self:flex-start;cursor:pointer}
+.pj-followup-badge-btn.overdue{background:rgba(217,45,45,.1);color:var(--danger);border-color:rgba(217,45,45,.28)}
+
+/* Calendar cell items in text-calendar mode */
+.cell-person-name{font-size:.52rem;line-height:1.2;font-weight:600;color:var(--text);padding:1px 4px;border-left:2px solid var(--accent);background:var(--card-bg);border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;margin-top:2px}
+.cell-person-name[data-tag="family"]{border-left-color:#ec4899}
+.cell-person-name[data-tag="friend"]{border-left-color:#22c55e}
+.cell-person-name[data-tag="work"]{border-left-color:#3d6bf5}
+.cell-person-name[data-tag="service"]{border-left-color:#f59e0b}
+.cell-person-name[data-tag="other"]{border-left-color:#94a3b8}
+.cell-followup-badge{position:absolute;top:2px;right:2px;font-size:.52rem;line-height:1;width:13px;height:13px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--warning);color:#fff;z-index:2}
+
+/* Overlay and Modals */
+.pj-overlay{position:fixed;inset:0;z-index:11000;display:none;align-items:center;justify-content:center;background:var(--modal-overlay);opacity:0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:opacity var(--dur-base) var(--ease-in-out)}
+.pj-overlay.active{display:flex;opacity:1}
+.pj-modal-card{background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-lift);padding:var(--sp-5);width:92%;max-width:580px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3)}
+.pj-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)}
+.pj-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.pj-modal-close{width:30px;height:30px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all var(--dur-fast)}
+.pj-modal-close:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-border)}
+
+/* Voice fields and form inputs */
+.pj-voice-field{position:relative;display:block}
+.pj-voice-field>input,.pj-voice-field>textarea{padding-right:38px !important;width:100%}
+.pj-voice-btn{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--card-bg);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.75rem;padding:0;z-index:2;transition:all var(--dur-fast)}
+.pj-voice-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
+.pj-voice-btn.recording{background:var(--danger);color:#fff;border-color:var(--danger);animation:voicePulse 1.2s ease-in-out infinite}
+@keyframes voicePulse{0%,100%{box-shadow:0 0 0 0 rgba(217,45,45,.55)}50%{box-shadow:0 0 0 7px rgba(217,45,45,0)}}
+
+.pj-form-group{display:flex;flex-direction:column;gap:4px}
+.pj-form-group label{font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text-secondary)}
+.pj-form-group input,.pj-form-group textarea,.pj-form-group select{padding:var(--sp-3) var(--sp-4);border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:var(--fs-md);font-family:inherit;background:var(--input-bg);color:var(--text)}
+.pj-form-group input:focus,.pj-form-group textarea:focus,.pj-form-group select:focus{outline:none;border-color:var(--accent-border);box-shadow:var(--focus-ring);background:var(--input-bg-focus)}
+.pj-form-group textarea{min-height:70px;resize:vertical;line-height:var(--lh-loose)}
+.pj-form-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)}
+
+.pj-quick-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,.8fr);gap:10px;padding:11px;background:var(--accent-light);border:1px solid var(--accent-border);border-radius:12px}
+.pj-quick-memory{grid-column:1/-1}
+
+.pj-multi-list{display:flex;flex-direction:column;gap:6px}
+.pj-multi-item{display:flex;gap:6px;align-items:center}
+.pj-multi-item input{flex:1;min-width:0}
+.pj-multi-remove{width:30px;height:30px;border-radius:var(--r-xs);border:1px solid var(--border);background:var(--card-bg);color:var(--text-secondary);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center}
+.pj-multi-remove:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger-border)}
+.pj-multi-add{padding:4px 10px;border-radius:var(--r-sm);border:1px dashed var(--border-strong);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:var(--fs-xs);font-weight:600;align-self:flex-start}
+.pj-multi-add:hover{color:var(--accent);border-color:var(--accent-border);background:var(--accent-light)}
+
+.pj-tag-picker{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.pj-tag-check{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);background:var(--card-bg);font-size:var(--fs-xs);font-weight:600;color:var(--text);cursor:pointer;user-select:none}
+.pj-tag-check input{display:none}
+.pj-tag-check.checked{color:#fff}
+.pj-tag-check[data-tag="family"].checked{background:#ec4899;border-color:#ec4899}
+.pj-tag-check[data-tag="friend"].checked{background:#22c55e;border-color:#22c55e}
+.pj-tag-check[data-tag="work"].checked{background:#3d6bf5;border-color:#3d6bf5}
+.pj-tag-check[data-tag="service"].checked{background:#f59e0b;border-color:#f59e0b}
+.pj-tag-check[data-tag="other"].checked{background:#64748b;border-color:#64748b}
+
+/* People Directory modal */
+.pj-dir-modal{width:min(1080px,95vw);height:min(720px,90vh);padding:0;overflow:hidden}
+.pj-dir-header{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--border);background:var(--surface-2);flex-shrink:0;flex-wrap:wrap}
+.pj-dir-title{font-size:var(--fs-md);font-weight:600;color:var(--text);white-space:nowrap}
+.pj-dir-search{flex:1;min-width:0;max-width:320px;padding:6px 12px;border:1px solid var(--border-strong);border-radius:var(--r-full);background:var(--card-bg);color:var(--text);font-size:var(--fs-sm)}
+.pj-dir-search:focus{outline:none;border-color:var(--accent-border);box-shadow:var(--focus-ring)}
+.pj-dir-body{display:flex;flex:1 1 auto;min-height:0;overflow:hidden}
+.pj-dir-sidebar{flex:0 0 280px;border-right:1px solid var(--border);background:var(--surface-2);overflow-y:auto;display:flex;flex-direction:column}
+.pj-dir-main{flex:1 1 auto;overflow-y:auto;padding:var(--sp-5);min-width:0}
+.pj-dir-item{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);cursor:pointer;border:1.5px solid transparent;transition:background-color var(--dur-fast),border-color var(--dur-fast)}
+.pj-dir-item:hover{background:var(--cell-hover)}
+.pj-dir-item.active{background:var(--accent-light);border-color:var(--accent-border)}
+.pj-dir-timeline{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3)}
+.pj-dir-timeline-item{position:relative;padding-left:var(--sp-5);border-left:2px solid var(--border);padding-bottom:var(--sp-3)}
+.pj-dir-timeline-item:last-child{padding-bottom:0;border-left-color:transparent}
+.pj-dir-timeline-item::before{content:'';position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--card-bg);box-shadow:0 0 0 2px var(--accent-border)}
+
+/* Relationship Center Modal */
+.pj-center-modal{width:min(1280px,96vw);height:min(860px,92vh);padding:0;overflow:hidden}
+.pj-center-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap}
+.pj-center-tabs{display:flex;gap:5px;padding:8px 12px;border-bottom:1px solid var(--border);overflow:auto;background:var(--card-bg)}
+.pj-center-tab{border:1px solid transparent;background:transparent;color:var(--text-secondary);border-radius:9px;padding:6px 10px;font:650 .7rem var(--font-ui);cursor:pointer;white-space:nowrap}
+.pj-center-tab:hover{background:var(--surface-2);color:var(--text)}
+.pj-center-tab.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
+.pj-center-body{flex:1;overflow:auto;padding:16px}
+.pj-center-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pj-center-stat{padding:12px;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);cursor:pointer}
+.pj-center-stat:hover{border-color:var(--accent-border);transform:translateY(-1px)}
+.pj-center-stat-val{font-size:1.3rem;font-weight:800;color:var(--text);margin-top:4px}
+.pj-badge{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:999px;padding:2px 6px;font-size:.52rem;font-weight:750;background:var(--card-bg);color:var(--text-secondary)}
+.pj-badge.good{color:#15803d;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.22)}
+.pj-badge.warn{color:#b45309;background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.22)}
+.pj-badge.bad{color:var(--danger);background:var(--danger-bg);border-color:var(--danger-border)}
+.pj-badge.accent{color:var(--accent);background:var(--accent-light);border-color:var(--accent-border)}
+.pj-center-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);cursor:pointer}
+.pj-center-row:hover{background:var(--card-bg);border-color:var(--accent-border)}
+.pj-fav{color:#f59e0b;font-size:.8rem}
+
+/* Global search overlay */
+.pj-search-modal{width:min(960px,96vw);max-height:86vh;padding:0;overflow:hidden}
+.pj-search-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.pj-search-box-wrap{margin:14px 20px 8px;display:flex;align-items:center;gap:9px;padding:0 12px;border:1.5px solid var(--border-strong);background:var(--input-bg);border-radius:14px}
+.pj-search-box-wrap:focus-within{border-color:var(--accent-border);box-shadow:var(--focus-ring);background:var(--input-bg-focus)}
+.pj-search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:500 .9rem var(--font-ui);padding:11px 0}
+.pj-search-results{overflow:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:8px}
+.pj-search-result{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;cursor:pointer;transition:transform .16s,background-color .16s,border-color .16s}
+.pj-search-result:hover,.pj-search-result.active{transform:translateY(-1px);background:var(--card-bg);border-color:var(--accent-border);box-shadow:var(--shadow-md)}
+.pj-search-result mark{background:rgba(217,119,6,.22);color:inherit;border-radius:3px;padding:1px 2px}
+
+@media(max-width:800px){
+  .pj-center-grid{grid-template-columns:repeat(2,1fr)}
+  .pj-quick-grid{grid-template-columns:1fr}
+  .pj-dir-body{flex-direction:column}
+  .pj-dir-sidebar{flex:0 0 auto;max-height:180px;border-right:none;border-bottom:1px solid var(--border)}
+}
+
 </style>
 </head>
 <body>
@@ -2350,7 +2521,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 </div>
                 <div class="header-right">
                     <button class="icon-btn" id="btnExport" title="Export JSON" aria-label="Export JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-                    <button class="icon-btn text-calendar-btn" id="btnTextCalendar" title="Text Calendar" aria-label="Text Calendar" aria-pressed="false">text-calendar</button>
+                    <button class="icon-btn text-calendar-btn" id="btnTextCalendar" title="People & Text" aria-label="People & Text" aria-pressed="false">People & Text</button>
                     <button class="icon-btn" id="btnExportPdf" title="Export PDF" aria-label="Export PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
                     <button class="icon-btn" id="btnImport" title="Import JSON" aria-label="Import JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
                     <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
@@ -2524,9 +2695,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             </div>
 
             <div class="text-calendar-actions" id="textCalendarActions">
-                <button class="btn-add-text-calendar" id="btnAddTextCalendar"><span>+</span> Add Day Text</button>
+                <div class="pj-actions-top-row">
+                    <button type="button" class="btn-add-text-calendar" id="btnAddTextCalendar"><span>+</span> Add Day Text</button>
+                    <button type="button" class="btn-add-text-calendar btn-add-pj-encounter" id="btnAddPjEncounter"><span>+</span> Add Person Met</button>
+                </div>
+                <div class="pj-mode-toolbar-pills">
+                    <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">👥 Directory</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjCenter" title="Relationship Center (R)">♥ Center</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjSearch" title="Search Journal (Ctrl+K)">🔍 Search</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjImportCsv" title="Import Google Contacts CSV">📇 CSV</button>
+                </div>
             </div>
             <div class="task-list" id="taskList"></div>
+            <div class="pj-daily-section" id="pjDailySection"></div>
             <div class="habits-section daily-only" id="habitsSection">
                 <div class="habits-header"><div class="habits-title">🔥 Habits</div></div>
                 <div class="habit-list" id="habitList"></div>
@@ -2776,6 +2957,107 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             </div>
         </div>
     </div>
+
+    <!-- ============================================================
+         PEOPLE JOURNAL MODALS & OVERLAYS (People & Text Mode)
+         ============================================================ -->
+    <div class="pj-overlay" id="pjEncounterModalOverlay">
+        <div class="pj-modal-card" id="pjEncounterModal" role="dialog" aria-modal="true" aria-label="Encounter editor">
+            <div class="pj-modal-header">
+                <span class="pj-modal-title" id="pjEncounterModalTitle">👤 Add Person You Met</span>
+                <button class="pj-modal-close" id="pjEncounterModalClose" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body" id="pjEncounterModalBody"></div>
+        </div>
+    </div>
+
+    <div class="pj-overlay" id="pjPeopleOverlay">
+        <div class="pj-modal-card pj-dir-modal" id="pjPeopleModal" role="dialog" aria-modal="true" aria-label="People directory">
+            <div class="pj-dir-header">
+                <div class="pj-dir-title">👥 People Directory</div>
+                <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email…" autocomplete="off" spellcheck="false">
+                <button type="button" class="pj-toolbar-pill" id="pjFilterContacts" title="Show only contacts">📇 Contacts only</button>
+                <button type="button" class="pj-toolbar-pill" id="pjFilterEncounters" title="Show only people with encounters">👥 With encounters</button>
+                <span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary);margin-left:auto" id="pjPeopleCount">0 people</span>
+                <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">⬇ CSV</button>
+                <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">✕</button>
+            </div>
+            <div class="pj-dir-body">
+                <aside class="pj-dir-sidebar">
+                    <div id="pjPeopleList" style="display:flex;flex-direction:column;padding:var(--sp-2);"></div>
+                </aside>
+                <main class="pj-dir-main" id="pjPeopleMain">
+                    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-secondary);text-align:center;">
+                        <div style="font-size:2.4rem;opacity:.5;">👥</div>
+                        <div>Select a person from the list to see their profile and interaction history.</div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <div class="pj-overlay" id="pjCenterOverlay">
+        <div class="pj-modal-card pj-center-modal" id="pjCenterModal" role="dialog" aria-modal="true" aria-label="Relationship Center">
+            <div class="pj-center-head">
+                <div style="font-size:1rem;font-weight:750;letter-spacing:-.02em;">♥ Relationship Center</div>
+                <input class="pj-dir-search" id="pjCenterSearch" placeholder="Search people or use tag:work · followup:overdue · met:30d…" style="max-width:360px;margin-left:12px;">
+                <button type="button" class="pj-toolbar-pill" id="pjCenterQuickAdd" style="margin-left:auto;background:var(--accent);color:#fff;">+ Add Person</button>
+                <button class="pj-modal-close" id="pjCenterClose" aria-label="Close">✕</button>
+            </div>
+            <div class="pj-center-tabs" id="pjCenterTabs">
+                <button type="button" class="pj-center-tab active" data-tab="dashboard">Dashboard</button>
+                <button type="button" class="pj-center-tab" data-tab="people">People</button>
+                <button type="button" class="pj-center-tab" data-tab="followups">Follow-ups</button>
+                <button type="button" class="pj-center-tab" data-tab="birthdays">Birthdays</button>
+                <button type="button" class="pj-center-tab" data-tab="analytics">Analytics</button>
+                <button type="button" class="pj-center-tab" data-tab="search">Advanced Search</button>
+                <button type="button" class="pj-center-tab" data-tab="saved">Saved Views</button>
+                <button type="button" class="pj-center-tab" data-tab="data">Data & Backup</button>
+            </div>
+            <div class="pj-center-body" id="pjCenterBody"></div>
+        </div>
+    </div>
+
+    <div class="pj-overlay" id="pjGlobalSearchOverlay">
+        <div class="pj-modal-card pj-search-modal" id="pjGlobalSearchModal" role="dialog" aria-modal="true" aria-label="Journal Search">
+            <div class="pj-search-head">
+                <div>
+                    <div style="font-size:1.05rem;font-weight:750;letter-spacing:-.025em;">🔎 Search Journal</div>
+                    <div style="font-size:.72rem;color:var(--text-secondary);margin-top:4px;">Search across names, words, sentences, places, topics, notes, phones, and dates.</div>
+                </div>
+                <button class="pj-modal-close" id="pjGlobalSearchClose" aria-label="Close">✕</button>
+            </div>
+            <div class="pj-search-box-wrap">
+                <span style="font-size:1.2rem;color:var(--text-secondary);">⌕</span>
+                <input id="pjGlobalSearchInput" class="pj-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Try: “met near cafe”, “blue shirt”, “Ravi”, “Hyderabad”…">
+                <button id="pjGlobalSearchClear" style="width:26px;height:26px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;" type="button">×</button>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 8px;" id="pjGlobalSearchFilters">
+                <button class="pj-toolbar-pill active" type="button" data-filter="all">All</button>
+                <button class="pj-toolbar-pill" type="button" data-filter="person">👤 Names</button>
+                <button class="pj-toolbar-pill" type="button" data-filter="place">📍 Places</button>
+                <button class="pj-toolbar-pill" type="button" data-filter="notes">🗒️ Notes</button>
+                <button class="pj-toolbar-pill" type="button" data-filter="followup">⏰ Follow-ups</button>
+                <button class="pj-toolbar-pill" type="button" data-filter="contact">📞 Contacts</button>
+            </div>
+            <div style="padding:2px 20px 8px;font-size:.68rem;color:var(--text-secondary);font-weight:600;" id="pjGlobalSearchMeta">Type anything to search.</div>
+            <div class="pj-search-results" id="pjGlobalSearchResults"></div>
+        </div>
+    </div>
+
+    <div class="pj-overlay" id="pjProfileModal">
+        <div class="pj-modal-card" style="max-width:620px;">
+            <div class="pj-modal-header">
+                <span class="pj-modal-title">Person Profile</span>
+                <button class="pj-modal-close" id="pjProfileClose" aria-label="Close">✕</button>
+            </div>
+            <div class="modal-body" id="pjProfileBody"></div>
+        </div>
+    </div>
+
+    <input type="file" id="pjContactsCsvInput" accept=".csv,text/csv,text/plain" style="display:none">
+    <input type="file" id="pjEnhancedBackupInput" accept="application/json,.json" style="display:none">
+
 
     <script>
 /* ============================================================
@@ -4320,9 +4602,17 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(data){
                     if(textCalendarMode){
                         const texts=Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>String(x||'').trim()):[];
-                        if(texts.length){
-                            const visible=texts.slice(0,4);
-                            taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>4?`<div class="text-calendar-cell-more">+ ${texts.length-4} more</div>`:''}</div>`;
+                        let pjHtml='';
+                        const pjDay=typeof getPjDayData==='function'?getPjDayData(ds):null;
+                        if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.length>0){
+                            pjHtml=buildCellPeopleHTML(pjDay.encounters);
+                        }
+                        if(texts.length||pjHtml){
+                            const visible=texts.slice(0,3);
+                            taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>3?`<div class="text-calendar-cell-more">+ ${texts.length-3} more</div>`:''}${pjHtml}</div>`;
+                        }
+                        if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.some(e=>e.followUp)){
+                            mg=`<div class="cell-followup-badge" title="Has follow-up">⏰</div>`;
                         }
                     }else{
                         if(data.dayTitle&&String(data.dayTitle).trim()){
@@ -4496,13 +4786,1095 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 const input=inputs[inputs.length-1];
                 if(input){input.focus();input.scrollIntoView({block:'nearest'});}
             }
+            /* ============================================================
+   PEOPLE JOURNAL ENGINE (Integrated in People & Text Mode)
+   ============================================================ */
+            const PJ_DAYS_PREFIX = 'td_pj_';
+            const PJ_CONTACTS_KEY = 'tp_contacts';
+            const PJ_META_KEY = 'tp_people_meta';
+            const PJ_TAGS = ['family','friend','work','service','other'];
+            const PJ_TAG_META = {
+                family:{icon:'👨‍👩‍👧',label:'Family'},
+                friend:{icon:'🤝',label:'Friend'},
+                work:{icon:'💼',label:'Work'},
+                service:{icon:'🛠️',label:'Service'},
+                other:{icon:'📌',label:'Other'}
+            };
+            const PJ_RELATION_OPTIONS = [
+                'Uncle','Aunt','Brother','Sister','Brother-in-law','Sister-in-law',
+                'Father','Mother','Father-in-law','Mother-in-law','Son','Daughter',
+                'Son-in-law','Daughter-in-law','Cousin','Nephew','Niece',
+                'Grandfather','Grandmother','Grandson','Granddaughter',
+                'Husband','Wife','Partner','Fiancé','Fiancée',
+                'Friend','Best friend','Colleague','Manager','Report','Client',
+                'Vendor','Neighbor','Landlord','Tenant','Doctor','Teacher',
+                'Mentor','Student','Acquaintance'
+            ];
+            const PJ_DEMEANOR_OPTIONS = [
+                'Friendly','Warm','Kind','Helpful','Talkative','Reserved','Quiet',
+                'Shy','Neutral','Professional','Formal','Casual','Direct','Blunt',
+                'Suspicious','Cold','Distant','Hostile','Anxious','Confident','Charming'
+            ];
+            const PJ_SEARCH_GROUPS = {
+                person:['Name','Nickname','Relation','Birthday'],
+                place:['Native place','Home address','Context','Venue','City'],
+                notes:['Topics','Summary','Notes','Gifts','Appearance','Demeanor','Trust level','Time','Tags'],
+                followup:['Follow-up','Follow-up action'],
+                contact:['Phone','Email']
+            };
+
+            let pjMeta = {profiles:{},customTags:[],savedViews:[],history:[],backups:[],notContactedDays:60};
+            let pjActiveTab = 'dashboard', pjSort = 'recent', pjSelectedPid = null, pjSearch = '';
+            let selectedPersonId = null, peopleFilter = '', peopleViewMode = 'all';
+            let editingEncounterId = null, editingEncounterDay = null;
+            let expandedEncounters = new Set();
+            let firstSeenMapCache = null, peopleRegistryCache = null, searchIndexCache = null;
+            let currentSearchMatches = [], activeSearchIndex = -1, searchDebounceTimer = null, searchFilterType = 'all';
+            let activeRecognition = null, activeVoiceTarget = null;
+            const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+
+            function generatePjId(p){ return (p||'e_')+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7); }
+            function normalizePjName(n){ return String(n||'').trim().toLowerCase().replace(/\s+/g,' '); }
+            function initialsOfPj(n){
+                const parts = String(n||'').trim().split(/\s+/).filter(Boolean);
+                if(!parts.length) return '?';
+                if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+                return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+            }
+            function invalidatePjCache(){
+                firstSeenMapCache = null;
+                peopleRegistryCache = null;
+                searchIndexCache = null;
+            }
+
+            function getPjDayData(ds){
+                if(!ds) return null;
+                const raw = appStorage.getItem(PJ_DAYS_PREFIX + ds);
+                if(!raw) return null;
+                try {
+                    const parsed = JSON.parse(raw);
+                    return { encounters: Array.isArray(parsed.encounters) ? parsed.encounters : [] };
+                } catch(e){ return null; }
+            }
+            function savePjDayData(ds, data){
+                if(!ds) return;
+                const encs = Array.isArray(data.encounters) ? data.encounters : [];
+                if(encs.length === 0){
+                    appStorage.removeItem(PJ_DAYS_PREFIX + ds);
+                } else {
+                    appStorage.setItem(PJ_DAYS_PREFIX + ds, JSON.stringify({ encounters: encs }));
+                }
+                invalidatePjCache();
+            }
+            function listAllPjDays(){
+                const out = [];
+                for(let i=0; i<appStorage.length; i++){
+                    const k = appStorage.key(i);
+                    if(k && k.startsWith(PJ_DAYS_PREFIX)){
+                        const ds = k.slice(PJ_DAYS_PREFIX.length);
+                        if(/^\d{4}-\d{2}-\d{2}$/.test(ds)) out.push(ds);
+                    }
+                }
+                return out;
+            }
+
+            function loadPjContacts(){
+                const raw = appStorage.getItem(PJ_CONTACTS_KEY);
+                if(!raw) return [];
+                try {
+                    const arr = JSON.parse(raw);
+                    return Array.isArray(arr) ? arr : [];
+                } catch(e){ return []; }
+            }
+            function savePjContacts(arr){
+                appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(Array.isArray(arr) ? arr : []));
+                invalidatePjCache();
+            }
+
+            function loadPjMeta(){
+                const raw = appStorage.getItem(PJ_META_KEY);
+                if(raw){
+                    try {
+                        const parsed = JSON.parse(raw);
+                        if(parsed && typeof parsed === 'object'){
+                            pjMeta = Object.assign({profiles:{},customTags:[],savedViews:[],history:[],backups:[],notContactedDays:60}, parsed);
+                        }
+                    } catch(e){}
+                }
+                if(!Array.isArray(pjMeta.customTags)) pjMeta.customTags = [];
+                if(!Array.isArray(pjMeta.savedViews)) pjMeta.savedViews = [];
+                if(!Array.isArray(pjMeta.history)) pjMeta.history = [];
+                if(!Array.isArray(pjMeta.backups)) pjMeta.backups = [];
+                if(!pjMeta.profiles || typeof pjMeta.profiles !== 'object') pjMeta.profiles = {};
+            }
+            function savePjMeta(){
+                appStorage.setItem(PJ_META_KEY, JSON.stringify(pjMeta));
+            }
+            function pjAllTags(){ return PJ_TAGS.concat(pjMeta.customTags||[]).filter((x,i,a)=>x&&a.indexOf(x)===i); }
+            function pjTagMeta(t){ return PJ_TAG_META[t] || { icon:'🏷️', label: t.replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase()) }; }
+
+            function pjProfile(pid){
+                if(!pjMeta.profiles[pid]) pjMeta.profiles[pid] = { favorite:false, priority:'normal', contactFrequencyDays:0, nextAction:'', nextActionDue:'', nextActionStatus:'open', displayName:'', nickname:'', relation:'', birthday:'', notes:'', customTags:[] };
+                return pjMeta.profiles[pid];
+            }
+
+            function buildPjFirstSeenMap(){
+                if(firstSeenMapCache) return firstSeenMapCache;
+                const map = new Map();
+                const days = listAllPjDays().sort();
+                days.forEach(ds=>{
+                    const data = getPjDayData(ds);
+                    if(!data) return;
+                    (data.encounters||[]).forEach(e=>{
+                        const pid = e.personId || normalizePjName(e.name);
+                        if(pid && !map.has(pid)) map.set(pid, ds);
+                    });
+                });
+                firstSeenMapCache = map;
+                return map;
+            }
+
+            function buildPjPeopleRegistry(){
+                const map = new Map();
+                loadPjContacts().forEach(c=>{
+                    if(!c || !c.personId) return;
+                    map.set(c.personId, {
+                        personId: c.personId,
+                        name: c.name || c.personId,
+                        phones: Array.isArray(c.phones) ? c.phones.slice() : (c.phone ? [c.phone] : []),
+                        emails: Array.isArray(c.emails) ? c.emails.slice() : (c.email ? [c.email] : []),
+                        tags: Array.isArray(c.tags) ? c.tags.slice() : [],
+                        firstMet: null, lastSeen: null, encounters: [],
+                        isContact: true, source: c.source || 'csv'
+                    });
+                });
+
+                listAllPjDays().forEach(ds=>{
+                    const data = getPjDayData(ds);
+                    if(!data || !Array.isArray(data.encounters)) return;
+                    data.encounters.forEach(e=>{
+                        const pid = e.personId || normalizePjName(e.name);
+                        if(!pid) return;
+                        const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                        const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+                        const existing = map.get(pid);
+                        if(existing){
+                            existing.encounters.push(Object.assign({}, e, { _date: ds }));
+                            if(!existing.firstMet || ds < existing.firstMet) existing.firstMet = ds;
+                            if(!existing.lastSeen || ds > existing.lastSeen) existing.lastSeen = ds;
+                            if(e.name) existing.name = e.name;
+                            phones.forEach(p=>{ if(existing.phones.indexOf(p)===-1) existing.phones.push(p); });
+                            emails.forEach(em=>{ if(existing.emails.indexOf(em)===-1) existing.emails.push(em); });
+                            if(Array.isArray(e.tags)){
+                                e.tags.forEach(t=>{ if(existing.tags.indexOf(t)===-1) existing.tags.push(t); });
+                            }
+                        } else {
+                            map.set(pid, {
+                                personId: pid,
+                                name: e.name || pid,
+                                phones: phones,
+                                emails: emails,
+                                tags: Array.isArray(e.tags) ? e.tags.slice() : [],
+                                firstMet: ds, lastSeen: ds,
+                                encounters: [Object.assign({}, e, { _date: ds })],
+                                isContact: false, source: 'encounter'
+                            });
+                        }
+                    });
+                });
+
+                map.forEach(p => { p.profile = mergePjProfile(p.encounters); });
+                return Array.from(map.values());
+            }
+
+            function getPjPeopleRegistry(){
+                if(peopleRegistryCache) return peopleRegistryCache;
+                peopleRegistryCache = buildPjPeopleRegistry();
+                return peopleRegistryCache;
+            }
+
+            function mergePjProfile(encounters){
+                const sorted = encounters.slice().sort((a,b)=>{
+                    const d = String(a._date||'').localeCompare(String(b._date||''));
+                    if(d !== 0) return d;
+                    return (a.createdAt||0) - (b.createdAt||0);
+                });
+                const fields = ['nickname','relation','birthday','homeAddress','nativePlace','demeanor','trustLevel','appearance'];
+                const profile = {};
+                fields.forEach(k=>{
+                    for(let i=sorted.length-1; i>=0; i--){
+                        if(sorted[i][k]){ profile[k] = sorted[i][k]; break; }
+                    }
+                });
+                const phoneSet = new Set(), emailSet = new Set(), tagSet = new Set();
+                sorted.forEach(e=>{
+                    (Array.isArray(e.phones)?e.phones:(e.phone?[e.phone]:[])).forEach(p=>phoneSet.add(p));
+                    (Array.isArray(e.emails)?e.emails:(e.email?[e.email]:[])).forEach(em=>emailSet.add(em));
+                    (Array.isArray(e.tags)?e.tags:[]).forEach(t=>tagSet.add(t));
+                });
+                profile.phones = Array.from(phoneSet);
+                profile.emails = Array.from(emailSet);
+                profile.tags = Array.from(tagSet);
+                return profile;
+            }
+
+            function findKnownPerson(name){
+                const norm = normalizePjName(name);
+                if(!norm) return null;
+                return getPjPeopleRegistry().find(p=>p.personId === norm) || null;
+            }
+
+            function pjDateDiff(a,b){
+                if(!a||!b) return null;
+                return Math.round((new Date(b+'T00:00:00') - new Date(a+'T00:00:00')) / 86400000);
+            }
+            function pjStatus(p){
+                const pr = pjProfile(p.personId), last = p.lastSeen, days = last ? pjDateDiff(last, getTodayStr()) : 99999;
+                if(!p.encounters.length) return { label:'New', cls:'accent', score:35, days };
+                const freq = Number(pr.contactFrequencyDays) || 0;
+                if(freq > 0){
+                    if(days <= freq) return { label:'Active', cls:'good', score:100, days };
+                    if(days <= freq*2) return { label:'Cooling', cls:'warn', score:60, days };
+                    return { label:'Neglected', cls:'bad', score:25, days };
+                }
+                if(days <= 30) return { label:'Active', cls:'good', score:100, days };
+                if(days <= 60) return { label:'Cooling', cls:'warn', score:65, days };
+                return { label:'Neglected', cls:'bad', score:30, days };
+            }
+            function pjHealth(p){
+                const st = pjStatus(p), pr = pjProfile(p.personId), fu = pr.nextActionDue;
+                let score = st.score;
+                if(fu){
+                    if(fu < getTodayStr() && pr.nextActionStatus !== 'done') score = Math.max(0, score - 20);
+                    else if(fu === getTodayStr()) score = Math.min(100, score + 5);
+                }
+                if(pr.favorite) score = Math.min(100, score + 5);
+                return Math.max(0, Math.min(100, score));
+            }
+            function pjAllPeople(){
+                const people = getPjPeopleRegistry().slice();
+                people.forEach(p => {
+                    p._profile = pjProfile(p.personId);
+                    p._status = pjStatus(p);
+                    p._health = pjHealth(p);
+                });
+                return people;
+            }
+
+            function updatePjVoiceButtons(){
+                document.querySelectorAll('.pj-voice-btn').forEach(b=>{
+                    const t = b.dataset.voiceTarget;
+                    if(t && t === activeVoiceTarget){
+                        b.classList.add('recording');
+                        b.title = 'Stop dictation';
+                    } else {
+                        b.classList.remove('recording');
+                        b.title = 'Dictate';
+                    }
+                });
+            }
+            function stopPjVoice(){
+                if(activeRecognition){
+                    try{ activeRecognition.stop(); }catch(e){}
+                    try{ activeRecognition.abort(); }catch(e){}
+                    activeRecognition = null;
+                }
+                activeVoiceTarget = null;
+                updatePjVoiceButtons();
+            }
+            function startPjVoice(targetId){
+                if(!SpeechRecognitionCtor){
+                    alert('Voice input is not supported in this browser. Try Chrome, Edge, or Safari.');
+                    return;
+                }
+                const target = document.getElementById(targetId);
+                if(!target) return;
+                const rec = new SpeechRecognitionCtor();
+                rec.continuous = true;
+                rec.interimResults = false;
+                rec.lang = (navigator.language || 'en-US').replace('_','-');
+                rec.maxAlternatives = 1;
+                rec.onresult = (ev)=>{
+                    let text = '';
+                    for(let i=ev.resultIndex; i<ev.results.length; i++){
+                        if(ev.results[i].isFinal) text += ev.results[i][0].transcript;
+                    }
+                    if(text){
+                        const cur = target.value;
+                        const sep = (cur && !/\s$/.test(cur) && !/^\s/.test(text)) ? ' ' : '';
+                        target.value = cur + sep + text;
+                        target.dispatchEvent(new Event('input', { bubbles:true }));
+                    }
+                };
+                rec.onerror = (ev)=>{
+                    if(ev.error !== 'aborted') showToast('🎤 Voice error: ' + (ev.error||'unknown'));
+                    if(activeRecognition === rec) stopPjVoice();
+                };
+                rec.onend = ()=>{ if(activeRecognition === rec) stopPjVoice(); };
+                try{
+                    rec.start();
+                    activeRecognition = rec;
+                    activeVoiceTarget = targetId;
+                    updatePjVoiceButtons();
+                }catch(err){
+                    showToast('🎤 Could not start voice input');
+                    stopPjVoice();
+                }
+            }
+            function togglePjVoice(targetId){
+                if(activeVoiceTarget === targetId){ stopPjVoice(); return; }
+                stopPjVoice();
+                startPjVoice(targetId);
+            }
+
+            function buildCellPeopleHTML(encounters){
+                if(!encounters || !encounters.length) return '';
+                const seen = new Set();
+                const people = [];
+                encounters.forEach(e=>{
+                    const pid = e.personId || normalizePjName(e.name);
+                    if(!pid || seen.has(pid)) return;
+                    seen.add(pid);
+                    const tags = (Array.isArray(e.tags)?e.tags:[]).filter(t=>PJ_TAGS.indexOf(t)!==-1);
+                    people.push({ name: e.name || '?', tag: tags[0] || '' });
+                });
+                const visible = people.slice(0, 2);
+                let html = visible.map(p => `<div class="cell-person-name" data-tag="${escapeHtml(p.tag)}" title="${escapeHtml(p.name)}">👥 ${escapeHtml(p.name)}</div>`).join('');
+                if(people.length > 2){
+                    html += `<div style="font-size:0.5rem;color:var(--text-secondary);padding-left:3px;">+ ${people.length - 2} more</div>`;
+                }
+                return html;
+            }
+
+            function renderPjDailySection(ds){
+                const container = document.getElementById('pjDailySection');
+                if(!container) return;
+                if(!textCalendarMode){
+                    container.innerHTML = '';
+                    return;
+                }
+                const dayData = getPjDayData(ds) || { encounters: [] };
+                const encs = dayData.encounters || [];
+                const firstSeenMap = buildPjFirstSeenMap();
+                const newFaces = encs.filter(e => {
+                    const pid = e.personId || normalizePjName(e.name);
+                    return pid && firstSeenMap.get(pid) === ds;
+                }).length;
+                const savedContacts = encs.filter(e => (Array.isArray(e.phones)&&e.phones.length) || (Array.isArray(e.emails)&&e.emails.length)).length;
+                const todayStr = getTodayStr();
+                const followUpsDue = encs.filter(e => e.followUp && e.followUp <= todayStr).length;
+
+                let html = `
+                    <div class="pj-day-summary">
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">👥 People met</span><span class="pj-day-summary-value accent">${encs.length}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">✨ New faces</span><span class="pj-day-summary-value success">${newFaces}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">📇 Contacts saved</span><span class="pj-day-summary-value">${savedContacts}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">⏰ Follow-ups due</span><span class="pj-day-summary-value warning">${followUpsDue}</span></div>
+                    </div>
+                    <div class="pj-encounter-list">
+                `;
+
+                if(!encs.length){
+                    html += `<div class="pj-encounter-empty">No people recorded for this date.<br>Click "Add Person Met" above to log who you interacted with.</div>`;
+                } else {
+                    html += encs.map(e => {
+                        const initials = initialsOfPj(e.name);
+                        const known = findKnownPerson(e.name);
+                        const isContact = known && known.isContact;
+                        const tags = (Array.isArray(e.tags)?e.tags:[]).filter(t=>PJ_TAGS.indexOf(t)!==-1);
+                        const tagsHtml = tags.map(t => {
+                            const m = PJ_TAG_META[t];
+                            return `<span class="pj-tag ${t}">${m.icon} ${m.label}</span>`;
+                        }).join('');
+
+                        let contactPills = '';
+                        const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                        const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+                        phones.forEach(p => {
+                            contactPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(p)}">${escapeHtml(p)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(p)}" title="Copy">📋</button></span>`;
+                        });
+                        emails.forEach(em => {
+                            contactPills += `<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}" title="Copy">📋</button></span>`;
+                        });
+
+                        const detailRows = [];
+                        if(e.context) detailRows.push({ label: '📍 Context', val: e.context });
+                        if(e.venue) detailRows.push({ label: '🏛️ Venue', val: e.venue });
+                        if(e.city) detailRows.push({ label: '🌆 City', val: e.city });
+                        if(e.timeOfDay) detailRows.push({ label: '🕐 Time', val: e.timeOfDay });
+                        if(e.gifts) detailRows.push({ label: '🎁 Gifts', val: e.gifts });
+                        if(e.followUpAction) detailRows.push({ label: '📌 Follow-up action', val: e.followUpAction });
+
+                        const rowsHtml = detailRows.map(r => `<div class="pj-detail-row"><span class="pj-detail-label">${r.label}:</span><span class="pj-detail-value">${escapeHtml(r.val)}</span></div>`).join('');
+                        const topicsHtml = e.topics ? `<div><div class="pj-md-label">💬 Topics</div><div class="pj-md-content">${renderMarkdown(e.topics)}</div></div>` : '';
+                        const summaryHtml = e.summary ? `<div><div class="pj-md-label">📝 Summary</div><div class="pj-md-content">${renderMarkdown(e.summary)}</div></div>` : '';
+                        const notesHtml = e.notes ? `<div><div class="pj-md-label">🗒️ Notes</div><div class="pj-md-content">${renderMarkdown(e.notes)}</div></div>` : '';
+                        const isOverdue = e.followUp && e.followUp < todayStr;
+                        const fuHtml = e.followUp ? `<button type="button" class="pj-followup-badge-btn ${isOverdue?'overdue':''}" data-jump-followup="${escapeHtml(e.followUp)}">⏰ Follow-up: ${getShortDate(e.followUp)}</button>` : '';
+
+                        const isCollapsed = !expandedEncounters.has(e.id);
+                        return `
+                            <div class="pj-encounter-card ${isCollapsed?'collapsed':''}" data-encounter-id="${escapeHtml(e.id)}">
+                                <div class="pj-encounter-header">
+                                    <div class="pj-encounter-avatar ${isContact?'contact-marker':''}">${escapeHtml(initials)}</div>
+                                    <div class="pj-encounter-info">
+                                        <div class="pj-encounter-name-row">
+                                            <span>${escapeHtml(e.name||'(No name)')}</span>
+                                            ${e.relation?`<span class="pj-encounter-relation">${escapeHtml(e.relation)}</span>`:''}
+                                        </div>
+                                        ${contactPills ? `<div class="pj-contact-pills">${contactPills}</div>` : ''}
+                                        ${tagsHtml ? `<div class="pj-tags-row">${tagsHtml}</div>` : ''}
+                                    </div>
+                                    <div class="pj-encounter-actions">
+                                        <button type="button" class="pj-action-btn pj-collapse-btn" data-action="toggle" title="Expand/Collapse">▾</button>
+                                        <button type="button" class="pj-action-btn" data-action="edit" title="Edit">✎</button>
+                                        <button type="button" class="pj-action-btn delete" data-action="delete" title="Delete">✕</button>
+                                    </div>
+                                </div>
+                                <div class="pj-encounter-details">
+                                    ${rowsHtml}
+                                    ${topicsHtml}
+                                    ${summaryHtml}
+                                    ${notesHtml}
+                                    ${fuHtml}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+
+            function handlePjDailySectionClick(e){
+                const copyBtn = e.target.closest('.pj-contact-copy');
+                if(copyBtn){
+                    e.preventDefault();
+                    copyToClipboard(copyBtn.dataset.copy||'');
+                    return;
+                }
+                const fuBtn = e.target.closest('[data-jump-followup]');
+                if(fuBtn){
+                    e.preventDefault();
+                    const target = fuBtn.dataset.jumpFollowup;
+                    if(target){
+                        const parts = target.split('-').map(Number);
+                        if(parts[0] !== currentYear || parts[1] !== currentMonth){
+                            currentYear = parts[0]; currentMonth = parts[1];
+                            renderCalendar({animate:true});
+                        }
+                        selectDate(target);
+                        showToast('⏰ Follow-up: ' + getShortDate(target));
+                    }
+                    return;
+                }
+                const collapseBtn = e.target.closest('.pj-collapse-btn');
+                if(collapseBtn){
+                    const card = collapseBtn.closest('.pj-encounter-card');
+                    if(card){
+                        const id = card.dataset.encounterId;
+                        if(expandedEncounters.has(id)) expandedEncounters.delete(id);
+                        else expandedEncounters.add(id);
+                        card.classList.toggle('collapsed');
+                    }
+                    return;
+                }
+                const actionBtn = e.target.closest('.pj-action-btn');
+                if(actionBtn){
+                    const card = actionBtn.closest('.pj-encounter-card');
+                    if(!card) return;
+                    const id = card.dataset.encounterId;
+                    if(actionBtn.dataset.action === 'edit') openEditPjEncounter(id);
+                    else if(actionBtn.dataset.action === 'delete') deletePjEncounter(id);
+                }
+            }
+
+            function openAddPjEncounter(){
+                if(!selectedDateStr) selectedDateStr = getTodayStr();
+                editingEncounterId = null;
+                editingEncounterDay = selectedDateStr;
+                document.getElementById('pjEncounterModalTitle').textContent = '👤 Add Person You Met';
+                renderPjEncounterForm(null);
+                document.getElementById('pjEncounterModalOverlay').classList.add('active');
+                setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
+            }
+
+            function openEditPjEncounter(encId){
+                if(!selectedDateStr) return;
+                const data = getPjDayData(selectedDateStr);
+                if(!data) return;
+                const enc = (data.encounters||[]).find(e => e.id === encId);
+                if(!enc) return;
+                editingEncounterId = encId;
+                editingEncounterDay = selectedDateStr;
+                document.getElementById('pjEncounterModalTitle').textContent = '✎ Edit Encounter';
+                renderPjEncounterForm(enc);
+                document.getElementById('pjEncounterModalOverlay').classList.add('active');
+                setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
+            }
+
+            function closePjEncounterModal(){
+                stopPjVoice();
+                document.getElementById('pjEncounterModalOverlay').classList.remove('active');
+                document.getElementById('pjEncounterModalBody').innerHTML = '';
+                editingEncounterId = null;
+                editingEncounterDay = null;
+            }
+
+            function renderPjEncounterForm(enc){
+                const e = enc || {};
+                const allPeople = getPjPeopleRegistry();
+                const knownNames = allPeople.map(p => p.name).filter(Boolean);
+                const namesDatalist = `<datalist id="pjKnownNamesList">${knownNames.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('')}</datalist>`;
+                const relationsDatalist = `<datalist id="pjRelationsList">${PJ_RELATION_OPTIONS.map(r=>`<option value="${escapeHtml(r)}"></option>`).join('')}</datalist>`;
+                const demeanorsDatalist = `<datalist id="pjDemeanorsList">${PJ_DEMEANOR_OPTIONS.map(dm=>`<option value="${escapeHtml(dm)}"></option>`).join('')}</datalist>`;
+
+                const selectedTags = new Set(Array.isArray(e.tags) ? e.tags : []);
+                const tagsHtml = pjAllTags().map(t => {
+                    const m = pjTagMeta(t);
+                    const checked = selectedTags.has(t);
+                    return `
+                        <label class="pj-tag-check ${checked?'checked':''}" data-tag="${t}">
+                            <input type="checkbox" value="${t}" ${checked?'checked':''}>
+                            <span>${m.icon} ${m.label}</span>
+                        </label>
+                    `;
+                }).join('');
+
+                const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+
+                const phonesRows = (phones.length ? phones : ['']).map(p => `
+                    <div class="pj-multi-item">
+                        <input type="tel" class="pj-phone-input" placeholder="+1 555 1234" value="${escapeHtml(p)}" autocomplete="off">
+                        <button type="button" class="pj-multi-remove" data-remove="phone">×</button>
+                    </div>
+                `).join('');
+
+                const emailsRows = (emails.length ? emails : ['']).map(em => `
+                    <div class="pj-multi-item">
+                        <input type="email" class="pj-email-input" placeholder="name@example.com" value="${escapeHtml(em)}" autocomplete="off">
+                        <button type="button" class="pj-multi-remove" data-remove="email">×</button>
+                    </div>
+                `).join('');
+
+                const body = document.getElementById('pjEncounterModalBody');
+                body.innerHTML = `
+                    <div class="pj-quick-grid">
+                        <div class="pj-form-group">
+                            <label>👤 Who did you meet? *</label>
+                            <div class="pj-voice-field">
+                                <input type="text" id="pjEncQuickName" list="pjKnownNamesList" placeholder="Full name or clue" value="${escapeHtml(e.name||'')}" maxlength="80" autocomplete="off">
+                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickName" title="Dictate">🎤</button>
+                            </div>
+                            <div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;" id="pjKnownHint"></div>
+                        </div>
+                        <div class="pj-form-group">
+                            <label>📅 Date</label>
+                            <input type="text" value="${escapeHtml(editingEncounterDay||selectedDateStr||'')}" disabled>
+                        </div>
+                        <div class="pj-form-group pj-quick-memory">
+                            <label>🧠 Quick memory <span style="font-weight:500;color:var(--text-secondary);">(optional)</span></label>
+                            <div class="pj-voice-field">
+                                <textarea id="pjEncQuickMemory" placeholder="Write words, topics, places, appearance or what you want to recall later..." maxlength="1000">${escapeHtml(e.summary||e.notes||'')}</textarea>
+                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickMemory" title="Dictate">🎤</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${namesDatalist}${relationsDatalist}${demeanorsDatalist}
+
+                    <details class="form-section">
+                        <summary class="form-section-header">👤 Contact & Tags</summary>
+                        <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="pj-form-group">
+                                <label>Phone numbers</label>
+                                <div class="pj-multi-list" id="pjPhonesList">${phonesRows}</div>
+                                <button type="button" class="pj-multi-add" id="btnAddPjPhone">+ Add phone</button>
+                            </div>
+                            <div class="pj-form-group">
+                                <label>Email addresses</label>
+                                <div class="pj-multi-list" id="pjEmailsList">${emailsRows}</div>
+                                <button type="button" class="pj-multi-add" id="btnAddPjEmail">+ Add email</button>
+                            </div>
+                            <div class="pj-form-group">
+                                <label>Tags</label>
+                                <div class="pj-tag-picker" id="pjTagPicker">${tagsHtml}</div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="form-section">
+                        <summary class="form-section-header">👪 Personal Details (optional)</summary>
+                        <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="pj-form-row">
+                                <div class="pj-form-group"><label>Nickname</label><input type="text" id="pjEncNickname" placeholder="What they go by" value="${escapeHtml(e.nickname||'')}"></div>
+                                <div class="pj-form-group"><label>Relation</label><input type="text" id="pjEncRelation" list="pjRelationsList" placeholder="e.g. Colleague" value="${escapeHtml(e.relation||'')}"></div>
+                            </div>
+                            <div class="pj-form-row">
+                                <div class="pj-form-group"><label>Birthday</label><input type="text" id="pjEncBirthday" placeholder="e.g. 12 Mar" value="${escapeHtml(e.birthday||'')}"></div>
+                                <div class="pj-form-group"><label>Native Place</label><input type="text" id="pjEncNativePlace" placeholder="Hometown" value="${escapeHtml(e.nativePlace||'')}"></div>
+                            </div>
+                            <div class="pj-form-group"><label>Home Address</label><input type="text" id="pjEncHomeAddress" placeholder="Full address" value="${escapeHtml(e.homeAddress||'')}"></div>
+                        </div>
+                    </details>
+
+                    <details class="form-section">
+                        <summary class="form-section-header">💭 Impression & Interaction Details</summary>
+                        <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="pj-form-row">
+                                <div class="pj-form-group"><label>Demeanor</label><input type="text" id="pjEncDemeanor" list="pjDemeanorsList" placeholder="Friendly, quiet..." value="${escapeHtml(e.demeanor||'')}"></div>
+                                <div class="pj-form-group"><label>Time of day</label><input type="text" id="pjEncTimeOfDay" placeholder="Morning / Evening..." value="${escapeHtml(e.timeOfDay||'')}"></div>
+                            </div>
+                            <div class="pj-form-row">
+                                <div class="pj-form-group"><label>Venue</label><input type="text" id="pjEncVenue" placeholder="Specific spot" value="${escapeHtml(e.venue||'')}"></div>
+                                <div class="pj-form-group"><label>City / Area</label><input type="text" id="pjEncCity" placeholder="City" value="${escapeHtml(e.city||'')}"></div>
+                            </div>
+                            <div class="pj-form-group">
+                                <label>Topics Discussed</label>
+                                <div class="pj-voice-field">
+                                    <textarea id="pjEncTopics" placeholder="What did you talk about?">${escapeHtml(e.topics||'')}</textarea>
+                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncTopics" title="Dictate">🎤</button>
+                                </div>
+                            </div>
+                            <div class="pj-form-group">
+                                <label>Gifts / Items exchanged</label>
+                                <input type="text" id="pjEncGifts" placeholder="Anything given or received" value="${escapeHtml(e.gifts||'')}">
+                            </div>
+                        </div>
+                    </details>
+
+                    <details class="form-section">
+                        <summary class="form-section-header">⏰ Follow-up & Extra Notes</summary>
+                        <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="pj-form-row">
+                                <div class="pj-form-group"><label>Follow-up Date</label><input type="date" id="pjEncFollowUp" value="${escapeHtml(e.followUp||'')}"></div>
+                                <div class="pj-form-group"><label>Follow-up Action</label><input type="text" id="pjEncFollowUpAction" placeholder="e.g. Call, send proposal" value="${escapeHtml(e.followUpAction||'')}"></div>
+                            </div>
+                            <div class="pj-form-group">
+                                <label>Additional Notes</label>
+                                <div class="pj-voice-field">
+                                    <textarea id="pjEncNotes" placeholder="Additional observations...">${escapeHtml(e.notes||'')}</textarea>
+                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncNotes" title="Dictate">🎤</button>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+                        <button type="button" class="btn-secondary" id="btnCancelPjEncounter">Cancel</button>
+                        <button type="button" class="btn-primary" id="btnSavePjEncounter">${editingEncounterId?'Update Encounter':'Save Encounter'}</button>
+                    </div>
+                `;
+
+                document.getElementById('btnCancelPjEncounter').addEventListener('click', closePjEncounterModal);
+                document.getElementById('btnSavePjEncounter').addEventListener('click', savePjEncounter);
+                document.getElementById('btnAddPjPhone').addEventListener('click', ()=>{
+                    document.getElementById('pjPhonesList').insertAdjacentHTML('beforeend', `
+                        <div class="pj-multi-item">
+                            <input type="tel" class="pj-phone-input" placeholder="+1 555 1234" autocomplete="off">
+                            <button type="button" class="pj-multi-remove" data-remove="phone">×</button>
+                        </div>
+                    `);
+                });
+                document.getElementById('btnAddPjEmail').addEventListener('click', ()=>{
+                    document.getElementById('pjEmailsList').insertAdjacentHTML('beforeend', `
+                        <div class="pj-multi-item">
+                            <input type="email" class="pj-email-input" placeholder="name@example.com" autocomplete="off">
+                            <button type="button" class="pj-multi-remove" data-remove="email">×</button>
+                        </div>
+                    `);
+                });
+                body.addEventListener('click', (ev)=>{
+                    const rm = ev.target.closest('.pj-multi-remove');
+                    if(rm){
+                        const item = rm.closest('.pj-multi-item');
+                        if(item) item.remove();
+                        return;
+                    }
+                    const vBtn = ev.target.closest('.pj-voice-btn');
+                    if(vBtn){
+                        const t = vBtn.dataset.voiceTarget;
+                        if(t) togglePjVoice(t);
+                        return;
+                    }
+                    const tagCheck = ev.target.closest('.pj-tag-check');
+                    if(tagCheck){
+                        const cb = tagCheck.querySelector('input');
+                        setTimeout(()=>{ tagCheck.classList.toggle('checked', !!cb.checked); }, 0);
+                    }
+                });
+
+                const qName = document.getElementById('pjEncQuickName');
+                if(qName){
+                    qName.addEventListener('input', ()=>{
+                        const k = findKnownPerson(qName.value.trim());
+                        const hint = document.getElementById('pjKnownHint');
+                        if(k){
+                            hint.textContent = '✓ Known contact (' + (k.name) + ')';
+                            if(!editingEncounterId){
+                                const nNick = document.getElementById('pjEncNickname');
+                                const nRel = document.getElementById('pjEncRelation');
+                                if(nNick && !nNick.value && k.profile?.nickname) nNick.value = k.profile.nickname;
+                                if(nRel && !nRel.value && k.profile?.relation) nRel.value = k.profile.relation;
+                            }
+                        } else {
+                            hint.textContent = '';
+                        }
+                    });
+                }
+            }
+
+            function savePjEncounter(){
+                stopPjVoice();
+                const name = (document.getElementById('pjEncQuickName')?.value || '').trim();
+                if(!name){ alert('Please enter a name or identifier.'); return; }
+                const quickMemory = (document.getElementById('pjEncQuickMemory')?.value || '').trim();
+                const phones = Array.from(document.querySelectorAll('#pjPhonesList .pj-phone-input')).map(i=>i.value.trim()).filter(Boolean);
+                const emails = Array.from(document.querySelectorAll('#pjEmailsList .pj-email-input')).map(i=>i.value.trim()).filter(Boolean);
+                const tags = Array.from(document.querySelectorAll('#pjTagPicker input:checked')).map(i=>i.value);
+
+                const nickname = (document.getElementById('pjEncNickname')?.value || '').trim();
+                const relation = (document.getElementById('pjEncRelation')?.value || '').trim();
+                const birthday = (document.getElementById('pjEncBirthday')?.value || '').trim();
+                const nativePlace = (document.getElementById('pjEncNativePlace')?.value || '').trim();
+                const homeAddress = (document.getElementById('pjEncHomeAddress')?.value || '').trim();
+                const demeanor = (document.getElementById('pjEncDemeanor')?.value || '').trim();
+                const timeOfDay = (document.getElementById('pjEncTimeOfDay')?.value || '').trim();
+                const venue = (document.getElementById('pjEncVenue')?.value || '').trim();
+                const city = (document.getElementById('pjEncCity')?.value || '').trim();
+                const topics = (document.getElementById('pjEncTopics')?.value || '').trim();
+                const gifts = (document.getElementById('pjEncGifts')?.value || '').trim();
+                const followUp = (document.getElementById('pjEncFollowUp')?.value || '').trim();
+                const followUpAction = (document.getElementById('pjEncFollowUpAction')?.value || '').trim();
+                const notes = (document.getElementById('pjEncNotes')?.value || '').trim();
+
+                const summary = quickMemory;
+                const day = editingEncounterDay || selectedDateStr;
+                const personId = normalizePjName(name) || generatePjId('p_');
+
+                pushUndo(editingEncounterId ? 'Edit encounter' : 'Add encounter');
+
+                const dayData = getPjDayData(day) || { encounters: [] };
+                dayData.encounters = Array.isArray(dayData.encounters) ? dayData.encounters : [];
+
+                const payload = {
+                    personId, name, phones, emails, tags,
+                    nickname, relation, birthday, nativePlace, homeAddress,
+                    demeanor, timeOfDay, venue, city, topics, summary, gifts,
+                    followUp: followUp || null, followUpAction, notes
+                };
+
+                if(editingEncounterId){
+                    const idx = dayData.encounters.findIndex(e => e.id === editingEncounterId);
+                    if(idx !== -1) dayData.encounters[idx] = Object.assign({}, dayData.encounters[idx], payload);
+                } else {
+                    dayData.encounters.push(Object.assign({
+                        id: generatePjId('e_'),
+                        createdAt: Date.now()
+                    }, payload));
+                }
+
+                savePjDayData(day, dayData);
+                closePjEncounterModal();
+                updateSingleCell(day, { pop:true });
+                renderPjDailySection(day);
+                showToast(editingEncounterId ? 'Encounter updated' : 'Encounter logged');
+            }
+
+            function deletePjEncounter(encId){
+                if(!selectedDateStr) return;
+                const data = getPjDayData(selectedDateStr);
+                if(!data) return;
+                const enc = (data.encounters||[]).find(e => e.id === encId);
+                if(!enc) return;
+                if(!confirm('Delete encounter for "' + (enc.name||'this person') + '"?')) return;
+
+                pushUndo('Delete encounter');
+                data.encounters = (data.encounters||[]).filter(e => e.id !== encId);
+                savePjDayData(selectedDateStr, data);
+                expandedEncounters.delete(encId);
+                updateSingleCell(selectedDateStr, { pop:true });
+                renderPjDailySection(selectedDateStr);
+                showToast('Encounter deleted');
+            }
+
+            // People Directory Modal
+            function openPjDirectory(){
+                document.getElementById('pjPeopleOverlay').classList.add('active');
+                renderPjDirectory();
+            }
+            function closePjDirectory(){
+                document.getElementById('pjPeopleOverlay').classList.remove('active');
+                selectedPersonId = null;
+            }
+            function renderPjDirectory(){
+                const all = getPjPeopleRegistry().slice().sort((a,b)=>a.name.localeCompare(b.name));
+                let filtered = all;
+                if(peopleViewMode === 'contacts') filtered = all.filter(p => p.isContact);
+                else if(peopleViewMode === 'encounters') filtered = all.filter(p => p.encounters.length > 0);
+
+                if(peopleFilter.trim()){
+                    const q = peopleFilter.trim().toLowerCase();
+                    filtered = filtered.filter(p => (p.name + ' ' + (p.phones||[]).join(' ') + ' ' + (p.emails||[]).join(' ')).toLowerCase().includes(q));
+                }
+
+                document.getElementById('pjPeopleCount').textContent = filtered.length + (filtered.length===1?' person':' people');
+                const listEl = document.getElementById('pjPeopleList');
+                if(!filtered.length){
+                    listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">No matches found.</div>`;
+                } else {
+                    listEl.innerHTML = filtered.map(p => {
+                        const isActive = p.personId === selectedPersonId;
+                        const initials = initialsOfPj(p.name);
+                        return `
+                            <div class="pj-dir-item ${isActive?'active':''}" data-pid="${escapeHtml(p.personId)}">
+                                <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:30px;height:30px;font-size:0.7rem;">${escapeHtml(initials)}</div>
+                                <div style="flex:1;min-width:0;">
+                                    <div style="font-size:var(--fs-xs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s)</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                if(!filtered.some(p => p.personId === selectedPersonId) && filtered.length > 0){
+                    selectedPersonId = filtered[0].personId;
+                }
+                renderPjPersonDetail();
+            }
+
+            function renderPjPersonDetail(){
+                const mainEl = document.getElementById('pjPeopleMain');
+                if(!selectedPersonId){
+                    mainEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-secondary);text-align:center;"><div style="font-size:2.4rem;opacity:.5;">👥</div><div>Select a person from the list.</div></div>`;
+                    return;
+                }
+                const p = getPjPeopleRegistry().find(x => x.personId === selectedPersonId);
+                if(!p) return;
+                const profile = p.profile || {};
+                const initials = initialsOfPj(p.name);
+                const encs = (p.encounters||[]).slice().sort((a,b)=>String(b._date).localeCompare(String(a._date)));
+
+                let contactsPills = '';
+                (p.phones||[]).forEach(ph=>{ contactsPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(ph)}">📋</button></span>`; });
+                (p.emails||[]).forEach(em=>{ contactsPills += `<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}">📋</button></span>`; });
+
+                const timelineHtml = encs.map(e => `
+                    <div class="pj-dir-timeline-item">
+                        <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--accent);margin-bottom:2px;">${getShortDate(e._date)}</div>
+                        <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px;font-size:var(--fs-xs);">
+                            ${e.venue?`<div><strong>🏛️ ${escapeHtml(e.venue)}</strong></div>`:''}
+                            ${e.summary?`<div style="margin-top:4px;">${escapeHtml(e.summary)}</div>`:''}
+                            ${e.topics?`<div class="pj-md-content" style="margin-top:4px;">${renderMarkdown(e.topics)}</div>`:''}
+                            ${e.followUp?`<div style="margin-top:4px;font-size:var(--fs-2xs);color:var(--warning);font-weight:600;">⏰ Follow-up: ${getShortDate(e.followUp)}</div>`:''}
+                        </div>
+                    </div>
+                `).join('');
+
+                mainEl.innerHTML = `
+                    <div style="display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;">
+                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:48px;height:48px;font-size:1.1rem;">${escapeHtml(initials)}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
+                            ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);">${escapeHtml(profile.relation)}</div>` : ''}
+                            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactsPills}</div>
+                        </div>
+                    </div>
+                    <div style="font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:8px;">Interaction Timeline (${encs.length})</div>
+                    <div class="pj-dir-timeline">${timelineHtml || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);font-style:italic;">No recorded interactions yet.</div>'}</div>
+                `;
+            }
+
+            // Relationship Center Modal
+            function openPjCenter(tab){
+                pjActiveTab = tab || 'dashboard';
+                document.getElementById('pjCenterOverlay').classList.add('active');
+                renderPjCenter();
+            }
+            function closePjCenter(){
+                document.getElementById('pjCenterOverlay').classList.remove('active');
+            }
+            function renderPjCenter(){
+                const body = document.getElementById('pjCenterBody');
+                if(!body) return;
+                document.querySelectorAll('.pj-center-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === pjActiveTab));
+                const people = pjAllPeople();
+                const today = getTodayStr();
+
+                if(pjActiveTab === 'dashboard'){
+                    const fus = [];
+                    people.forEach(p => {
+                        (p.encounters||[]).forEach(e => { if(e.followUp) fus.push({ p, due: e.followUp, text: e.followUpAction||'Follow up' }); });
+                    });
+                    const overdue = fus.filter(x => x.due < today);
+                    body.innerHTML = `
+                        <div class="pj-center-grid">
+                            <div class="pj-center-stat" data-tab="people"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Total People</div><div class="pj-center-stat-val">${people.length}</div></div>
+                            <div class="pj-center-stat" data-tab="followups"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Follow-ups Due</div><div class="pj-center-stat-val" style="color:var(--warning);">${fus.filter(x=>x.due<=today).length}</div></div>
+                            <div class="pj-center-stat"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Overdue</div><div class="pj-center-stat-val" style="color:var(--danger);">${overdue.length}</div></div>
+                            <div class="pj-center-stat"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Active Network</div><div class="pj-center-stat-val" style="color:var(--success);">${people.filter(p=>p._status.label==='Active').length}</div></div>
+                        </div>
+                        <div style="margin-top:16px;border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;background:var(--surface-2);">
+                            <div style="font-size:var(--fs-sm);font-weight:700;margin-bottom:8px;">Priority / Favorite Contacts</div>
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                ${people.filter(p=>p._profile.favorite||p._profile.priority==='high').map(p=>`
+                                    <div class="pj-center-row" data-center-person="${escapeHtml(p.personId)}">
+                                        <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                        <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
+                                        <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} interactions</div>
+                                    </div>
+                                `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);">No priority contacts yet. Star contacts in their profile.</div>'}
+                            </div>
+                        </div>
+                    `;
+                } else if(pjActiveTab === 'people'){
+                    body.innerHTML = `
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            ${people.map(p=>`
+                                <div class="pj-center-row" data-center-person="${escapeHtml(p.personId)}">
+                                    <div class="pj-encounter-avatar" style="width:30px;height:30px;font-size:0.7rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                    <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
+                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s)</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } else if(pjActiveTab === 'followups'){
+                    const fus = [];
+                    people.forEach(p => {
+                        (p.encounters||[]).forEach(e => { if(e.followUp) fus.push({ p, due: e.followUp, text: e.followUpAction||'Follow up' }); });
+                    });
+                    fus.sort((a,b)=>a.due.localeCompare(b.due));
+                    body.innerHTML = `
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            ${fus.map(f=>`
+                                <div class="pj-center-row" data-jump-date="${escapeHtml(f.due)}">
+                                    <div style="font-size:1.1rem;">⏰</div>
+                                    <div><strong>${escapeHtml(f.p.name)}</strong> · ${escapeHtml(f.text)}</div>
+                                    <div><span class="pj-badge ${f.due<today?'bad':f.due===today?'accent':'warn'}">${f.due}</span></div>
+                                </div>
+                            `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);padding:20px;text-align:center;">No follow-ups recorded.</div>'}
+                        </div>
+                    `;
+                } else {
+                    body.innerHTML = `<div style="padding:20px;color:var(--text-secondary);font-size:var(--fs-xs);text-align:center;">Section active. Search, manage contacts, and review analytics directly from this panel.</div>`;
+                }
+            }
+
+            // Global Journal Search
+            function openPjSearch(prefill){
+                document.getElementById('pjGlobalSearchOverlay').classList.add('active');
+                const inp = document.getElementById('pjGlobalSearchInput');
+                inp.value = prefill || '';
+                setTimeout(()=>{ inp.focus(); searchPjJournal(inp.value); }, 40);
+            }
+            function closePjSearch(){
+                document.getElementById('pjGlobalSearchOverlay').classList.remove('active');
+            }
+            function searchPjJournal(q){
+                const query = String(q||'').trim().toLowerCase();
+                const resEl = document.getElementById('pjGlobalSearchResults');
+                const metaEl = document.getElementById('pjGlobalSearchMeta');
+                if(!query){
+                    resEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">Type any name, place, topic, phone, or memory to search.</div>`;
+                    metaEl.textContent = 'Type anything to search.';
+                    return;
+                }
+                const matches = [];
+                listAllPjDays().forEach(ds => {
+                    const data = getPjDayData(ds);
+                    if(!data) return;
+                    (data.encounters||[]).forEach(e => {
+                        const hay = [e.name, e.nickname, e.relation, e.venue, e.city, e.context, e.topics, e.summary, e.notes, (e.phones||[]).join(' '), (e.emails||[]).join(' ')].join(' ').toLowerCase();
+                        if(hay.includes(query)){
+                            matches.push({ e, ds });
+                        }
+                    });
+                });
+                metaEl.textContent = `${matches.length} matching interaction(s) found`;
+                if(!matches.length){
+                    resEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">No matching encounters found.</div>`;
+                    return;
+                }
+                resEl.innerHTML = matches.map(m => `
+                    <div class="pj-search-result" data-search-date="${escapeHtml(m.ds)}" data-search-id="${escapeHtml(m.e.id)}">
+                        <div class="pj-encounter-avatar" style="width:34px;height:34px;font-size:0.75rem;">${escapeHtml(initialsOfPj(m.e.name))}</div>
+                        <div>
+                            <div style="font-weight:700;font-size:var(--fs-sm);">${escapeHtml(m.e.name)} <span style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;">${getShortDate(m.ds)}</span></div>
+                            <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;">${escapeHtml(m.e.venue||m.e.city||m.e.context||'')}</div>
+                            <div style="font-size:var(--fs-xs);margin-top:4px;">${escapeHtml(m.e.summary||m.e.notes||'')}</div>
+                        </div>
+                        <div style="font-size:0.8rem;color:var(--text-secondary);">↗</div>
+                    </div>
+                `).join('');
+            }
+
+            // CSV Import & Export
+            function parseGoogleContactsCSV(text){
+                if(typeof text !== 'string') return [];
+                const lines = text.split(/\r?\n/).filter(Boolean);
+                if(lines.length < 2) return [];
+                const headers = lines[0].split(',').map(h => h.replace(/^["']|["']$/g,'').trim().toLowerCase());
+                const nameIdx = headers.findIndex(h => h.includes('name'));
+                const phoneIdx = headers.findIndex(h => h.includes('phone') || h.includes('mobile'));
+                const emailIdx = headers.findIndex(h => h.includes('email') || h.includes('e-mail'));
+                const list = [];
+                for(let i=1; i<lines.length; i++){
+                    const parts = lines[i].split(',').map(p => p.replace(/^["']|["']$/g,'').trim());
+                    const name = nameIdx !== -1 ? parts[nameIdx] : '';
+                    if(!name) continue;
+                    list.push({
+                        personId: normalizePjName(name),
+                        name: name,
+                        phones: phoneIdx !== -1 && parts[phoneIdx] ? [parts[phoneIdx]] : [],
+                        emails: emailIdx !== -1 && parts[emailIdx] ? [parts[emailIdx]] : [],
+                        source: 'csv'
+                    });
+                }
+                return list;
+            }
+            function importGoogleContactsCSV(file){
+                if(!file) return;
+                const r = new FileReader();
+                r.onload = (ev)=>{
+                    const parsed = parseGoogleContactsCSV(ev.target.result);
+                    if(!parsed.length){ alert('No contacts found in CSV.'); return; }
+                    const existing = loadPjContacts();
+                    const map = new Map(existing.map(x => [x.personId, x]));
+                    parsed.forEach(p => { if(!map.has(p.personId)) map.set(p.personId, p); });
+                    savePjContacts(Array.from(map.values()));
+                    showToast(`📇 Imported ${parsed.length} contacts`);
+                };
+                r.readAsText(file);
+            }
+            function exportPjPeopleCSV(){
+                const all = getPjPeopleRegistry();
+                if(!all.length){ showToast('No people to export'); return; }
+                const rows = ['Name,Phones,Emails,First Met,Last Met,Encounters'];
+                all.forEach(p => {
+                    rows.push(`"${p.name}","${(p.phones||[]).join(' | ')}","${(p.emails||[]).join(' | ')}","${p.firstMet||''}","${p.lastSeen||''}","${p.encounters.length}"`);
+                });
+                const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'people-directory-' + getTodayStr() + '.csv';
+                document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                setTimeout(()=>URL.revokeObjectURL(url), 4000);
+                showToast('⬇ Exported ' + all.length + ' people');
+            }
+
+            loadPjMeta();
+
             function setTextCalendarMode(enabled){
                 if(enabled===textCalendarMode)return;
                 flushDebounced();
                 textCalendarMode=!!enabled;
                 document.body.classList.toggle('text-calendar-mode',textCalendarMode);
                 btnTextCalendar.classList.toggle('active',textCalendarMode);
-                btnTextCalendar.title=textCalendarMode?'Return to Task Calendar':'Text Calendar';
+                btnTextCalendar.title=textCalendarMode?'Return to Task Calendar':'People & Text';
                 if(textCalendarMode){
                     btnTextCalendar.setAttribute('aria-pressed','true');
                     selectionMode='daily';
@@ -4530,7 +5902,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 inputNotes.placeholder='Write your notes, reflections, or ideas for this day...';
                 const d=data||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
                 currentDataCache=JSON.parse(JSON.stringify(d));
-                if(textCalendarMode)renderTextCalendarList(d.textCalendar||[]);
+                if(textCalendarMode){renderTextCalendarList(d.textCalendar||[]);if(typeof renderPjDailySection==='function')renderPjDailySection(ds);}
                 else renderTaskList(d.tasks);
                 inputNotes.value=d.notes||'';
                 inputDayTitle.value=d.dayTitle||'';
@@ -6984,6 +8356,79 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 btnTheme.addEventListener('click',toggleTheme);
                 btnTextCalendar.addEventListener('click',toggleTextCalendar);
                 btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
+                const btnAddPjEncounter=document.getElementById('btnAddPjEncounter');
+                if(btnAddPjEncounter)btnAddPjEncounter.addEventListener('click',openAddPjEncounter);
+                const btnPjDirectory=document.getElementById('btnPjDirectory');
+                if(btnPjDirectory)btnPjDirectory.addEventListener('click',openPjDirectory);
+                const btnPjCenter=document.getElementById('btnPjCenter');
+                if(btnPjCenter)btnPjCenter.addEventListener('click',()=>openPjCenter('dashboard'));
+                const btnPjSearch=document.getElementById('btnPjSearch');
+                if(btnPjSearch)btnPjSearch.addEventListener('click',()=>openPjSearch());
+                const btnPjImportCsv=document.getElementById('btnPjImportCsv');
+                if(btnPjImportCsv){
+                    const inp=document.getElementById('pjContactsCsvInput');
+                    btnPjImportCsv.addEventListener('click',()=>{if(inp)inp.click();});
+                    if(inp)inp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importGoogleContactsCSV(f);ev.target.value='';});
+                }
+                const pjDailySec=document.getElementById('pjDailySection');
+                if(pjDailySec)pjDailySec.addEventListener('click',handlePjDailySectionClick);
+                const btnPjModalClose=document.getElementById('pjEncounterModalClose');
+                if(btnPjModalClose)btnPjModalClose.addEventListener('click',closePjEncounterModal);
+                const pjEncounterModalOverlay=document.getElementById('pjEncounterModalOverlay');
+                if(pjEncounterModalOverlay)pjEncounterModalOverlay.addEventListener('click',e=>{if(e.target===pjEncounterModalOverlay)closePjEncounterModal()});
+                const btnPjPeopleClose=document.getElementById('pjPeopleClose');
+                if(btnPjPeopleClose)btnPjPeopleClose.addEventListener('click',closePjDirectory);
+                const pjPeopleOverlay=document.getElementById('pjPeopleOverlay');
+                if(pjPeopleOverlay)pjPeopleOverlay.addEventListener('click',e=>{if(e.target===pjPeopleOverlay)closePjDirectory()});
+                const pjPeopleSearch=document.getElementById('pjPeopleSearch');
+                if(pjPeopleSearch)pjPeopleSearch.addEventListener('input',()=>{peopleFilter=pjPeopleSearch.value;renderPjDirectory();});
+                const pjFilterContacts=document.getElementById('pjFilterContacts');
+                if(pjFilterContacts)pjFilterContacts.addEventListener('click',()=>{peopleViewMode=peopleViewMode==='contacts'?'all':'contacts';renderPjDirectory();});
+                const pjFilterEncounters=document.getElementById('pjFilterEncounters');
+                if(pjFilterEncounters)pjFilterEncounters.addEventListener('click',()=>{peopleViewMode=peopleViewMode==='encounters'?'all':'encounters';renderPjDirectory();});
+                const btnExportPjPeopleCsv=document.getElementById('btnExportPjPeopleCsv');
+                if(btnExportPjPeopleCsv)btnExportPjPeopleCsv.addEventListener('click',exportPjPeopleCSV);
+                const pjPeopleList=document.getElementById('pjPeopleList');
+                if(pjPeopleList)pjPeopleList.addEventListener('click',e=>{const it=e.target.closest('.pj-dir-item');if(it){selectedPersonId=it.dataset.pid;renderPjPersonDetail();pjPeopleList.querySelectorAll('.pj-dir-item').forEach(x=>x.classList.toggle('active',x===it));}});
+                const pjCenterClose=document.getElementById('pjCenterClose');
+                if(pjCenterClose)pjCenterClose.addEventListener('click',closePjCenter);
+                const pjCenterOverlay=document.getElementById('pjCenterOverlay');
+                if(pjCenterOverlay)pjCenterOverlay.addEventListener('click',e=>{if(e.target===pjCenterOverlay)closePjCenter()});
+                const pjCenterTabs=document.getElementById('pjCenterTabs');
+                if(pjCenterTabs)pjCenterTabs.addEventListener('click',e=>{const tb=e.target.closest('.pj-center-tab');if(tb){pjActiveTab=tb.dataset.tab;renderPjCenter();}});
+                const pjCenterQuickAdd=document.getElementById('pjCenterQuickAdd');
+                if(pjCenterQuickAdd)pjCenterQuickAdd.addEventListener('click',()=>{closePjCenter();openAddPjEncounter();});
+                const pjCenterSearch=document.getElementById('pjCenterSearch');
+                if(pjCenterSearch)pjCenterSearch.addEventListener('input',()=>{openPjSearch(pjCenterSearch.value);closePjCenter();});
+                const pjCenterBody=document.getElementById('pjCenterBody');
+                if(pjCenterBody)pjCenterBody.addEventListener('click',e=>{
+                    const st=e.target.closest('.pj-center-stat');
+                    if(st&&st.dataset.tab){pjActiveTab=st.dataset.tab;renderPjCenter();return;}
+                    const row=e.target.closest('.pj-center-row');
+                    if(row){
+                        if(row.dataset.centerPerson){selectedPersonId=row.dataset.centerPerson;closePjCenter();openPjDirectory();return;}
+                        if(row.dataset.jumpDate){const dt=row.dataset.jumpDate;closePjCenter();const pts=dt.split('-').map(Number);currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});selectDate(dt);return;}
+                    }
+                });
+                const pjGlobalSearchClose=document.getElementById('pjGlobalSearchClose');
+                if(pjGlobalSearchClose)pjGlobalSearchClose.addEventListener('click',closePjSearch);
+                const pjGlobalSearchOverlay=document.getElementById('pjGlobalSearchOverlay');
+                if(pjGlobalSearchOverlay)pjGlobalSearchOverlay.addEventListener('click',e=>{if(e.target===pjGlobalSearchOverlay)closePjSearch()});
+                const pjGlobalSearchInput=document.getElementById('pjGlobalSearchInput');
+                if(pjGlobalSearchInput)pjGlobalSearchInput.addEventListener('input',()=>searchPjJournal(pjGlobalSearchInput.value));
+                const pjGlobalSearchClear=document.getElementById('pjGlobalSearchClear');
+                if(pjGlobalSearchClear)pjGlobalSearchClear.addEventListener('click',()=>{if(pjGlobalSearchInput){pjGlobalSearchInput.value='';searchPjJournal('');pjGlobalSearchInput.focus();}});
+                const pjGlobalSearchResults=document.getElementById('pjGlobalSearchResults');
+                if(pjGlobalSearchResults)pjGlobalSearchResults.addEventListener('click',e=>{
+                    const r=e.target.closest('.pj-search-result');
+                    if(r&&r.dataset.searchDate){
+                        const dt=r.dataset.searchDate;
+                        closePjSearch();
+                        const pts=dt.split('-').map(Number);
+                        if(pts[0]!==currentYear||pts[1]!==currentMonth){currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});}
+                        selectDate(dt);
+                    }
+                });
                 btnExport.addEventListener('click',exportJSON);
                 btnExportPdf.addEventListener('click',exportPDF);
                 btnImport.addEventListener('click',()=>importFileInput.click());
@@ -7504,6 +8949,18 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         return;
                     }
 
+                    if(textCalendarMode){
+                        if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPjSearch();return}
+                        if(e.key==='Escape'){
+                            if(document.getElementById('pjGlobalSearchOverlay')?.classList.contains('active')){e.preventDefault();closePjSearch();return}
+                            if(document.getElementById('pjEncounterModalOverlay')?.classList.contains('active')){e.preventDefault();closePjEncounterModal();return}
+                            if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){e.preventDefault();closePjDirectory();return}
+                            if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){e.preventDefault();closePjCenter();return}
+                        }
+                        if((e.key==='p'||e.key==='P')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openPjDirectory();return}
+                        if((e.key==='r'||e.key==='R')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openPjCenter('dashboard');return}
+                        if((e.key==='n'||e.key==='N')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openAddPjEncounter();return}
+                    }
                     if(e.key==='Escape'&&eisenItemPopupOverlay&&eisenItemPopupOverlay.classList.contains('active')){
                         e.preventDefault();
                         closeEisenItemPopup();
@@ -7526,6 +8983,12 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             }
             function hideBreakReminder(){breakToast.classList.remove('visible');breakToast.classList.add('hiding');setTimeout(()=>{breakToast.classList.remove('hiding')},350)}
             window.__taskPlannerAppBridge = {
+                getPjDayData,
+                savePjDayData,
+                openAddPjEncounter,
+                openPjDirectory,
+                openPjCenter,
+                openPjSearch,
                 renderCalendar,
                 renderLearningsSection,
                 renderHabits,
