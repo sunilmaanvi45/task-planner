@@ -2558,6 +2558,32 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-danger-pill{color:var(--danger) !important;border-color:rgba(239,68,68,.3) !important}
 .pj-danger-pill:hover{background:var(--danger-bg) !important;color:var(--danger) !important;border-color:var(--danger) !important}
 
+/* Relationship Center Enhanced Tab & Form Styles */
+.pj-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px}
+.pj-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
+.pj-toolbar-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.pj-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+@media(max-width:800px){.pj-two-col{grid-template-columns:1fr}}
+.pj-empty-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;text-align:center;gap:10px;border:1.5px dashed var(--border);border-radius:var(--r-lg);background:var(--card-bg)}
+.pj-star-btn{background:transparent;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:2px;color:var(--text-secondary);transition:transform .15s,color .15s}
+.pj-star-btn:hover{transform:scale(1.2);color:#f59e0b}
+.pj-star-btn.active{color:#f59e0b}
+.pj-healthbar-track{height:6px;border-radius:999px;background:var(--border);overflow:hidden;flex:1;min-width:50px}
+.pj-healthbar-fill{height:100%;border-radius:999px;transition:width .3s}
+.pj-table{width:100%;border-collapse:collapse;font-size:var(--fs-xs)}
+.pj-table th{text-align:left;padding:7px 10px;border-bottom:1.5px solid var(--border);color:var(--text-secondary);font-weight:700;font-size:var(--fs-2xs);text-transform:uppercase}
+.pj-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.pj-table tr:hover td{background:var(--surface-2)}
+.pj-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:600px){.pj-form-grid{grid-template-columns:1fr}}
+.pj-form-field{display:flex;flex-direction:column;gap:4px}
+.pj-form-field.full{grid-column:1/-1}
+.pj-form-field label{font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase}
+.pj-form-field input,.pj-form-field select,.pj-form-field textarea{border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:6px 9px;background:var(--card-bg);color:var(--text);font:inherit;font-size:var(--fs-xs)}
+.pj-form-field input:focus,.pj-form-field select:focus,.pj-form-field textarea:focus{border-color:var(--accent);outline:none;box-shadow:var(--focus-ring)}
+.pj-card-interactive{transition:border-color var(--dur-fast),transform var(--dur-fast),box-shadow var(--dur-fast)}
+.pj-card-interactive:hover{border-color:var(--accent-border);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+
 
 </style>
 </head>
@@ -6521,79 +6547,1230 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 `;
             }
 
-            // Relationship Center Modal
+function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;'); }
+            // Relationship Center State & Helpers
+            let pjCenterPeopleSort = 'recent';
+            let pjCenterPeopleFilter = 'all';
+            let pjCenterPeopleSearch = '';
+            let pjFuFilter = 'all'; // 'all', 'overdue', 'today', 'upcoming', 'done'
+            let pjBdayHorizon = 30; // 30, 90, 365, 'all'
+            let pjAdvSearchCriteria = { query: '', status: '', hasPhone: false, hasEmail: false, missingPhone: false, hasFu: false, hasBday: false, favOnly: false };
+            let pjShowFuForm = false;
+            let pjShowBdayForm = false;
+            let pjShowSavedViewForm = false;
+            let pjPrefillFuPersonId = '';
+            let pjPrefillBdayPersonId = '';
+
+            function pjAllFollowUps(){
+                const list = [];
+                const people = pjAllPeople();
+                people.forEach(p => {
+                    const pr = pjProfile(p.personId);
+                    if(pr.nextAction){
+                        list.push({
+                            source: 'profile',
+                            personId: p.personId,
+                            p,
+                            text: pr.nextAction,
+                            due: pr.nextActionDue || '',
+                            priority: pr.priority || 'normal',
+                            status: pr.nextActionStatus || 'open'
+                        });
+                    }
+                    (p.encounters || []).forEach(e => {
+                        if(e.followUp){
+                            list.push({
+                                source: 'encounter',
+                                personId: p.personId,
+                                p,
+                                text: e.followUpAction || 'Follow up',
+                                due: e.followUp,
+                                priority: 'normal',
+                                status: e.followUpDone ? 'done' : 'open',
+                                encounterId: e.id,
+                                encounterDate: e._date
+                            });
+                        }
+                    });
+                });
+                return list.sort((a,b) => {
+                    if(!a.due) return 1;
+                    if(!b.due) return -1;
+                    return a.due.localeCompare(b.due);
+                });
+            }
+
+            function pjUpcomingBirthdays(daysHorizon){
+                const horizon = (daysHorizon === 'all' || !daysHorizon) ? 3650 : Number(daysHorizon);
+                const now = new Date();
+                const todayY = now.getFullYear();
+                const todayM = now.getMonth();
+                const todayD = now.getDate();
+                const todayDate = new Date(todayY, todayM, todayD);
+                const results = [];
+                const people = pjAllPeople();
+                people.forEach(p => {
+                    const pr = pjProfile(p.personId);
+                    const b = pr.birthday || p.profile?.birthday || '';
+                    if(!b) return;
+                    let birthMonth = 0, birthDay = 0, birthYear = null;
+                    const mFull = String(b).match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+                    if(mFull){
+                        birthYear = parseInt(mFull[1], 10);
+                        birthMonth = parseInt(mFull[2], 10) - 1;
+                        birthDay = parseInt(mFull[3], 10);
+                    } else {
+                        const mShort = String(b).match(/^(\d{1,2})-(\d{1,2})$/);
+                        if(mShort){
+                            birthMonth = parseInt(mShort[1], 10) - 1;
+                            birthDay = parseInt(mShort[2], 10);
+                        } else {
+                            return;
+                        }
+                    }
+                    let target = new Date(todayY, birthMonth, birthDay);
+                    if(target < todayDate){
+                        target = new Date(todayY + 1, birthMonth, birthDay);
+                    }
+                    const diff = Math.round((target - todayDate) / 86400000);
+                    if(diff <= horizon){
+                        const nextAge = birthYear ? (target.getFullYear() - birthYear) : null;
+                        results.push({ p, dateStr: b, targetDate: target, diff, nextAge });
+                    }
+                });
+                return results.sort((a,b) => a.diff - b.diff);
+            }
+
+            function pjSortPeopleList(people, sortMode){
+                const sorted = people.slice();
+                if(sortMode === 'frequency'){
+                    return sorted.sort((a,b) => (b.encounters||[]).length - (a.encounters||[]).length);
+                }
+                if(sortMode === 'followup'){
+                    return sorted.sort((a,b) => {
+                        const fa = pjProfile(a.personId).nextActionDue || (a.encounters||[]).find(e=>e.followUp)?.followUp || '9999';
+                        const fb = pjProfile(b.personId).nextActionDue || (b.encounters||[]).find(e=>e.followUp)?.followUp || '9999';
+                        return fa.localeCompare(fb);
+                    });
+                }
+                if(sortMode === 'birthday'){
+                    const ub = pjUpcomingBirthdays(3650);
+                    const diffMap = new Map();
+                    ub.forEach(x => diffMap.set(x.p.personId, x.diff));
+                    return sorted.sort((a,b) => (diffMap.get(a.personId)||9999) - (diffMap.get(b.personId)||9999));
+                }
+                if(sortMode === 'name'){
+                    return sorted.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+                }
+                if(sortMode === 'firstMet'){
+                    return sorted.sort((a,b) => String(a.firstMet||'').localeCompare(String(b.firstMet||'')));
+                }
+                if(sortMode === 'favorite'){
+                    return sorted.sort((a,b) => (Number(!!pjProfile(b.personId).favorite) - Number(!!pjProfile(a.personId).favorite)) || String(b.lastSeen||'').localeCompare(String(a.lastSeen||'')));
+                }
+                return sorted.sort((a,b) => String(b.lastSeen||'').localeCompare(String(a.lastSeen||'')));
+            }
+
+            // Relationship Center Modal Open / Close
             function openPjCenter(tab){
                 pjActiveTab = tab || 'dashboard';
-                document.getElementById('pjCenterOverlay').classList.add('active');
+                const overlay = document.getElementById('pjCenterOverlay');
+                if(overlay) overlay.classList.add('active');
                 renderPjCenter();
             }
             function closePjCenter(){
-                document.getElementById('pjCenterOverlay').classList.remove('active');
+                const overlay = document.getElementById('pjCenterOverlay');
+                if(overlay) overlay.classList.remove('active');
             }
+
+            // Person Profile Modal Open / Close
+            function openPjProfile(pid){
+                const p = pjAllPeople().find(x => x.personId === pid);
+                if(!p) return;
+                const modal = document.getElementById('pjProfileModal');
+                const body = document.getElementById('pjProfileBody');
+                if(!modal || !body) return;
+                const pr = pjProfile(p.personId);
+                const health = pjHealth(p);
+
+                body.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;">
+                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:44px;height:44px;font-size:1rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:var(--fs-md);font-weight:750;">${escapeHtml(p.name)}</span>
+                                <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
+                                ${pr.favorite ? '<span class="pj-fav" title="Starred">★</span>' : ''}
+                            </div>
+                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
+                                ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} · ` : 'Not met yet · '}
+                                ${p.encounters.length} interaction(s) · Health: <strong>${health}%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pj-form-grid">
+                        <div class="pj-form-field">
+                            <label>Display / Full Name</label>
+                            <input type="text" id="pjpName" value="${escapeAttr(pr.displayName || p.name)}" placeholder="Full Name">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Nickname / Alias</label>
+                            <input type="text" id="pjpNickname" value="${escapeAttr(pr.nickname || p.profile?.nickname || '')}" placeholder="Nickname">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Relationship / Category</label>
+                            <input type="text" id="pjpRelation" value="${escapeAttr(pr.relation || p.profile?.relation || '')}" placeholder="e.g. Friend, Colleague, Client...">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Birthday</label>
+                            <input type="date" id="pjpBirthday" value="${escapeAttr(pr.birthday || p.profile?.birthday || '')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Keep in Touch Frequency (Days)</label>
+                            <input type="number" id="pjpFreq" min="0" max="365" value="${Number(pr.contactFrequencyDays || 0)}" placeholder="0 = default (60d)">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Priority</label>
+                            <select id="pjpPriority">
+                                <option value="low" ${pr.priority==='low'?'selected':''}>Low</option>
+                                <option value="normal" ${pr.priority==='normal'||!pr.priority?'selected':''}>Normal</option>
+                                <option value="high" ${pr.priority==='high'?'selected':''}>High</option>
+                            </select>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Next Action / Follow-up</label>
+                            <input type="text" id="pjpNextAction" value="${escapeAttr(pr.nextAction || '')}" placeholder="e.g. Call to discuss proposal, Send report...">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Next Action Due Date</label>
+                            <input type="date" id="pjpNextDue" value="${escapeAttr(pr.nextActionDue || '')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Next Action Status</label>
+                            <select id="pjpNextStatus">
+                                <option value="open" ${pr.nextActionStatus==='open'||!pr.nextActionStatus?'selected':''}>Open</option>
+                                <option value="done" ${pr.nextActionStatus==='done'?'selected':''}>Completed / Done</option>
+                            </select>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:var(--fs-xs);font-weight:600;">
+                                <input type="checkbox" id="pjpFavorite" ${pr.favorite?'checked':''}>
+                                <span>⭐ Star as Favorite / Priority Contact</span>
+                            </label>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Relationship & Private Notes</label>
+                            <textarea id="pjpNotes" rows="3" placeholder="Private notes about background, interests, conversation topics...">${escapeHtml(pr.notes || '')}</textarea>
+                        </div>
+                    </div>
+
+                    ${(p.phones && p.phones.length) || (p.emails && p.emails.length) ? `
+                        <div style="margin-top:12px;padding:10px 12px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-md);">
+                            <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:6px;">Contact Channels</div>
+                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                ${(p.phones||[]).map(ph=>`<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a></span>`).join('')}
+                                ${(p.emails||[]).map(em=>`<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a></span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+                        <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">📜 View History (${p.encounters.length})</button>
+                        <div style="display:flex;gap:8px;">
+                            <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
+                            <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">💾 Save Profile</button>
+                        </div>
+                    </div>
+                `;
+
+                modal.classList.add('active');
+
+                document.getElementById('btnPjpCancel')?.addEventListener('click', closePjProfile);
+                document.getElementById('btnPjpSave')?.addEventListener('click', () => {
+                    const name = (document.getElementById('pjpName')?.value || '').trim();
+                    if(!name){ alert('Name cannot be empty.'); return; }
+                    const prObj = pjProfile(p.personId);
+                    prObj.displayName = name;
+                    prObj.nickname = (document.getElementById('pjpNickname')?.value || '').trim();
+                    prObj.relation = (document.getElementById('pjpRelation')?.value || '').trim();
+                    prObj.birthday = document.getElementById('pjpBirthday')?.value || '';
+                    prObj.contactFrequencyDays = Math.max(0, parseInt(document.getElementById('pjpFreq')?.value, 10) || 0);
+                    prObj.priority = document.getElementById('pjpPriority')?.value || 'normal';
+                    prObj.nextAction = (document.getElementById('pjpNextAction')?.value || '').trim();
+                    prObj.nextActionDue = document.getElementById('pjpNextDue')?.value || '';
+                    prObj.nextActionStatus = document.getElementById('pjpNextStatus')?.value || 'open';
+                    prObj.favorite = !!document.getElementById('pjpFavorite')?.checked;
+                    prObj.notes = (document.getElementById('pjpNotes')?.value || '').trim();
+                    savePjMeta();
+                    invalidatePjCache();
+                    closePjProfile();
+                    renderPjCenter();
+                    if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+                    showToast('✓ Profile saved');
+                });
+                document.getElementById('btnPjpTimeline')?.addEventListener('click', () => {
+                    closePjProfile();
+                    selectedPersonId = p.personId;
+                    openPjDirectory();
+                });
+            }
+
+            function closePjProfile(){
+                const modal = document.getElementById('pjProfileModal');
+                if(modal) modal.classList.remove('active');
+            }
+
+            // Relationship Center Main Rendering
             function renderPjCenter(){
                 const body = document.getElementById('pjCenterBody');
                 if(!body) return;
                 document.querySelectorAll('.pj-center-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === pjActiveTab));
                 const people = pjAllPeople();
                 const today = getTodayStr();
+                const fus = pjAllFollowUps();
+                const overdue = fus.filter(x => x.status !== 'done' && x.due && x.due < today);
+                const fusDueToday = fus.filter(x => x.status !== 'done' && x.due === today);
+                const fusDue = fus.filter(x => x.status !== 'done' && x.due && x.due <= today);
+                const birthdays30 = pjUpcomingBirthdays(31);
+                const activePeople = people.filter(p => p._status.label === 'Active');
+                const neglectedPeople = people.filter(p => p.encounters.length && p._status.days >= Number(pjMeta.notContactedDays||60));
+                const todayData = getPjDayData(today);
+                const encToday = (todayData && Array.isArray(todayData.encounters)) ? todayData.encounters : [];
+                const priorityPeople = people.filter(p => p._profile.favorite || p._profile.priority === 'high').sort((a,b) => b._health - a._health);
 
                 if(pjActiveTab === 'dashboard'){
-                    const fus = [];
-                    people.forEach(p => {
-                        (p.encounters||[]).forEach(e => { if(e.followUp) fus.push({ p, due: e.followUp, text: e.followUpAction||'Follow up' }); });
-                    });
-                    const overdue = fus.filter(x => x.due < today);
                     body.innerHTML = `
-                        <div class="pj-center-grid">
-                            <div class="pj-center-stat" data-tab="people"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Total People</div><div class="pj-center-stat-val">${people.length}</div></div>
-                            <div class="pj-center-stat" data-tab="followups"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Follow-ups Due</div><div class="pj-center-stat-val" style="color:var(--warning);">${fus.filter(x=>x.due<=today).length}</div></div>
-                            <div class="pj-center-stat"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Overdue</div><div class="pj-center-stat-val" style="color:var(--danger);">${overdue.length}</div></div>
-                            <div class="pj-center-stat"><div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Active Network</div><div class="pj-center-stat-val" style="color:var(--success);">${people.filter(p=>p._status.label==='Active').length}</div></div>
+                        <!-- Quick Actions Bar -->
+                        <div class="pj-toolbar-row" style="justify-content:space-between;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <span style="font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;">Quick Actions:</span>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddPerson" style="background:var(--accent);color:#fff;font-weight:700;">+ Add Person</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddFu">⏰ Schedule Follow-up</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddBday">🎂 Add Birthday</button>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <button type="button" class="pj-toolbar-pill" id="btnDashDirectory">👥 People Directory</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashDuplicates">🔀 Merge Duplicates</button>
+                            </div>
                         </div>
-                        <div style="margin-top:16px;border:1px solid var(--border);border-radius:var(--r-lg);padding:14px;background:var(--surface-2);">
-                            <div style="font-size:var(--fs-sm);font-weight:700;margin-bottom:8px;">Priority / Favorite Contacts</div>
-                            <div style="display:flex;flex-direction:column;gap:6px;">
-                                ${people.filter(p=>p._profile.favorite||p._profile.priority==='high').map(p=>`
-                                    <div class="pj-center-row" data-center-person="${escapeHtml(p.personId)}">
-                                        <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(p.name))}</div>
-                                        <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
-                                        <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} interactions</div>
+
+                        <!-- 4 Stat Cards -->
+                        <div class="pj-center-grid">
+                            <div class="pj-center-stat" data-tab="people" title="Click to view all people">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Total People</div>
+                                <div class="pj-center-stat-val">${people.length}</div>
+                            </div>
+                            <div class="pj-center-stat" data-tab="people" data-filter="today" title="Click to view encounters today">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Met Today</div>
+                                <div class="pj-center-stat-val" style="color:var(--accent);">${encToday.length}</div>
+                            </div>
+                            <div class="pj-center-stat" data-tab="followups" title="Click to view follow-ups due">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Follow-ups Due</div>
+                                <div class="pj-center-stat-val" style="color:${fusDue.length ? 'var(--warning)' : 'var(--text)'};">${fusDue.length}</div>
+                            </div>
+                            <div class="pj-center-stat" data-tab="people" data-filter="neglected" title="Not contacted in ${pjMeta.notContactedDays||60} days">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Needs Contact (60d+)</div>
+                                <div class="pj-center-stat-val" style="color:${neglectedPeople.length ? 'var(--danger)' : 'var(--success)'};">${neglectedPeople.length}</div>
+                            </div>
+                        </div>
+
+                        <!-- 2-Column Dashboard Sections -->
+                        <div class="pj-two-col">
+                            <!-- Left Column -->
+                            <div style="display:flex;flex-direction:column;gap:14px;">
+                                <!-- Today's Encounters -->
+                                <div class="pj-card">
+                                    <div class="pj-card-head">
+                                        <span>📅 Today's Interactions (${encToday.length})</span>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashLogToday">+ Log Person</button>
                                     </div>
-                                `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);">No priority contacts yet. Star contacts in their profile.</div>'}
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        ${encToday.map(e => `
+                                            <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(e.personId||normalizePjName(e.name))}">
+                                                <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(e.name))}</div>
+                                                <div style="flex:1;min-width:0;">
+                                                    <div><strong>${escapeHtml(e.name)}</strong> ${e.venue?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">@ ${escapeHtml(e.venue)}</span>`:''}</div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${escapeHtml(e.summary||e.notes||'Interaction logged today')}</div>
+                                                </div>
+                                                <span style="font-size:0.8rem;color:var(--accent);">↗</span>
+                                            </div>
+                                        `).join('') || `
+                                            <div class="pj-empty-card">
+                                                <div style="font-size:1.6rem;opacity:.6;">📅</div>
+                                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No interactions recorded today yet.</div>
+                                                <button type="button" class="pj-toolbar-pill" id="btnDashLogTodayEmpty" style="background:var(--accent);color:#fff;">+ Log Person Met Today</button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+
+                                <!-- Overdue & Due Follow-ups -->
+                                <div class="pj-card">
+                                    <div class="pj-card-head">
+                                        <span>⏰ Overdue & Pending Follow-ups (${overdue.length + fusDueToday.length})</span>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashScheduleFu">+ Schedule</button>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        ${(overdue.concat(fusDueToday)).slice(0, 6).map(f => `
+                                            <div class="pj-center-row pj-card-interactive" data-jump-date="${escapeAttr(f.due||'')}">
+                                                <div style="font-size:1.1rem;">${f.due < today ? '🚨' : '⏰'}</div>
+                                                <div style="flex:1;min-width:0;">
+                                                    <div><strong>${escapeHtml(f.p.name)}</strong> · ${escapeHtml(f.text)}</div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${f.due < today ? `Overdue: ${f.due}` : 'Due Today'}</div>
+                                                </div>
+                                                <span class="pj-badge ${f.due < today ? 'bad' : 'accent'}">${f.due||'Today'}</span>
+                                            </div>
+                                        `).join('') || `
+                                            <div class="pj-empty-card">
+                                                <div style="font-size:1.6rem;opacity:.6;">⏰</div>
+                                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No follow-ups due right now!</div>
+                                                <button type="button" class="pj-toolbar-pill" id="btnDashAddFuEmpty">+ Schedule a Follow-up</button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div style="display:flex;flex-direction:column;gap:14px;">
+                                <!-- Upcoming Birthdays -->
+                                <div class="pj-card">
+                                    <div class="pj-card-head">
+                                        <span>🎂 Upcoming Birthdays (Next 31 Days) (${birthdays30.length})</span>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashAddBdayTop">+ Add Birthday</button>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        ${birthdays30.slice(0, 6).map(b => `
+                                            <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(b.p.personId)}">
+                                                <div style="font-size:1.15rem;">🎂</div>
+                                                <div style="flex:1;min-width:0;">
+                                                    <div><strong>${escapeHtml(b.p.name)}</strong> ${(b.p.profile?.relation||b.p._profile.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(b.p.profile?.relation||b.p._profile.relation)})</span>`:''}</div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${escapeHtml(b.dateStr)}${b.nextAge ? ` · Turning ${b.nextAge}` : ''}</div>
+                                                </div>
+                                                <span class="pj-badge ${b.diff===0?'good':b.diff<=7?'warn':'accent'}">${b.diff===0?'🎉 Today!':b.diff===1?'Tomorrow':`In ${b.diff}d`}</span>
+                                            </div>
+                                        `).join('') || `
+                                            <div class="pj-empty-card">
+                                                <div style="font-size:1.6rem;opacity:.6;">🎂</div>
+                                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No birthdays recorded for the next 31 days.</div>
+                                                <button type="button" class="pj-toolbar-pill" id="btnDashAddBdayEmpty">+ Add Birthday</button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
+
+                                <!-- Priority / Favorite Contacts -->
+                                <div class="pj-card">
+                                    <div class="pj-card-head">
+                                        <span>⭐ Priority & Favorite Contacts (${priorityPeople.length})</span>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashViewDir">Directory ↗</button>
+                                    </div>
+                                    <div style="display:flex;flex-direction:column;gap:6px;">
+                                        ${priorityPeople.slice(0, 8).map(p => `
+                                            <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
+                                                <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                                <div style="flex:1;min-width:0;">
+                                                    <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s) · Health: ${p._health}%</div>
+                                                </div>
+                                                <span style="color:#f59e0b;font-size:0.9rem;">★</span>
+                                            </div>
+                                        `).join('') || `
+                                            <div class="pj-empty-card">
+                                                <div style="font-size:1.6rem;opacity:.6;">⭐</div>
+                                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No priority contacts starred yet.</div>
+                                                <button type="button" class="pj-toolbar-pill" id="btnDashStarEmpty">⭐ Browse Directory to Star Contacts</button>
+                                            </div>
+                                        `}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     `;
+
+                    // Bind Dashboard events
+                    document.getElementById('btnDashAddPerson')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnDashAddFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
+                    document.getElementById('btnDashScheduleFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
+                    document.getElementById('btnDashAddFuEmpty')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
+                    document.getElementById('btnDashAddBday')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
+                    document.getElementById('btnDashAddBdayTop')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
+                    document.getElementById('btnDashAddBdayEmpty')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
+                    document.getElementById('btnDashDirectory')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
+                    document.getElementById('btnDashViewDir')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
+                    document.getElementById('btnDashStarEmpty')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
+                    document.getElementById('btnDashDuplicates')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
+                    document.getElementById('btnDashLogToday')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnDashLogTodayEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+
                 } else if(pjActiveTab === 'people'){
+                    let filtered = people;
+                    if(pjCenterPeopleFilter === 'favorites') filtered = filtered.filter(p => p._profile.favorite);
+                    else if(pjCenterPeopleFilter === 'active') filtered = filtered.filter(p => p._status.label === 'Active');
+                    else if(pjCenterPeopleFilter === 'cooling') filtered = filtered.filter(p => p._status.label === 'Cooling');
+                    else if(pjCenterPeopleFilter === 'neglected') filtered = filtered.filter(p => p.encounters.length && p._status.days >= Number(pjMeta.notContactedDays||60));
+                    else if(pjCenterPeopleFilter === 'contacts') filtered = filtered.filter(p => p.isContact);
+                    else if(pjCenterPeopleFilter === 'encounters') filtered = filtered.filter(p => p.encounters.length > 0);
+                    else if(pjCenterPeopleFilter === 'today') filtered = filtered.filter(p => encToday.some(e => (e.personId||normalizePjName(e.name)) === p.personId));
+
+                    if(pjCenterPeopleSearch.trim()){
+                        const q = pjCenterPeopleSearch.trim().toLowerCase();
+                        filtered = filtered.filter(p => [p.name, p.nickname, p.profile?.relation, p._profile.relation, (p.phones||[]).join(' '), (p.emails||[]).join(' '), (p.tags||[]).join(' ')].join(' ').toLowerCase().includes(q));
+                    }
+
+                    const sorted = pjSortPeopleList(filtered, pjCenterPeopleSort);
+
                     body.innerHTML = `
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                            ${people.map(p=>`
-                                <div class="pj-center-row" data-center-person="${escapeHtml(p.personId)}">
-                                    <div class="pj-encounter-avatar" style="width:30px;height:30px;font-size:0.7rem;">${escapeHtml(initialsOfPj(p.name))}</div>
-                                    <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
-                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s)</div>
+                        <!-- Toolbar -->
+                        <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;justify-content:space-between;">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <select id="pjCenterSort" class="pj-select" style="font-size:var(--fs-xs);padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--border);">
+                                    <option value="recent" ${pjCenterPeopleSort==='recent'?'selected':''}>Recently met</option>
+                                    <option value="frequency" ${pjCenterPeopleSort==='frequency'?'selected':''}>Most interactions</option>
+                                    <option value="followup" ${pjCenterPeopleSort==='followup'?'selected':''}>Next follow-up</option>
+                                    <option value="birthday" ${pjCenterPeopleSort==='birthday'?'selected':''}>Next birthday</option>
+                                    <option value="name" ${pjCenterPeopleSort==='name'?'selected':''}>Name (A–Z)</option>
+                                    <option value="firstMet" ${pjCenterPeopleSort==='firstMet'?'selected':''}>First met</option>
+                                    <option value="favorite" ${pjCenterPeopleSort==='favorite'?'selected':''}>Favorites first</option>
+                                </select>
+                                <input type="text" id="pjCenterPeopleSearchInput" placeholder="Filter people..." value="${escapeAttr(pjCenterPeopleSearch)}" style="font-size:var(--fs-xs);padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--border);width:160px;">
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                <button type="button" class="btn-primary" id="btnPeopleAdd" style="font-size:var(--fs-xs);padding:5px 12px;">+ Add Person</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsv">📇 Import CSV</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleMergeDups">🔀 Merge</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleExportCsv">⬇ CSV</button>
+                            </div>
+                        </div>
+
+                        <!-- Filter Pills -->
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='all'?'active':''}" data-p-filter="all">All (${people.length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='favorites'?'active':''}" data-p-filter="favorites">⭐ Favorites (${people.filter(p=>p._profile.favorite).length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='active'?'active':''}" data-p-filter="active">🟢 Active (${activePeople.length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='cooling'?'active':''}" data-p-filter="cooling">🟡 Cooling (${people.filter(p=>p._status.label==='Cooling').length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='neglected'?'active':''}" data-p-filter="neglected">🔴 Neglected (${neglectedPeople.length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='contacts'?'active':''}" data-p-filter="contacts">📇 Contacts (${people.filter(p=>p.isContact).length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='encounters'?'active':''}" data-p-filter="encounters">👥 Met (${people.filter(p=>p.encounters.length).length})</button>
+                        </div>
+
+                        <!-- People Cards List -->
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${sorted.map(p => {
+                                const pr = p._profile;
+                                const firstPhone = (p.phones && p.phones.length) ? p.phones[0] : '';
+                                const nextFu = pr.nextActionDue || (p.encounters||[]).find(e=>e.followUp)?.followUp || '';
+                                return `
+                                    <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <button type="button" class="pj-star-btn ${pr.favorite?'active':''}" data-toggle-fav="${escapeAttr(p.personId)}" title="Toggle Favorite">★</button>
+                                            <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:34px;height:34px;font-size:0.75rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                        </div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                <strong>${escapeHtml(p.name)}</strong>
+                                                <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
+                                                ${(p.profile?.relation||pr.relation) ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(p.profile?.relation||pr.relation)})</span>` : ''}
+                                            </div>
+                                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                ${firstPhone ? `<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">📞 ${escapeHtml(firstPhone)}</span>` : ''}
+                                                <span>${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'No interactions recorded'}</span>
+                                                <span>· ${p.encounters.length} met</span>
+                                                ${nextFu ? `<span class="pj-badge warn">⏰ Next: ${nextFu}</span>` : ''}
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">⏰ Follow-up</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || `
+                                <div class="pj-empty-card">
+                                    <div style="font-size:1.8rem;opacity:.5;">👥</div>
+                                    <div style="font-size:var(--fs-sm);font-weight:600;">No people match this view.</div>
+                                    <div style="display:flex;gap:8px;margin-top:4px;">
+                                        <button type="button" class="btn-primary" id="btnPeopleAddEmpty" style="padding:6px 14px;">+ Add Person</button>
+                                        <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsvEmpty">📇 Import Google Contacts CSV</button>
+                                    </div>
                                 </div>
-                            `).join('')}
+                            `}
                         </div>
                     `;
+
+                    // Bind People Tab events
+                    document.getElementById('pjCenterSort')?.addEventListener('change', e => { pjCenterPeopleSort = e.target.value; renderPjCenter(); });
+                    document.getElementById('pjCenterPeopleSearchInput')?.addEventListener('input', e => { pjCenterPeopleSearch = e.target.value; renderPjCenter(); });
+                    document.getElementById('btnPeopleAdd')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnPeopleAddEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnPeopleImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
+                    document.getElementById('btnPeopleImportCsvEmpty')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
+                    document.getElementById('btnPeopleMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
+                    document.getElementById('btnPeopleExportCsv')?.addEventListener('click', exportPjPeopleCSV);
+
                 } else if(pjActiveTab === 'followups'){
-                    const fus = [];
-                    people.forEach(p => {
-                        (p.encounters||[]).forEach(e => { if(e.followUp) fus.push({ p, due: e.followUp, text: e.followUpAction||'Follow up' }); });
-                    });
-                    fus.sort((a,b)=>a.due.localeCompare(b.due));
+                    let filtered = fus;
+                    if(pjFuFilter === 'overdue') filtered = fus.filter(x => x.status !== 'done' && x.due && x.due < today);
+                    else if(pjFuFilter === 'today') filtered = fus.filter(x => x.status !== 'done' && x.due === today);
+                    else if(pjFuFilter === 'upcoming') filtered = fus.filter(x => x.status !== 'done' && x.due > today);
+                    else if(pjFuFilter === 'done') filtered = fus.filter(x => x.status === 'done');
+                    else filtered = fus.filter(x => x.status !== 'done'); // default: all active
+
                     body.innerHTML = `
-                        <div style="display:flex;flex-direction:column;gap:6px;">
-                            ${fus.map(f=>`
-                                <div class="pj-center-row" data-jump-date="${escapeHtml(f.due)}">
-                                    <div style="font-size:1.1rem;">⏰</div>
-                                    <div><strong>${escapeHtml(f.p.name)}</strong> · ${escapeHtml(f.text)}</div>
-                                    <div><span class="pj-badge ${f.due<today?'bad':f.due===today?'accent':'warn'}">${f.due}</span></div>
+                        <!-- Toolbar -->
+                        <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;justify-content:space-between;">
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='all'?'active':''}" data-fu-filter="all">Pending (${fus.filter(x=>x.status!=='done').length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='overdue'?'active':''}" data-fu-filter="overdue">🚨 Overdue (${overdue.length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='today'?'active':''}" data-fu-filter="today">📅 Today (${fusDueToday.length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='upcoming'?'active':''}" data-fu-filter="upcoming">⏳ Upcoming (${fus.filter(x=>x.status!=='done'&&x.due>today).length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='done'?'active':''}" data-fu-filter="done">✓ Completed (${fus.filter(x=>x.status==='done').length})</button>
+                            </div>
+                            <button type="button" class="btn-primary" id="btnToggleFuForm" style="font-size:var(--fs-xs);padding:6px 14px;">+ Schedule Follow-up</button>
+                        </div>
+
+                        <!-- Schedule Follow-up Form -->
+                        ${pjShowFuForm ? `
+                            <div class="pj-card" style="margin-bottom:14px;border:1.5px solid var(--accent-border);background:var(--card-bg);">
+                                <div class="pj-card-head">
+                                    <span>⏰ Schedule New Follow-up</span>
+                                    <button type="button" class="pj-modal-close" id="btnCancelFu" style="font-size:1rem;">✕</button>
                                 </div>
-                            `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);padding:20px;text-align:center;">No follow-ups recorded.</div>'}
+                                <div class="pj-form-grid">
+                                    <div class="pj-form-field">
+                                        <label>Select Contact</label>
+                                        <select id="pjNewFuPerson">
+                                            <option value="">-- Choose Contact --</option>
+                                            ${people.map(p => `<option value="${escapeAttr(p.personId)}" ${p.personId===pjPrefillFuPersonId?'selected':''}>${escapeHtml(p.name)} (${p.phones[0]||'contact'})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="pj-form-field">
+                                        <label>Due Date</label>
+                                        <input type="date" id="pjNewFuDate" value="${today}">
+                                    </div>
+                                    <div class="pj-form-field full">
+                                        <label>Action / Commitment Description</label>
+                                        <input type="text" id="pjNewFuAction" placeholder="e.g. Call to discuss contract, Send meeting notes, Check in on family...">
+                                    </div>
+                                    <div class="pj-form-field">
+                                        <label>Priority</label>
+                                        <select id="pjNewFuPriority">
+                                            <option value="normal">Normal</option>
+                                            <option value="high">High Priority</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                                    <button type="button" class="pj-toolbar-pill" id="btnCancelFu2">Cancel</button>
+                                    <button type="button" class="btn-primary" id="btnSaveFu" style="padding:7px 16px;">💾 Save Follow-up</button>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Follow-ups List -->
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${filtered.map(f => {
+                                const isDone = f.status === 'done';
+                                return `
+                                    <div class="pj-center-row" style="cursor:default;">
+                                        <div style="font-size:1.3rem;">${isDone ? '✓' : (f.due && f.due < today ? '🚨' : f.due === today ? '⏰' : '⏳')}</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                <strong style="${isDone?'text-decoration:line-through;color:var(--text-secondary);':''}">${escapeHtml(f.p.name)}</strong>
+                                                <span class="pj-badge ${isDone?'good':(f.due<today?'bad':f.due===today?'accent':'warn')}">
+                                                    ${isDone ? 'Completed' : (f.due < today ? `Overdue: ${f.due}` : f.due === today ? 'Due Today' : `Due: ${f.due||'No date'}`)}
+                                                </span>
+                                            </div>
+                                            <div style="font-size:var(--fs-xs);margin-top:3px;font-weight:600;color:var(--text);">${escapeHtml(f.text)}</div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            ${!isDone ? `
+                                                <button type="button" class="pj-toolbar-pill" data-mark-fu-done="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" style="background:var(--success);color:#fff;" title="Mark Completed">✓ Done</button>
+                                            ` : `
+                                                <button type="button" class="pj-toolbar-pill" data-reopen-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Reopen Follow-up">↺ Reopen</button>
+                                            `}
+                                            ${f.due ? `<button type="button" class="pj-toolbar-pill" data-jump-date="${escapeAttr(f.due)}" title="Jump to date in calendar">📅 Calendar</button>` : ''}
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(f.personId)}">👤 Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-clear-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Clear this follow-up">✕</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || `
+                                <div class="pj-empty-card">
+                                    <div style="font-size:1.8rem;opacity:.5;">⏰</div>
+                                    <div style="font-size:var(--fs-sm);font-weight:600;">No follow-ups in this view!</div>
+                                    <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Never drop the ball on important commitments and check-ins.</div>
+                                    <button type="button" class="btn-primary" id="btnScheduleFuEmpty" style="padding:7px 16px;margin-top:4px;">+ Schedule a Follow-up</button>
+                                </div>
+                            `}
                         </div>
                     `;
-                } else {
-                    body.innerHTML = `<div style="padding:20px;color:var(--text-secondary);font-size:var(--fs-xs);text-align:center;">Section active. Search, manage contacts, and review analytics directly from this panel.</div>`;
+
+                    // Bind Follow-up events
+                    document.getElementById('btnToggleFuForm')?.addEventListener('click', () => { pjShowFuForm = !pjShowFuForm; renderPjCenter(); });
+                    document.getElementById('btnCancelFu')?.addEventListener('click', () => { pjShowFuForm = false; renderPjCenter(); });
+                    document.getElementById('btnCancelFu2')?.addEventListener('click', () => { pjShowFuForm = false; renderPjCenter(); });
+                    document.getElementById('btnScheduleFuEmpty')?.addEventListener('click', () => { pjShowFuForm = true; renderPjCenter(); });
+                    document.getElementById('btnSaveFu')?.addEventListener('click', () => {
+                        const pid = document.getElementById('pjNewFuPerson')?.value;
+                        const action = (document.getElementById('pjNewFuAction')?.value || '').trim();
+                        const due = document.getElementById('pjNewFuDate')?.value || '';
+                        const prio = document.getElementById('pjNewFuPriority')?.value || 'normal';
+                        if(!pid){ alert('Please select a contact.'); return; }
+                        if(!action){ alert('Please enter an action description.'); return; }
+                        const pr = pjProfile(pid);
+                        pr.nextAction = action;
+                        pr.nextActionDue = due;
+                        pr.nextActionStatus = 'open';
+                        pr.priority = prio;
+                        savePjMeta();
+                        invalidatePjCache();
+                        pjShowFuForm = false;
+                        renderPjCenter();
+                        showToast('✓ Follow-up scheduled');
+                    });
+
+                } else if(pjActiveTab === 'birthdays'){
+                    const upcomingBdays = pjUpcomingBirthdays(pjBdayHorizon);
+
+                    body.innerHTML = `
+                        <!-- Toolbar -->
+                        <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;justify-content:space-between;">
+                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                <button type="button" class="pj-toolbar-pill ${pjBdayHorizon===30?'active':''}" data-bday-horizon="30">Next 30 Days (${pjUpcomingBirthdays(31).length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjBdayHorizon===90?'active':''}" data-bday-horizon="90">Next 90 Days (${pjUpcomingBirthdays(91).length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjBdayHorizon===365?'active':''}" data-bday-horizon="365">All Year (${pjUpcomingBirthdays(366).length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjBdayHorizon==='all'?'active':''}" data-bday-horizon="all">All Saved (${pjUpcomingBirthdays('all').length})</button>
+                            </div>
+                            <button type="button" class="btn-primary" id="btnToggleBdayForm" style="font-size:var(--fs-xs);padding:6px 14px;">+ Add / Set Birthday</button>
+                        </div>
+
+                        <!-- Add Birthday Form -->
+                        ${pjShowBdayForm ? `
+                            <div class="pj-card" style="margin-bottom:14px;border:1.5px solid var(--accent-border);background:var(--card-bg);">
+                                <div class="pj-card-head">
+                                    <span>🎂 Add / Set Birthday for a Contact</span>
+                                    <button type="button" class="pj-modal-close" id="btnCancelBday" style="font-size:1rem;">✕</button>
+                                </div>
+                                <div class="pj-form-grid">
+                                    <div class="pj-form-field">
+                                        <label>Select Contact</label>
+                                        <select id="pjNewBdayPerson">
+                                            <option value="">-- Choose Contact --</option>
+                                            ${people.map(p => `<option value="${escapeAttr(p.personId)}" ${p.personId===pjPrefillBdayPersonId?'selected':''}>${escapeHtml(p.name)} (${p.phones[0]||'contact'})</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="pj-form-field">
+                                        <label>Birthday Date</label>
+                                        <input type="date" id="pjNewBdayDate">
+                                    </div>
+                                    <div class="pj-form-field full">
+                                        <label>Notes / Gift Ideas</label>
+                                        <input type="text" id="pjNewBdayNotes" placeholder="e.g. Loves reading, favorite restaurant, family celebration...">
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
+                                    <button type="button" class="pj-toolbar-pill" id="btnCancelBday2">Cancel</button>
+                                    <button type="button" class="btn-primary" id="btnSaveBday" style="padding:7px 16px;">💾 Save Birthday</button>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Birthdays List -->
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${upcomingBdays.map(b => `
+                                <div class="pj-center-row" style="cursor:default;">
+                                    <div style="font-size:1.5rem;">🎂</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                            <strong>${escapeHtml(b.p.name)}</strong>
+                                            ${(b.p.profile?.relation||b.p._profile?.relation) ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(b.p.profile?.relation||b.p._profile.relation)})</span>` : ''}
+                                            <span class="pj-badge ${b.diff===0?'good':b.diff<=7?'warn':'accent'}">
+                                                ${b.diff===0?'🎉 Today!':b.diff===1?'🎂 Tomorrow!':`In ${b.diff} days`}
+                                            </span>
+                                        </div>
+                                        <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
+                                            Birthday: <strong>${escapeHtml(b.dateStr)}</strong>
+                                            ${b.nextAge ? ` · Turning ${b.nextAge}` : ''}
+                                            ${b.p._profile?.notes ? ` · Note: ${escapeHtml(b.p._profile.notes)}` : ''}
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;">
+                                        <button type="button" class="pj-toolbar-pill" data-open-bday-edit="${escapeAttr(b.p.personId)}">✏️ Edit</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(b.p.personId)}">👤 Profile</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(b.p.personId)}" style="background:var(--accent);color:#fff;" title="Log interaction today">+ Wish / Meet</button>
+                                    </div>
+                                </div>
+                            `).join('') || `
+                                <div class="pj-empty-card">
+                                    <div style="font-size:1.8rem;opacity:.5;">🎂</div>
+                                    <div style="font-size:var(--fs-sm);font-weight:600;">No birthdays recorded for this period.</div>
+                                    <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Add birthdays for friends, family, and colleagues so you never miss their day.</div>
+                                    <button type="button" class="btn-primary" id="btnAddBdayEmpty" style="padding:7px 16px;margin-top:4px;">+ Add Birthday for a Contact</button>
+                                </div>
+                            `}
+                        </div>
+                    `;
+
+                    // Bind Birthday events
+                    document.getElementById('btnToggleBdayForm')?.addEventListener('click', () => { pjShowBdayForm = !pjShowBdayForm; renderPjCenter(); });
+                    document.getElementById('btnCancelBday')?.addEventListener('click', () => { pjShowBdayForm = false; renderPjCenter(); });
+                    document.getElementById('btnCancelBday2')?.addEventListener('click', () => { pjShowBdayForm = false; renderPjCenter(); });
+                    document.getElementById('btnAddBdayEmpty')?.addEventListener('click', () => { pjShowBdayForm = true; renderPjCenter(); });
+                    document.getElementById('btnSaveBday')?.addEventListener('click', () => {
+                        const pid = document.getElementById('pjNewBdayPerson')?.value;
+                        const bdate = document.getElementById('pjNewBdayDate')?.value;
+                        const notes = (document.getElementById('pjNewBdayNotes')?.value || '').trim();
+                        if(!pid){ alert('Please choose a contact.'); return; }
+                        if(!bdate){ alert('Please select a birthday date.'); return; }
+                        const pr = pjProfile(pid);
+                        pr.birthday = bdate;
+                        if(notes) pr.notes = [pr.notes, notes].filter(Boolean).join('\n');
+                        savePjMeta();
+                        invalidatePjCache();
+                        pjShowBdayForm = false;
+                        renderPjCenter();
+                        showToast('✓ Birthday saved');
+                    });
+
+                } else if(pjActiveTab === 'analytics'){
+                    const allEncs = [];
+                    people.forEach(p => (p.encounters||[]).forEach(e => allEncs.push({ p, e })));
+                    const topicMap = new Map(), placeMap = new Map(), yearMap = new Map();
+                    allEncs.forEach(x => {
+                        String(x.e.topics||'').split(/[,;|]/).map(v=>v.trim().toLowerCase()).filter(Boolean).forEach(v=>topicMap.set(v, (topicMap.get(v)||0)+1));
+                        [x.e.city, x.e.venue].filter(Boolean).forEach(v=>placeMap.set(v, (placeMap.get(v)||0)+1));
+                        const y = String(x.e._date||'').slice(0,4);
+                        if(y) yearMap.set(y, (yearMap.get(y)||0)+1);
+                    });
+                    const topItems = (m, limit=10) => Array.from(m.entries()).sort((a,b)=>b[1]-a[1]).slice(0,limit);
+                    const topMet = people.slice().filter(p=>p.encounters.length).sort((a,b)=>b.encounters.length - a.encounters.length).slice(0,10);
+                    const withPhoneCount = people.filter(p=>p.phones&&p.phones.length).length;
+                    const withEmailCount = people.filter(p=>p.emails&&p.emails.length).length;
+
+                    body.innerHTML = `
+                        <!-- 6 Stat Metric Cards -->
+                        <div class="pj-center-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:14px;">
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Total Interactions</div>
+                                <div class="pj-center-stat-val" style="color:var(--accent);">${allEncs.length}</div>
+                            </div>
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">People Met</div>
+                                <div class="pj-center-stat-val">${people.filter(p=>p.encounters.length).length}</div>
+                            </div>
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Active Network</div>
+                                <div class="pj-center-stat-val" style="color:var(--success);">${Math.round((activePeople.length/(people.length||1))*100)}%</div>
+                            </div>
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Avg Met / Person</div>
+                                <div class="pj-center-stat-val">${people.length?(allEncs.length/people.length).toFixed(1):'0'}</div>
+                            </div>
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">With Phone Number</div>
+                                <div class="pj-center-stat-val">${Math.round((withPhoneCount/(people.length||1))*100)}%</div>
+                            </div>
+                            <div class="pj-center-stat">
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">With Email</div>
+                                <div class="pj-center-stat-val">${Math.round((withEmailCount/(people.length||1))*100)}%</div>
+                            </div>
+                        </div>
+
+                        <!-- Action Bar -->
+                        <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;justify-content:space-between;">
+                            <div style="font-size:var(--fs-xs);font-weight:700;color:var(--text);">Network Health Actions:</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsActive">🟢 View Active Network (${activePeople.length})</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsNeglected">🔴 Review Neglected (${neglectedPeople.length})</button>
+                                <button type="button" class="btn-primary" id="btnAnalyticsLog">+ Log New Interaction</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsExportCsv">⬇ Export CSV Report</button>
+                            </div>
+                        </div>
+
+                        <!-- 2-Column Analytics Breakdown -->
+                        <div class="pj-two-col">
+                            <!-- Most Met Contacts -->
+                            <div class="pj-card">
+                                <div class="pj-card-head">
+                                    <span>🏆 Top Most Connected Contacts</span>
+                                    <span style="font-size:var(--fs-2xs);color:var(--text-secondary);">By interactions</span>
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    ${topMet.map(p => `
+                                        <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
+                                            <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                            <div style="flex:1;min-width:0;">
+                                                <div style="display:flex;align-items:center;justify-content:space-between;">
+                                                    <strong>${escapeHtml(p.name)}</strong>
+                                                    <span class="pj-badge accent">${p.encounters.length} met</span>
+                                                </div>
+                                                <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                                                    <div class="pj-healthbar-track"><div class="pj-healthbar-fill" style="width:${p._health}%;background:var(--accent);"></div></div>
+                                                    <span style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p._health}%</span>
+                                                </div>
+                                            </div>
+                                            <span style="font-size:0.8rem;color:var(--text-secondary);">↗</span>
+                                        </div>
+                                    `).join('') || '<div class="pj-empty-card">No interactions recorded yet.</div>'}
+                                </div>
+                            </div>
+
+                            <!-- Topics & Places -->
+                            <div style="display:flex;flex-direction:column;gap:14px;">
+                                <div class="pj-card">
+                                    <div class="pj-card-head">🏷️ Top Discussion Topics</div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                        ${topItems(topicMap, 12).map(t => `
+                                            <span class="pj-badge" style="font-size:var(--fs-xs);padding:4px 9px;">${escapeHtml(t[0])} <strong style="color:var(--accent);margin-left:4px;">${t[1]}</strong></span>
+                                        `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);">No topics recorded in notes.</div>'}
+                                    </div>
+                                </div>
+
+                                <div class="pj-card">
+                                    <div class="pj-card-head">📍 Top Venues & Places</div>
+                                    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                                        ${topItems(placeMap, 8).map(pl => `
+                                            <span class="pj-badge" style="font-size:var(--fs-xs);padding:4px 9px;">📍 ${escapeHtml(pl[0])} <strong style="color:var(--accent);margin-left:4px;">${pl[1]}</strong></span>
+                                        `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);">No venues recorded.</div>'}
+                                    </div>
+                                </div>
+
+                                <div class="pj-card">
+                                    <div class="pj-card-head">📅 Interactions by Year</div>
+                                    <table class="pj-table">
+                                        <thead><tr><th>Year</th><th style="text-align:right;">Interactions Logged</th></tr></thead>
+                                        <tbody>
+                                            ${topItems(yearMap, 5).map(y => `
+                                                <tr><td><strong>${escapeHtml(y[0])}</strong></td><td style="text-align:right;font-weight:700;color:var(--accent);">${y[1]}</td></tr>
+                                            `).join('') || '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);">No data yet.</td></tr>'}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Bind Analytics events
+                    document.getElementById('btnAnalyticsActive')?.addEventListener('click', () => { pjCenterPeopleFilter = 'active'; pjActiveTab = 'people'; renderPjCenter(); });
+                    document.getElementById('btnAnalyticsNeglected')?.addEventListener('click', () => { pjCenterPeopleFilter = 'neglected'; pjActiveTab = 'people'; renderPjCenter(); });
+                    document.getElementById('btnAnalyticsLog')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnAnalyticsExportCsv')?.addEventListener('click', exportPjPeopleCSV);
+
+                } else if(pjActiveTab === 'search'){
+                    let results = people;
+                    const c = pjAdvSearchCriteria;
+                    if(c.status) results = results.filter(p => p._status.label.toLowerCase() === c.status.toLowerCase());
+                    if(c.hasPhone) results = results.filter(p => p.phones && p.phones.length > 0);
+                    if(c.hasEmail) results = results.filter(p => p.emails && p.emails.length > 0);
+                    if(c.missingPhone) results = results.filter(p => !p.phones || !p.phones.length);
+                    if(c.hasFu) results = results.filter(p => p._profile.nextAction || (p.encounters||[]).some(e=>e.followUp));
+                    if(c.hasBday) results = results.filter(p => p._profile.birthday || p.profile?.birthday);
+                    if(c.favOnly) results = results.filter(p => p._profile.favorite);
+
+                    if(c.query.trim()){
+                        const q = c.query.trim().toLowerCase();
+                        results = results.filter(p => {
+                            const encHay = (p.encounters||[]).map(e => [e.summary, e.notes, e.topics, e.venue, e.city].join(' ')).join(' ');
+                            const hay = [p.name, p.nickname, p.profile?.relation, p._profile.relation, (p.phones||[]).join(' '), (p.emails||[]).join(' '), (p.tags||[]).join(' '), encHay].join(' ').toLowerCase();
+                            return hay.includes(q);
+                        });
+                    }
+
+                    body.innerHTML = `
+                        <!-- Search Query Builder -->
+                        <div class="pj-card" style="margin-bottom:14px;background:var(--card-bg);">
+                            <div class="pj-card-head">
+                                <span>🔍 Advanced People & Journal Search</span>
+                                <div style="display:flex;gap:6px;">
+                                    <button type="button" class="pj-toolbar-pill" id="btnResetAdvSearch">🔄 Reset Filters</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnSaveAdvView">💾 Save as View</button>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:10px;margin-bottom:12px;">
+                                <input type="text" id="pjAdvSearchInput" placeholder="Search keywords (e.g. coffee, project, Ravi, Bangalore, AI...)" value="${escapeAttr(c.query)}" style="flex:1;padding:8px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);font-size:var(--fs-sm);">
+                                <button type="button" class="btn-primary" id="btnExecuteAdvSearch" style="padding:8px 18px;">🔍 Search</button>
+                            </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                                <span style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Status:</span>
+                                <button type="button" class="pj-toolbar-pill ${c.status===''?'active':''}" data-adv-status="">All</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Active'?'active':''}" data-adv-status="Active">🟢 Active</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Cooling'?'active':''}" data-adv-status="Cooling">🟡 Cooling</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Neglected'?'active':''}" data-adv-status="Neglected">🔴 Neglected</button>
+                                <span style="margin:0 4px;color:var(--border);">|</span>
+                                <button type="button" class="pj-toolbar-pill ${c.hasPhone?'active':''}" id="btnAdvHasPhone">📞 Has Phone</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasEmail?'active':''}" id="btnAdvHasEmail">✉️ Has Email</button>
+                                <button type="button" class="pj-toolbar-pill ${c.missingPhone?'active':''}" id="btnAdvNoPhone">⚠️ Missing Phone</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasFu?'active':''}" id="btnAdvHasFu">⏰ Has Follow-up</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasBday?'active':''}" id="btnAdvHasBday">🎂 Has Birthday</button>
+                                <button type="button" class="pj-toolbar-pill ${c.favOnly?'active':''}" id="btnAdvFav">★ Favorites</button>
+                            </div>
+                        </div>
+
+                        <!-- Results Header -->
+                        <div style="font-size:var(--fs-xs);font-weight:700;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;">
+                            Search Results (${results.length} matches)
+                        </div>
+
+                        <!-- Results List -->
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${results.map(p => `
+                                <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
+                                    <div class="pj-encounter-avatar" style="width:34px;height:34px;font-size:0.75rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                            <strong>${escapeHtml(p.name)}</strong>
+                                            <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
+                                            ${(p.profile?.relation||p._profile.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(p.profile?.relation||p._profile.relation)})</span>`:''}
+                                        </div>
+                                        <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
+                                            ${p.phones[0] ? `📞 ${escapeHtml(p.phones[0])} · ` : ''}
+                                            ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} · ` : 'Not met yet · '}
+                                            ${p.encounters.length} encounter(s)
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:6px;">
+                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}">+ Meet</button>
+                                    </div>
+                                </div>
+                            `).join('') || `
+                                <div class="pj-empty-card">
+                                    <div style="font-size:1.8rem;opacity:.5;">🔍</div>
+                                    <div style="font-size:var(--fs-sm);font-weight:600;">No contacts match your search criteria.</div>
+                                    <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Try adjusting filters or clear keywords to view more contacts.</div>
+                                    <button type="button" class="btn-primary" id="btnResetAdvSearchEmpty" style="padding:6px 14px;margin-top:4px;">🔄 Reset Filters</button>
+                                </div>
+                            `}
+                        </div>
+                    `;
+
+                    // Bind Search events
+                    document.getElementById('btnExecuteAdvSearch')?.addEventListener('click', () => {
+                        pjAdvSearchCriteria.query = document.getElementById('pjAdvSearchInput')?.value || '';
+                        renderPjCenter();
+                    });
+                    document.getElementById('pjAdvSearchInput')?.addEventListener('keydown', e => {
+                        if(e.key === 'Enter'){ pjAdvSearchCriteria.query = e.target.value; renderPjCenter(); }
+                    });
+                    document.getElementById('btnResetAdvSearch')?.addEventListener('click', () => {
+                        pjAdvSearchCriteria = { query: '', status: '', hasPhone: false, hasEmail: false, missingPhone: false, hasFu: false, hasBday: false, favOnly: false };
+                        renderPjCenter();
+                    });
+                    document.getElementById('btnResetAdvSearchEmpty')?.addEventListener('click', () => {
+                        pjAdvSearchCriteria = { query: '', status: '', hasPhone: false, hasEmail: false, missingPhone: false, hasFu: false, hasBday: false, favOnly: false };
+                        renderPjCenter();
+                    });
+                    document.getElementById('btnAdvHasPhone')?.addEventListener('click', () => { pjAdvSearchCriteria.hasPhone = !pjAdvSearchCriteria.hasPhone; renderPjCenter(); });
+                    document.getElementById('btnAdvHasEmail')?.addEventListener('click', () => { pjAdvSearchCriteria.hasEmail = !pjAdvSearchCriteria.hasEmail; renderPjCenter(); });
+                    document.getElementById('btnAdvNoPhone')?.addEventListener('click', () => { pjAdvSearchCriteria.missingPhone = !pjAdvSearchCriteria.missingPhone; renderPjCenter(); });
+                    document.getElementById('btnAdvHasFu')?.addEventListener('click', () => { pjAdvSearchCriteria.hasFu = !pjAdvSearchCriteria.hasFu; renderPjCenter(); });
+                    document.getElementById('btnAdvHasBday')?.addEventListener('click', () => { pjAdvSearchCriteria.hasBday = !pjAdvSearchCriteria.hasBday; renderPjCenter(); });
+                    document.getElementById('btnAdvFav')?.addEventListener('click', () => { pjAdvSearchCriteria.favOnly = !pjAdvSearchCriteria.favOnly; renderPjCenter(); });
+                    document.getElementById('btnSaveAdvView')?.addEventListener('click', () => {
+                        const name = prompt('Enter a name for this saved search view:', 'Custom Search View');
+                        if(name && name.trim()){
+                            pjMeta.savedViews.push({ name: name.trim(), query: pjAdvSearchCriteria.query, criteria: Object.assign({}, pjAdvSearchCriteria), createdAt: Date.now() });
+                            savePjMeta();
+                            showToast('✓ Search view saved');
+                            pjActiveTab = 'saved';
+                            renderPjCenter();
+                        }
+                    });
+
+                } else if(pjActiveTab === 'saved'){
+                    const savedViews = Array.isArray(pjMeta.savedViews) ? pjMeta.savedViews : [];
+
+                    body.innerHTML = `
+                        <!-- Smart Preset Views -->
+                        <div style="font-size:var(--fs-xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:8px;">
+                            Built-in Smart Views (1-Click Filters)
+                        </div>
+                        <div class="pj-center-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px;">
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="favorites" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">⭐</div>
+                                <strong>Priority & Favorites</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>p._profile.favorite).length} starred contacts</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="overdue" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">🚨</div>
+                                <strong>Overdue Follow-ups</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${overdue.length} commitments due</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="birthdays" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">🎂</div>
+                                <strong>Upcoming Birthdays</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${birthdays30.length} in next 30 days</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="missing-phone" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">📞</div>
+                                <strong>Missing Phone Numbers</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>!p.phones||!p.phones.length).length} contacts without phone</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="neglected" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">💤</div>
+                                <strong>Needs Reconnection</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${neglectedPeople.length} not met in 60d+</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                            <div class="pj-card pj-card-interactive" data-open-smart-view="recent" style="cursor:pointer;">
+                                <div style="font-size:1.2rem;margin-bottom:4px;">✦</div>
+                                <strong>Recent Encounters (14d)</strong>
+                                <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>p.lastSeen&&pjDateDiff(p.lastSeen,today)<=14).length} met in last 2 weeks</div>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                            </div>
+                        </div>
+
+                        <!-- User Custom Saved Views -->
+                        <div class="pj-card">
+                            <div class="pj-card-head">
+                                <span>Custom Saved Views (${savedViews.length})</span>
+                                <button type="button" class="btn-primary" id="btnToggleSaveViewForm">+ Create Custom View</button>
+                            </div>
+
+                            ${pjShowSavedViewForm ? `
+                                <div style="background:var(--card-bg);border:1.5px solid var(--accent-border);border-radius:var(--r-md);padding:12px;margin-bottom:14px;">
+                                    <div style="font-size:var(--fs-xs);font-weight:700;margin-bottom:8px;">Create New Saved View</div>
+                                    <div class="pj-form-grid">
+                                        <div class="pj-form-field">
+                                            <label>View Name</label>
+                                            <input type="text" id="pjNewViewName" placeholder="e.g. Bangalore Tech Friends">
+                                        </div>
+                                        <div class="pj-form-field">
+                                            <label>Search Keyword / Filter</label>
+                                            <input type="text" id="pjNewViewQuery" placeholder="e.g. tech, Bangalore, VIP">
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
+                                        <button type="button" class="pj-toolbar-pill" id="btnCancelSavedView">Cancel</button>
+                                        <button type="button" class="btn-primary" id="btnExecuteSaveView" style="padding:6px 14px;">💾 Save View</button>
+                                    </div>
+                                </div>
+                            ` : ''}
+
+                            <div style="display:flex;flex-direction:column;gap:6px;">
+                                ${savedViews.map((v, idx) => `
+                                    <div class="pj-center-row" style="cursor:default;">
+                                        <div style="font-size:1.2rem;">📂</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <strong>${escapeHtml(v.name)}</strong>
+                                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">Query: "${escapeHtml(v.query||'All')}"</div>
+                                        </div>
+                                        <div style="display:flex;gap:6px;">
+                                            <button type="button" class="btn-primary" data-apply-saved-view="${idx}" style="font-size:var(--fs-xs);padding:4px 10px;">Open View ↗</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-saved-view="${idx}">🗑️</button>
+                                        </div>
+                                    </div>
+                                `).join('') || `
+                                    <div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">
+                                        No custom saved views yet. Create one with the button above or save any search query!
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    `;
+
+                    // Bind Saved Views events
+                    document.getElementById('btnToggleSaveViewForm')?.addEventListener('click', () => { pjShowSavedViewForm = !pjShowSavedViewForm; renderPjCenter(); });
+                    document.getElementById('btnCancelSavedView')?.addEventListener('click', () => { pjShowSavedViewForm = false; renderPjCenter(); });
+                    document.getElementById('btnExecuteSaveView')?.addEventListener('click', () => {
+                        const name = (document.getElementById('pjNewViewName')?.value || '').trim();
+                        const query = (document.getElementById('pjNewViewQuery')?.value || '').trim();
+                        if(!name){ alert('Please enter a view name.'); return; }
+                        pjMeta.savedViews.push({ name, query, createdAt: Date.now() });
+                        savePjMeta();
+                        pjShowSavedViewForm = false;
+                        renderPjCenter();
+                        showToast('✓ Custom view created');
+                    });
+
+                } else if(pjActiveTab === 'data'){
+                    const dups = findPjDuplicates();
+
+                    body.innerHTML = `
+                        <div class="pj-two-col">
+                            <!-- Card 1: Export & Backup -->
+                            <div class="pj-card">
+                                <div class="pj-card-head">💾 Export & Download</div>
+                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
+                                    Create and download an exact offline backup containing all your people directory, interaction histories, day text notes, profiles, and settings.
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <button type="button" class="btn-primary" id="btnDataExportJson" style="padding:8px 14px;justify-content:center;">💾 Download Complete JSON Backup</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataExportCsv" style="padding:7px 14px;justify-content:center;">⬇ Export People Directory to CSV</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Import & Restore -->
+                            <div class="pj-card">
+                                <div class="pj-card-head">📂 Import & Restore</div>
+                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
+                                    Import contacts from Google / Android / Apple CSV with names, phone numbers, and emails, or restore a complete JSON backup.
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportCsv" style="padding:7px 14px;justify-content:center;">📇 Import Google Contacts CSV</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportJson" style="padding:7px 14px;justify-content:center;">📂 Restore from JSON Backup</button>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Contact Deduplication -->
+                            <div class="pj-card">
+                                <div class="pj-card-head">
+                                    <span>🔀 Contact Deduplication</span>
+                                    <span class="pj-badge ${dups.length?'warn':'good'}">${dups.length ? `${dups.length} duplicates detected` : 'No duplicates'}</span>
+                                </div>
+                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
+                                    Detect duplicate entries across matching phone numbers, email addresses, exact names, or similar names, and merge them in 1-click.
+                                </div>
+                                <button type="button" class="btn-primary" id="btnDataMergeDups" style="padding:8px 14px;justify-content:center;">🔀 Open Duplicate Merge Center</button>
+                            </div>
+
+                            <!-- Card 4: Danger Zone -->
+                            <div class="pj-card" style="border-color:rgba(239,68,68,.35);">
+                                <div class="pj-card-head" style="color:var(--danger);">🗑️ Danger Zone</div>
+                                <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
+                                    Permanently delete all contacts from the directory. Your day notes and task calendar will remain intact.
+                                </div>
+                                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDataDeleteAll" style="padding:8px 14px;justify-content:center;font-weight:700;">🗑️ Delete All Contacts</button>
+                            </div>
+                        </div>
+
+                        <!-- Card 5: Settings & Snapshots -->
+                        <div class="pj-card" style="margin-top:14px;">
+                            <div class="pj-card-head">⚙️ Relationship Settings & Stored Snapshots</div>
+                            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+                                <label style="font-size:var(--fs-xs);font-weight:600;">Mark contacts as Neglected after (days without contact):</label>
+                                <input type="number" id="pjStaleThresholdInput" min="7" max="365" value="${Number(pjMeta.notContactedDays||60)}" style="width:75px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);">
+                                <button type="button" class="pj-toolbar-pill" id="btnSaveStaleThreshold">Save Setting</button>
+                            </div>
+                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">
+                                Stored Backup Snapshots: <strong>${Array.isArray(pjMeta.backups)?pjMeta.backups.length:0}</strong> · Total People: <strong>${people.length}</strong> · Active Contacts: <strong>${activePeople.length}</strong>
+                            </div>
+                        </div>
+                    `;
+
+                    // Bind Data Tab events
+                    document.getElementById('btnDataExportJson')?.addEventListener('click', exportPjEnhancedBackup);
+                    document.getElementById('btnDataExportCsv')?.addEventListener('click', exportPjPeopleCSV);
+                    document.getElementById('btnDataImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
+                    document.getElementById('btnDataImportJson')?.addEventListener('click', () => { document.getElementById('pjEnhancedBackupInput')?.click(); });
+                    document.getElementById('btnDataMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
+                    document.getElementById('btnDataDeleteAll')?.addEventListener('click', () => { deleteAllPjContacts(); renderPjCenter(); });
+                    document.getElementById('btnSaveStaleThreshold')?.addEventListener('click', () => {
+                        const val = parseInt(document.getElementById('pjStaleThresholdInput')?.value, 10);
+                        if(val && val > 0){
+                            pjMeta.notContactedDays = val;
+                            savePjMeta();
+                            renderPjCenter();
+                            showToast(`✓ Neglected contact threshold set to ${val} days`);
+                        }
+                    });
                 }
             }
 
@@ -6755,12 +7932,11 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 return contacts;
             }
 
-            function importGoogleContactsCSV(file){
-                if(!file) return;
-                const r = new FileReader();
-                r.onload = (ev)=>{
+            function importGoogleContactsCSV(fileOrText){
+                if(!fileOrText) return;
+                function processCsvText(csvText){
                     try {
-                        const parsed = parseGoogleContactsCSV(ev.target.result);
+                        const parsed = parseGoogleContactsCSV(csvText);
                         if(!parsed.length){ alert('No contacts found in CSV.'); return; }
                         const existing = loadPjContacts();
                         const map = new Map(existing.map(x => [x.personId, x]));
@@ -6803,8 +7979,14 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         console.error('CSV import error:', err);
                         alert('Failed to import CSV: ' + err.message);
                     }
-                };
-                r.readAsText(file);
+                }
+                if(typeof fileOrText === 'string'){
+                    processCsvText(fileOrText);
+                } else {
+                    const r = new FileReader();
+                    r.onload = (ev) => processCsvText(ev.target.result);
+                    r.readAsText(fileOrText);
+                }
             }
 
             function exportPjPeopleCSV(){
@@ -9616,13 +10798,48 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const pjCenterBody=document.getElementById('pjCenterBody');
                 if(pjCenterBody)pjCenterBody.addEventListener('click',e=>{
                     const st=e.target.closest('.pj-center-stat');
-                    if(st&&st.dataset.tab){pjActiveTab=st.dataset.tab;renderPjCenter();return;}
+                    if(st&&st.dataset.tab){pjActiveTab=st.dataset.tab;if(st.dataset.filter)pjCenterPeopleFilter=st.dataset.filter;renderPjCenter();return;}
+                    const pBtn=e.target.closest('[data-open-profile]');
+                    if(pBtn){e.stopPropagation();openPjProfile(pBtn.dataset.openProfile);return;}
+                    const encBtn=e.target.closest('[data-open-encounter]');
+                    if(encBtn){e.stopPropagation();closePjCenter();openAddPjEncounter(null, encBtn.dataset.openEncounter);return;}
+                    const fuBtn=e.target.closest('[data-open-fu-modal]');
+                    if(fuBtn){e.stopPropagation();pjPrefillFuPersonId=fuBtn.dataset.openFuModal;pjShowFuForm=true;pjActiveTab='followups';renderPjCenter();return;}
+                    const bBtn=e.target.closest('[data-open-bday-edit]');
+                    if(bBtn){e.stopPropagation();pjPrefillBdayPersonId=bBtn.dataset.openBdayEdit;pjShowBdayForm=true;pjActiveTab='birthdays';renderPjCenter();return;}
+                    const favBtn=e.target.closest('[data-toggle-fav]');
+                    if(favBtn){e.stopPropagation();const pid=favBtn.dataset.toggleFav;const pr=pjProfile(pid);pr.favorite=!pr.favorite;savePjMeta();invalidatePjCache();renderPjCenter();showToast(pr.favorite?'⭐ Added to favorites':'Removed from favorites');return;}
+                    const pf=e.target.closest('[data-p-filter]');
+                    if(pf){pjCenterPeopleFilter=pf.dataset.pFilter;renderPjCenter();return;}
+                    const ff=e.target.closest('[data-fu-filter]');
+                    if(ff){pjFuFilter=ff.dataset.fuFilter;renderPjCenter();return;}
+                    const bh=e.target.closest('[data-bday-horizon]');
+                    if(bh){pjBdayHorizon=bh.dataset.bdayHorizon==='all'?'all':Number(bh.dataset.bdayHorizon);renderPjCenter();return;}
+                    const as=e.target.closest('[data-adv-status]');
+                    if(as){pjAdvSearchCriteria.status=as.dataset.advStatus;renderPjCenter();return;}
+                    const sv=e.target.closest('[data-open-smart-view]');
+                    if(sv){const t=sv.dataset.openSmartView;if(t==='favorites'){pjCenterPeopleFilter='favorites';pjActiveTab='people';}else if(t==='overdue'){pjFuFilter='overdue';pjActiveTab='followups';}else if(t==='birthdays'){pjBdayHorizon=30;pjActiveTab='birthdays';}else if(t==='missing-phone'){pjAdvSearchCriteria.missingPhone=true;pjActiveTab='search';}else if(t==='neglected'){pjCenterPeopleFilter='neglected';pjActiveTab='people';}else if(t==='recent'){pjCenterPeopleSort='recent';pjActiveTab='people';}renderPjCenter();return;}
+                    const av=e.target.closest('[data-apply-saved-view]');
+                    if(av){const v=pjMeta.savedViews[Number(av.dataset.applySavedView)];if(v){pjAdvSearchCriteria.query=v.query||'';pjActiveTab='search';renderPjCenter();}return;}
+                    const dv=e.target.closest('[data-delete-saved-view]');
+                    if(dv){const idx=Number(dv.dataset.deleteSavedView);if(confirm('Delete this saved view?')){pjMeta.savedViews.splice(idx,1);savePjMeta();renderPjCenter();showToast('Saved view removed');}return;}
+                    const md=e.target.closest('[data-mark-fu-done]');
+                    if(md){const pid=md.dataset.markFuDone;const pr=pjProfile(pid);pr.nextActionStatus='done';if(md.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(md.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===md.dataset.encId);if(enc)enc.followUpDone=true;savePjDayData(md.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('✓ Follow-up marked completed');return;}
+                    const ro=e.target.closest('[data-reopen-fu]');
+                    if(ro){const pid=ro.dataset.reopenFu;const pr=pjProfile(pid);pr.nextActionStatus='open';if(ro.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(ro.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===ro.dataset.encId);if(enc)enc.followUpDone=false;savePjDayData(ro.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up reopened');return;}
+                    const cl=e.target.closest('[data-clear-fu]');
+                    if(cl){const pid=cl.dataset.clearFu;const pr=pjProfile(pid);pr.nextAction='';pr.nextActionDue='';pr.nextActionStatus='open';if(cl.dataset.source==='encounter'&&cl.dataset.encDate){const d=getPjDayData(cl.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===cl.dataset.encId);if(enc)enc.followUp='';savePjDayData(cl.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up cleared');return;}
+                    const jd=e.target.closest('[data-jump-date]');
+                    if(jd&&jd.dataset.jumpDate){const dt=jd.dataset.jumpDate;closePjCenter();const pts=dt.split('-').map(Number);if(pts[0]!==currentYear||pts[1]!==currentMonth){currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});}selectDate(dt);return;}
                     const row=e.target.closest('.pj-center-row');
                     if(row){
                         if(row.dataset.centerPerson){selectedPersonId=row.dataset.centerPerson;closePjCenter();openPjDirectory();return;}
-                        if(row.dataset.jumpDate){const dt=row.dataset.jumpDate;closePjCenter();const pts=dt.split('-').map(Number);currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});selectDate(dt);return;}
                     }
                 });
+                const pjProfileClose=document.getElementById('pjProfileClose');
+                if(pjProfileClose)pjProfileClose.addEventListener('click',closePjProfile);
+                const pjProfileModal=document.getElementById('pjProfileModal');
+                if(pjProfileModal)pjProfileModal.addEventListener('click',e=>{if(e.target===pjProfileModal)closePjProfile();});
                 const pjGlobalSearchClose=document.getElementById('pjGlobalSearchClose');
                 if(pjGlobalSearchClose)pjGlobalSearchClose.addEventListener('click',closePjSearch);
                 const pjGlobalSearchOverlay=document.getElementById('pjGlobalSearchOverlay');
@@ -10202,6 +11419,9 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 openAddPjEncounter,
                 openPjDirectory,
                 openPjCenter,
+                renderPjCenter,
+                openPjProfile,
+                closePjProfile,
                 openPjSearch,
                 exportPjPeopleCSV,
                 importGoogleContactsCSV,
