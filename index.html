@@ -3328,6 +3328,58 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 undoToastTimer=setTimeout(()=>undoToast.classList.remove('visible'),6500);
             }
 
+                        function pruneEisenItemGlobal(kind,sourceId,allowedDate){
+                if(!sourceId)return;
+                const targetChipId=(kind==='task'?'task_':(kind==='learning'?'learn_':''))+sourceId;
+                const strSourceId=String(sourceId);
+                let anyOverlayRenderNeeded=false;
+                const affectedDates=[];
+                for(let i=0;i<appStorage.length;i++){
+                    const k=appStorage.key(i);
+                    if(!k||!k.startsWith(EISEN_PREFIX))continue;
+                    const ds=k.slice(EISEN_PREFIX.length);
+                    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;
+                    if(allowedDate&&ds===allowedDate)continue;
+                    const raw=appStorage.getItem(k);
+                    if(!raw)continue;
+                    let data=null;
+                    try{data=JSON.parse(raw)}catch(e){data=null}
+                    if(!data||!data.quadrants)continue;
+                    let modified=false;
+                    QUADRANT_KEYS.forEach(qk=>{
+                        const q=data.quadrants[qk];
+                        if(!q||!Array.isArray(q.items))return;
+                        const lenBefore=q.items.length;
+                        q.items=q.items.filter(it=>{
+                            if(!it)return false;
+                            if(it.id===targetChipId||it.id===strSourceId)return false;
+                            if(String(it.sourceId)===strSourceId&&(!kind||it.kind===kind))return false;
+                            return true;
+                        });
+                        if(q.items.length!==lenBefore)modified=true;
+                    });
+                    if(data.justStart&&(data.justStart[targetChipId]||data.justStart[strSourceId])){
+                        delete data.justStart[targetChipId];
+                        delete data.justStart[strSourceId];
+                        modified=true;
+                    }
+                    if(modified){
+                        if(typeof saveEisenData==='function')saveEisenData(ds,data);
+                        else appStorage.setItem(k,JSON.stringify(data));
+                        affectedDates.push(ds);
+                        if(eisenOverlay&&eisenOverlay.classList.contains('active')&&eisenDateStr===ds){
+                            anyOverlayRenderNeeded=true;
+                        }
+                    }
+                }
+                affectedDates.forEach(d=>updateSingleCell(d));
+                if(anyOverlayRenderNeeded){
+                    selectedEisenIds.delete(targetChipId);
+                    selectedEisenSourceIds.delete(targetChipId);
+                    renderEisen();
+                }
+            }
+
             function moveTaskBetweenDates(taskId,fromDate,toDate,opts){
                 opts=opts||{};
                 if(!taskId||!toDate)return false;
@@ -3381,6 +3433,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 toData.tasks=toData.tasks.filter(t=>t.id!==taskId);
                 toData.tasks.push(task);
                 saveData(toDate,toData);
+
+                pruneEisenItemGlobal('task',taskId,toDate);
 
                 selectedTaskIds.delete(taskId);
                 if(activeTaskId===taskId)activeTaskId=null;
@@ -3479,6 +3533,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 toData.learnings.push(l);
                 saveData(toDate, toData);
 
+                pruneEisenItemGlobal('learning',learningId,toDate);
+
                 selectedLearningKeys.clear();
 
                 if(!opts.silent){
@@ -3558,7 +3614,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function buildTaskDoneMap(){const map=new Map();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(data&&Array.isArray(data.tasks)){data.tasks.forEach(t=>{map.set(t.id,t.status==='done')})}}return map}
             function buildLearningDoneMap(){const map=new Map();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(data&&Array.isArray(data.learnings)){data.learnings.forEach(l=>{map.set(l.id,l.completed===true)})}}return map}
             function isEisenItemDone(it,taskDoneMap,learningDoneMap){if(!it)return false;if(it.kind==='task')return taskDoneMap.get(it.sourceId)===true;if(it.kind==='learning')return learningDoneMap.get(it.sourceId)===true;return false}
-            function computeEisenCountsMap(y,m){const map={};const dim=getDaysInMonth(y,m);let taskDoneMap=null,learningDoneMap=null;for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const raw=appStorage.getItem(EISEN_PREFIX+ds);if(!raw)continue;let data;try{data=JSON.parse(raw)}catch(e){continue}if(!data||!data.quadrants)continue;if(!taskDoneMap){taskDoneMap=buildTaskDoneMap();learningDoneMap=buildLearningDoneMap()}const c=[0,0,0,0];QUADRANT_KEYS.forEach((k,i)=>{const q=data.quadrants[k];if(!q||!Array.isArray(q.items))return;q.items.forEach(it=>{if(!isEisenItemDone(it,taskDoneMap,learningDoneMap))c[i]++})});if(c.some(x=>x>0))map[ds]=c}return map}
+            function computeEisenCountsMap(y,m){const map={};const dim=getDaysInMonth(y,m);let taskDoneMap=null,learningDoneMap=null;for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const raw=appStorage.getItem(EISEN_PREFIX+ds);if(!raw)continue;let data=getEisenData(ds);if(!data||!data.quadrants)continue;if(!taskDoneMap){taskDoneMap=buildTaskDoneMap();learningDoneMap=buildLearningDoneMap()}const c=[0,0,0,0];QUADRANT_KEYS.forEach((k,i)=>{const q=data.quadrants[k];if(!q||!Array.isArray(q.items))return;q.items.forEach(it=>{if(!isEisenItemDone(it,taskDoneMap,learningDoneMap))c[i]++})});if(c.some(x=>x>0))map[ds]=c}return map}
 
             function loadHabits(){const raw=appStorage.getItem(HABITS_KEY);if(!raw)return[];try{const p=JSON.parse(raw);if(!Array.isArray(p))return[];let ch=false;const m=p.map(item=>{if(typeof item==='string'){ch=true;return{name:item,createdDate:getTodayStr()}}if(typeof item==='object'&&item.name){if(!item.createdDate){ch=true;item.createdDate=getTodayStr()}return item}return null}).filter(Boolean);if(ch)saveHabitsToStorage(m);return m}catch(e){return[]}}
             function saveHabitsToStorage(h){appStorage.setItem(HABITS_KEY,JSON.stringify(h))}
@@ -3577,11 +3633,11 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
             function getLearningsDueForWeek(wd){const r=[];const s=new Set();wd.forEach(t=>{getLearningsDueForDate(t).forEach(l=>{if(!s.has(l.id)){s.add(l.id);r.push(l)}})});return srsSort(r)}
             function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length}return map}
 
-            function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
-                        function deferLearning(id,days,sourceDate){if(typeof flushDebounced==='function')flushDebounced();if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}pushUndo('Defer learning');let found=null;if(sourceDate){const sdData=getData(sourceDate);if(sdData&&Array.isArray(sdData.learnings)){const item=sdData.learnings.find(x=>x.id===id);if(item)found={dateStr:sourceDate,learning:item}}}if(!found)found=findLearningById(id);if(!found)return;const l=found.learning;const originDate=found.dateStr;const baseDate=(selectionMode==='daily'&&selectedDateStr)?selectedDateStr:(l.currentDate||found.dateStr||getTodayStr());let newDate=addDaysToDateStr(baseDate,days);if(days>0&&newDate<=baseDate){newDate=addDaysToDateStr(baseDate,1)}const origData=getData(originDate);if(origData&&Array.isArray(origData.learnings)){origData.learnings=origData.learnings.filter(x=>x.id!==id);const sc=origData.learnings.length>0||origData.tasks?.length||origData.notes?.trim()||origData.dayTitle?.trim()||origData.holiday||origData.attachments?.length||origData.habits?.length||origData.textCalendar?.length;if(sc)saveData(originDate,origData);else deleteData(originDate)}if(sourceDate&&sourceDate!==originDate){const sData=getData(sourceDate);if(sData&&Array.isArray(sData.learnings)){sData.learnings=sData.learnings.filter(x=>x.id!==id);const sc=sData.learnings.length>0||sData.tasks?.length||sData.notes?.trim()||sData.dayTitle?.trim()||sData.holiday||sData.attachments?.length||sData.habits?.length||sData.textCalendar?.length;if(sc)saveData(sourceDate,sData);else deleteData(sourceDate)}}for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==newDate&&ds!==originDate&&ds!==sourceDate){const otherData=getData(ds);if(otherData&&Array.isArray(otherData.learnings)&&otherData.learnings.some(x=>x.id===id)){otherData.learnings=otherData.learnings.filter(x=>x.id!==id);const sc=otherData.learnings.length>0||otherData.tasks?.length||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.habits?.length||otherData.textCalendar?.length;if(sc)saveData(ds,otherData);else deleteData(ds)}}}}const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings=td.learnings.filter(x=>x.id!==id);l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);selectedLearningKeys.clear();currentDataCache=null;if(selectionMode==='daily'&&selectedDateStr){const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};currentDataCache=JSON.parse(JSON.stringify(curD))}closeLearningModal();renderLearningsSection();renderCalendar();renderLearningsToolbar();if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}updateSingleCell(originDate,{pop:true});if(sourceDate&&sourceDate!==originDate)updateSingleCell(sourceDate,{pop:true});if(originDate!==newDate)updateSingleCell(newDate,{pop:true});if(eisenOverlay.classList.contains('active'))renderEisen();showSaved();if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);window.dispatchEvent(new CustomEvent('td-tasks-changed'))}
+            function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);pruneEisenItemGlobal('learning',id,nc);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
+                        function deferLearning(id,days,sourceDate){if(typeof flushDebounced==='function')flushDebounced();if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}pushUndo('Defer learning');let found=null;if(sourceDate){const sdData=getData(sourceDate);if(sdData&&Array.isArray(sdData.learnings)){const item=sdData.learnings.find(x=>x.id===id);if(item)found={dateStr:sourceDate,learning:item}}}if(!found)found=findLearningById(id);if(!found)return;const l=found.learning;const originDate=found.dateStr;const baseDate=(selectionMode==='daily'&&selectedDateStr)?selectedDateStr:(l.currentDate||found.dateStr||getTodayStr());let newDate=addDaysToDateStr(baseDate,days);if(days>0&&newDate<=baseDate){newDate=addDaysToDateStr(baseDate,1)}const origData=getData(originDate);if(origData&&Array.isArray(origData.learnings)){origData.learnings=origData.learnings.filter(x=>x.id!==id);const sc=origData.learnings.length>0||origData.tasks?.length||origData.notes?.trim()||origData.dayTitle?.trim()||origData.holiday||origData.attachments?.length||origData.habits?.length||origData.textCalendar?.length;if(sc)saveData(originDate,origData);else deleteData(originDate)}if(sourceDate&&sourceDate!==originDate){const sData=getData(sourceDate);if(sData&&Array.isArray(sData.learnings)){sData.learnings=sData.learnings.filter(x=>x.id!==id);const sc=sData.learnings.length>0||sData.tasks?.length||sData.notes?.trim()||sData.dayTitle?.trim()||sData.holiday||sData.attachments?.length||sData.habits?.length||sData.textCalendar?.length;if(sc)saveData(sourceDate,sData);else deleteData(sourceDate)}}for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==newDate&&ds!==originDate&&ds!==sourceDate){const otherData=getData(ds);if(otherData&&Array.isArray(otherData.learnings)&&otherData.learnings.some(x=>x.id===id)){otherData.learnings=otherData.learnings.filter(x=>x.id!==id);const sc=otherData.learnings.length>0||otherData.tasks?.length||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.habits?.length||otherData.textCalendar?.length;if(sc)saveData(ds,otherData);else deleteData(ds)}}}}const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings=td.learnings.filter(x=>x.id!==id);l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);pruneEisenItemGlobal('learning',id,newDate);selectedLearningKeys.clear();currentDataCache=null;if(selectionMode==='daily'&&selectedDateStr){const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};currentDataCache=JSON.parse(JSON.stringify(curD))}closeLearningModal();renderLearningsSection();renderCalendar();renderLearningsToolbar();if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}updateSingleCell(originDate,{pop:true});if(sourceDate&&sourceDate!==originDate)updateSingleCell(sourceDate,{pop:true});if(originDate!==newDate)updateSingleCell(newDate,{pop:true});if(eisenOverlay.classList.contains('active'))renderEisen();showSaved();if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);window.dispatchEvent(new CustomEvent('td-tasks-changed'))}
 
             function markLearningDone(id,storageDate){pushUndo('Mark learning done');const data=getData(storageDate);if(!data||!data.learnings)return;const l=data.learnings.find(x=>x.id===id);if(!l)return;l.completed=true;l.completedAt=Date.now();saveData(storageDate,data);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(storageDate);if(eisenOverlay.classList.contains('active'))renderEisen()}
-            function deleteLearning(id,storageDate){pushUndo('Delete learning');const data=getData(storageDate);if(!data||!data.learnings)return;data.learnings=data.learnings.filter(l=>l.id!==id);if(data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length)saveData(storageDate,data);else deleteData(storageDate);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(storageDate)}
+            function deleteLearning(id,storageDate){pushUndo('Delete learning');const data=getData(storageDate);if(!data||!data.learnings)return;data.learnings=data.learnings.filter(l=>l.id!==id);if(data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length)saveData(storageDate,data);else deleteData(storageDate);pruneEisenItemGlobal('learning',id,null);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(storageDate)}
             function refreshDetailAfterLearningChange(s){if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}else if(selectionMode==='weekly'&&selectedWeekId){const d=getWeekData(selectedWeekId)||{tasks:[],notes:''};updateDetailPanelWeek(d,selectedWeekId)}}
             function addLearningToDate(d,l){const data=getData(d)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};data.learnings=data.learnings||[];l.currentDate=d;l.createdDate=d;l.votes=l.votes||0;data.learnings.push(l);saveData(d,data)}
             function updateLearningInDate(sd,id,upd){const data=getData(sd);if(!data||!data.learnings)return false;const i=data.learnings.findIndex(l=>l.id===id);if(i===-1)return false;data.learnings[i]={...data.learnings[i],...upd,id};saveData(sd,data);return true}
@@ -3912,6 +3968,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     selectedTaskIds.clear();
                     currentDataCache=JSON.parse(JSON.stringify(data));
                     saveCurrentData(data);
+                    ids.forEach(id=>pruneEisenItemGlobal('task',id,null));
                     if(typeof scheduleCloudPush==='function') scheduleCloudPush(50);
                     renderTaskList(data.tasks);
                     if(eisenOverlay.classList.contains('active'))renderEisen();
@@ -3929,7 +3986,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                         return true;
                     });
                     moved.forEach(t=>targetData.tasks.push(t));
-                    saveData(targetDate,targetData);
+                    saveData(targetDate,targetData);ids.forEach(id=>pruneEisenItemGlobal('task',id,targetDate));
                     if(ids.indexOf(activeTaskId)!==-1)activeTaskId=null;
                     selectedTaskIds.clear();
                     currentDataCache=JSON.parse(JSON.stringify(data));
@@ -4241,7 +4298,7 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 currentDataCache=JSON.parse(JSON.stringify(data));saveCurrentData(data);
                 let tds;if(selectionMode==='daily'&&selectedDateStr)tds=addDaysToDateStr(selectedDateStr,days);else tds=addDaysToDateStr(getTodayStr(),days);
                 const td=getData(tds)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                td.tasks=td.tasks||[];td.tasks.push(task);saveData(tds,td);
+                td.tasks=td.tasks||[];td.tasks.push(task);saveData(tds,td);pruneEisenItemGlobal('task',taskId,tds);
                 if(activeTaskId===taskId)activeTaskId=null;
                 renderTaskList(data.tasks);updateProgressViz(data);renderCalendar();renderLearningsSection();
                 if(selectionMode==='daily'&&selectedDateStr){updateSingleCell(selectedDateStr,{pop:true});updateSingleCell(tds,{pop:true})}
@@ -4734,6 +4791,19 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(activeTaskId===id)activeTaskId=null;
                 currentDataCache=JSON.parse(JSON.stringify(data));
                 saveCurrentData(data);
+                for(let i=0;i<appStorage.length;i++){
+                    const k=appStorage.key(i);
+                    if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;
+                    const ds=k.slice(STORAGE_PREFIX.length);
+                    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;
+                    const otherData=getData(ds);
+                    if(otherData&&Array.isArray(otherData.tasks)&&otherData.tasks.some(x=>x.id===id)){
+                        otherData.tasks=otherData.tasks.filter(x=>x.id!==id);
+                        const sc=otherData.tasks.length>0||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.learnings?.length||otherData.habits?.length||otherData.textCalendar?.length;
+                        if(sc)saveData(ds,otherData);else deleteData(ds);
+                    }
+                }
+                pruneEisenItemGlobal('task',id,null);
                 if(typeof scheduleCloudPush==='function') scheduleCloudPush(50);
                 const finish=()=>{renderTaskList(data.tasks);if(eisenOverlay.classList.contains('active'))renderEisen()};
                 if(el){let done=false;const fin=()=>{if(done)return;done=true;finish()};el.classList.add('task-exit');el.addEventListener('animationend',fin,{once:true});setTimeout(fin,220)}else{finish()}
@@ -4976,7 +5046,25 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 return arr[ci]!==undefined?arr[ci]:DEFAULT_SUB_LABELS[ci];
             }
 
+            function getEisenSourceItems(ds){
+                if(!ds)return [];
+                const items=[];
+                const dayData=getData(ds);
+                if(dayData){
+                    (dayData.tasks||[]).forEach(t=>{
+                        if(!t.text||!t.text.trim())return;
+                        const title=firstLineOf(t.text).slice(0,90);
+                        items.push({id:'task_'+t.id,kind:'task',sourceId:t.id,title:title||'(untitled task)',detail:t.text||'',priority:t.priority||'medium'});
+                    });
+                }
+                const learnings=getLearningsDueForDate(ds)||[];
+                learnings.forEach(l=>{
+                    items.push({id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type});
+                });
+                return items;
+            }
             function getEisenData(ds){
+                if(!ds)return {quadrants:{do_now:{items:[]},do_later:{items:[]},delegate:{items:[]},delete:{items:[]}},justStart:{}};
                 const raw=appStorage.getItem(EISEN_PREFIX+ds);
                 let d=null;
                 if(raw){try{d=JSON.parse(raw)}catch(e){d=null}}
@@ -4984,11 +5072,29 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 if(!d.quadrants||typeof d.quadrants!=='object')d.quadrants={};
                 if(!d.justStart||typeof d.justStart!=='object')d.justStart={};
                 const tpl=getEisenLabelTemplate();
+
+                const sourceItems=getEisenSourceItems(ds);
+                const validIds=new Set();
+                sourceItems.forEach(it=>{
+                    if(it.id)validIds.add(it.id);
+                    if(it.sourceId){
+                        validIds.add(String(it.sourceId));
+                        if(it.kind)validIds.add(it.kind+'_'+it.sourceId);
+                    }
+                });
+
+                let prunedAny=false;
                 QUADRANT_KEYS.forEach(k=>{
                     let q=d.quadrants[k];
                     if(!q||typeof q!=='object')q={};
                     if(!Array.isArray(q.items))q.items=[];
-                    q.items=q.items.filter(it=>it&&it.id);
+                    const prevCount=q.items.length;
+                    q.items=q.items.filter(it=>{
+                        if(!it||!it.id)return false;
+                        const ok=(validIds.has(it.id))||(it.sourceId&&validIds.has(String(it.sourceId)))||(it.kind&&it.sourceId&&validIds.has(it.kind+'_'+it.sourceId));
+                        return ok;
+                    });
+                    if(q.items.length!==prevCount)prunedAny=true;
                     q.items.forEach(it=>{
                         if(it.sub!==0&&it.sub!==1&&it.sub!==2&&it.sub!==3)it.sub=null;
                         if(!it.tag||!TAG_META[it.tag])it.tag=DEFAULT_TAG;
@@ -5000,12 +5106,16 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                     if(q.sub)delete q.sub._customLabels;
                     d.quadrants[k]=q;
                 });
+                if(prunedAny&&raw){
+                    saveEisenData(ds,d);
+                }
                 return d;
             }
             function saveEisenData(ds,data){
                 appStorage.setItem(EISEN_PREFIX+ds,JSON.stringify(data));
             }
-            function getEisenSourceItems(ds){const items=[];const dayData=getData(ds);if(dayData){(dayData.tasks||[]).forEach(t=>{if(!t.text||!t.text.trim())return;const title=firstLineOf(t.text).slice(0,90);items.push({id:'task_'+t.id,kind:'task',sourceId:t.id,title:title||'(untitled task)',detail:t.text||'',priority:t.priority||'medium'})})}const learnings=getLearningsDueForDate(ds)||[];learnings.forEach(l=>{items.push({id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type})});return items}
+            
+
             function collectEisenUsedIds(data){const used=new Set();QUADRANT_KEYS.forEach(k=>{(data.quadrants[k].items||[]).forEach(it=>used.add(it.id))});return used}
 
             function resetEisenCaches(){
@@ -7424,7 +7534,17 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
                 selectDate,
                 selectWeek,
                 getData,
+                saveData,
                 getWeekData,
+                getEisenData,
+                getEisenSourceItems,
+                saveEisenData,
+                openEisenModal,
+                closeEisenModal,
+                deferLearning,
+                deleteTask,
+                computeEisenCountsMap,
+                pruneEisenItemGlobal,
                 getSelectedDateStr: () => selectedDateStr,
                 getSelectedWeekId: () => selectedWeekId,
                 getSelectionMode: () => selectionMode,
