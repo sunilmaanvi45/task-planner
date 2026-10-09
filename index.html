@@ -2609,6 +2609,26 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-card-interactive{transition:border-color var(--dur-fast),transform var(--dur-fast),box-shadow var(--dur-fast)}
 .pj-card-interactive:hover{border-color:var(--accent-border);box-shadow:0 6px 18px rgba(0,0,0,0.06);transform:translateY(-1.5px)}
 
+/* People & Text Workflow Enhancements */
+body.text-calendar-mode .text-area-group.daily-only{display:flex !important;flex-direction:column;gap:var(--sp-2);margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:1.5px solid var(--border)}
+body.text-calendar-mode .text-area-group.daily-only #labelNotes{font-size:var(--fs-xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em}
+body.text-calendar-mode .text-area-group.daily-only #inputNotes{min-height:110px}
+body.text-calendar-mode .detail-actions{display:flex !important;margin-top:var(--sp-3)}
+.pj-section-title{font-size:var(--fs-xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+button.pj-dir-item{width:100%;text-align:left;background:transparent;border:1px solid transparent;font:inherit;cursor:pointer;padding:8px 10px;border-radius:var(--r-md);display:flex;align-items:center;gap:10px;transition:all var(--dur-fast)}
+button.pj-dir-item:hover{background:var(--cell-hover)}
+button.pj-dir-item.active{background:var(--accent-light);border-color:var(--accent-border)}
+button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pj-filter-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:var(--fs-2xs);background:var(--accent-light);color:var(--accent);font-weight:700}
+.pj-filter-clear{background:none;border:none;color:var(--accent);cursor:pointer;padding:0 2px;font-size:var(--fs-xs);font-weight:bold}
+.pj-fu-action-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:var(--r-md);background:var(--card-bg);border:1px solid var(--border)}
+.pj-fu-action-row.done{opacity:0.6;background:var(--surface-2)}
+.pj-btn-done{padding:3px 8px;border-radius:999px;border:1px solid var(--success);background:rgba(34,197,94,0.1);color:var(--success);font-size:var(--fs-2xs);font-weight:700;cursor:pointer;transition:all .15s}
+.pj-btn-done:hover{background:var(--success);color:#fff}
+.pj-date-quick-row{display:flex;align-items:center;gap:6px}
+.pj-date-quick-row input{flex:1}
+.pj-p-form-subheading{font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-top:10px;margin-bottom:4px}
+
 
 </style>
 </head>
@@ -2617,7 +2637,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
         <div class="pj-top-toolbar" id="pjTopToolbar">
             <div class="pj-top-toolbar-group">
                 <button type="button" class="pj-top-btn primary" id="btnTopAddText"><span>+</span> Add Day Text</button>
-                <button type="button" class="pj-top-btn accent" id="btnTopAddEncounter"><span>+</span> Add Person Met</button>
+                <button type="button" class="pj-top-btn accent" id="btnTopAddContact"><span>+</span> Add Contact</button>
+                <button type="button" class="pj-top-btn" id="btnTopAddEncounter"><span>+</span> Log Interaction</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
@@ -2822,7 +2843,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             <div class="text-calendar-actions" id="textCalendarActions">
                 <div class="pj-actions-top-row">
                     <button type="button" class="btn-add-text-calendar" id="btnAddTextCalendar"><span>+</span> Add Day Text</button>
-                    <button type="button" class="btn-add-text-calendar btn-add-pj-encounter" id="btnAddPjEncounter"><span>+</span> Add Person Met</button>
+                    <button type="button" class="btn-add-text-calendar btn-add-pj-contact" id="btnPjAddContact"><span>+</span> Add Contact</button>
+                    <button type="button" class="btn-add-text-calendar btn-add-pj-encounter" id="btnAddPjEncounter"><span>+</span> Log Interaction</button>
                 </div>
                 <div class="pj-mode-toolbar-pills">
                     <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">&#128101; Directory</button>
@@ -3096,11 +3118,22 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
         </div>
     </div>
 
+    <div class="pj-overlay" id="pjContactModalOverlay">
+        <div class="pj-modal-card" id="pjContactModal" style="max-width:620px;" role="dialog" aria-modal="true" aria-label="Contact editor">
+            <div class="pj-modal-header">
+                <span class="pj-modal-title" id="pjContactModalTitle">&#128100; Add Contact</span>
+                <button class="pj-modal-close" id="pjContactModalClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" id="pjContactModalBody"></div>
+        </div>
+    </div>
+
     <div class="pj-overlay" id="pjPeopleOverlay">
         <div class="pj-modal-card pj-dir-modal" id="pjPeopleModal" role="dialog" aria-modal="true" aria-label="People directory">
             <div class="pj-dir-header">
                 <div class="pj-dir-title">&#128101; People Directory</div>
-                <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email..." autocomplete="off" spellcheck="false">
+                <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email, tags, relation..." autocomplete="off" spellcheck="false">
+                <button type="button" class="pj-toolbar-pill" id="pjDirAddContact" style="background:var(--accent);color:#fff;">+ Add Contact</button>
                 <button type="button" class="pj-toolbar-pill" id="pjFilterContacts" title="Show only contacts">&#128222; Contacts only</button>
                 <button type="button" class="pj-toolbar-pill" id="pjFilterEncounters" title="Show only people with encounters">&#128197; With encounters</button>
                 <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">&#9851; Merge Duplicates</button>
@@ -3126,8 +3159,9 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
         <div class="pj-modal-card pj-center-modal" id="pjCenterModal" role="dialog" aria-modal="true" aria-label="Relationship Center">
             <div class="pj-center-head">
                 <div style="font-size:1rem;font-weight:750;letter-spacing:-.02em;">&#9829; Relationship Center</div>
-                <input class="pj-dir-search" id="pjCenterSearch" placeholder="Search people or use tag:work &middot; followup:overdue &middot; met:30d..." style="max-width:360px;margin-left:12px;">
-                <button type="button" class="pj-toolbar-pill" id="pjCenterQuickAdd" style="margin-left:auto;background:var(--accent);color:#fff;">+ Add Person</button>
+                <input class="pj-dir-search" id="pjCenterSearch" placeholder="Search people or use tag:work &middot; followup:overdue &middot; met:30d..." style="max-width:320px;margin-left:12px;">
+                <button type="button" class="pj-toolbar-pill" id="pjCenterAddContact" style="margin-left:auto;background:var(--accent);color:#fff;">+ Add Contact</button>
+                <button type="button" class="pj-toolbar-pill" id="pjCenterQuickAdd" style="background:var(--surface-2);color:var(--text);border:1.5px solid var(--border-strong);">+ Log Interaction</button>
                 <button class="pj-modal-close" id="pjCenterClose" aria-label="Close">&times;</button>
             </div>
             <div class="pj-center-tabs" id="pjCenterTabs">
@@ -3682,7 +3716,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 for(let i=0;i<appStorage.length;i++){
                     const k=appStorage.key(i);
                     if(!k)continue;
-                    if(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)||k.startsWith(EISEN_PREFIX)){
+                    if(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)||k.startsWith(EISEN_PREFIX)||k.startsWith('td_pj_')||k==='tp_contacts'||k==='tp_people_meta'){
                         s[k]=appStorage.getItem(k);
                     }
                 }
@@ -3693,7 +3727,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 for(let i=0;i<appStorage.length;i++){
                     const k=appStorage.key(i);
                     if(!k)continue;
-                    if(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)||k.startsWith(EISEN_PREFIX)){
+                    if(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)||k.startsWith(EISEN_PREFIX)||k.startsWith('td_pj_')||k==='tp_contacts'||k==='tp_people_meta'){
                         toRemove.push(k);
                     }
                 }
@@ -3720,6 +3754,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(eisenOverlay.classList.contains('active'))renderEisen();
                 requestAnimationFrame(()=>{isUpdatingFromCode=false});
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
             }
             function pushUndo(label){
                 redoStack=[];
@@ -3882,6 +3920,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     showSaved();
                     if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
                 }
                 return true;
             }
@@ -3982,6 +4024,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     showSaved();
                     if(typeof scheduleCloudPush==='function') scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
                 }
                 return true;
             }
@@ -4709,6 +4755,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 }
                 updateProgressViz(data);
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
             }
             function deferTask(taskId,days){
                 pushUndo('Defer task');
@@ -4751,7 +4801,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>3?`<div class="text-calendar-cell-more">+ ${texts.length-3} more</div>`:''}${pjHtml}</div>`;
                         }
                         if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.some(e=>e.followUp)){
-                            mg=`<div class="cell-followup-badge" title="Has follow-up">&#9200;</div>`;
+                            taskHTML+=`<div class="cell-followup-badge" title="Has follow-up">&#9200;</div>`;
                         }
                     }else{
                         if(data.dayTitle&&String(data.dayTitle).trim()){
@@ -5051,17 +5101,61 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const contacts = loadPjContacts();
                 const target = contacts.find(c => c.personId === pid);
                 const reg = getPjPeopleRegistry().find(x => x.personId === pid);
-                const name = (target && target.name) || (reg && reg.name) || pid;
+                const name = (reg && reg.name) || (target && target.name) || pid;
+                const encountersCount = (reg && reg.encounters) ? reg.encounters.length : 0;
+                const isContact = !!(target || (reg && reg.isContact));
+                const removeContactOnly = options?.removeContactOnly === true;
+                const deleteHistory = options?.deleteHistory === true;
+
                 if(!options?.skipConfirm){
-                    const ok = confirm(`Are you sure you want to delete "${name}" from your contacts?\n\nThis will remove their contact entry and profile.`);
-                    if(!ok) return { success: false, canceled: true };
+                    if(removeContactOnly){
+                        const ok = confirm(`Remove "${name}" from saved contacts?\n\nTheir ${encountersCount} calendar interaction(s) will be kept intact.\n\nThis can be undone.`);
+                        if(!ok) return { success: false, canceled: true };
+                    } else if(deleteHistory || !isContact){
+                        const ok = confirm(`Delete "${name}" and all ${encountersCount} recorded interaction(s) from your calendar?\n\nThis will completely remove this person and their entire interaction history.\n\nThis can be undone.`);
+                        if(!ok) return { success: false, canceled: true };
+                    } else {
+                        if(encountersCount > 0){
+                            const ok = confirm(`"${name}" has ${encountersCount} recorded calendar interaction(s).\n\nClick OK to DELETE PERSON AND ALL INTERACTIONS.\nClick Cancel to abort (or use "Remove Contact Card" to keep interactions).\n\nThis can be undone.`);
+                            if(!ok) return { success: false, canceled: true };
+                        } else {
+                            const ok = confirm(`Are you sure you want to delete "${name}" from your contacts?\n\nThis can be undone.`);
+                            if(!ok) return { success: false, canceled: true };
+                        }
+                    }
                 }
-                const filtered = contacts.filter(c => c.personId !== pid);
-                savePjContacts(filtered);
-                if(pjMeta.profiles && pjMeta.profiles[pid]){
-                    delete pjMeta.profiles[pid];
-                    savePjMeta();
+
+                pushUndo(removeContactOnly ? `Remove contact ${name}` : `Delete ${name}`);
+
+                if(removeContactOnly){
+                    const filtered = contacts.filter(c => c.personId !== pid);
+                    savePjContacts(filtered);
+                } else {
+                    const filtered = contacts.filter(c => c.personId !== pid);
+                    savePjContacts(filtered);
+
+                    const days = listAllPjDays();
+                    days.forEach(ds => {
+                        const dayData = getPjDayData(ds);
+                        if(dayData && Array.isArray(dayData.encounters)){
+                            const initialLen = dayData.encounters.length;
+                            dayData.encounters = dayData.encounters.filter(e => {
+                                const ePid = e.personId || normalizePjName(e.name);
+                                return ePid !== pid && e.personId !== pid;
+                            });
+                            if(dayData.encounters.length !== initialLen){
+                                savePjDayData(ds, dayData);
+                                updateSingleCell(ds, { pop: false });
+                            }
+                        }
+                    });
+
+                    if(pjMeta.profiles && pjMeta.profiles[pid]){
+                        delete pjMeta.profiles[pid];
+                        savePjMeta();
+                    }
                 }
+
                 invalidatePjCache();
                 if(selectedPersonId === pid) selectedPersonId = null;
                 if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
@@ -5074,8 +5168,239 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     closePjProfile();
                 }
                 renderCalendar();
-                showToast(`Deleted "${name}" from contacts`);
+                showToast(removeContactOnly ? `Removed "${name}" from contacts` : `Deleted "${name}"`);
                 return { success: true };
+            }
+
+            function openAddPjContact(prefill){
+                const modal = document.getElementById('pjContactModal');
+                const body = document.getElementById('pjContactModalBody');
+                if(!modal || !body) return;
+                const pf = prefill || {};
+                document.getElementById('pjContactModalTitle').innerHTML = '&#128100; Add Contact';
+
+                const relationsList = `<datalist id="pjcRelationsList">${PJ_RELATION_OPTIONS.map(r=>`<option value="${escapeHtml(r)}"></option>`).join('')}</datalist>`;
+                const tagsHtml = pjAllTags().map(t => {
+                    const m = pjTagMeta(t);
+                    return `
+                        <label class="pj-tag-check" data-tag="${escapeAttr(t)}">
+                            <input type="checkbox" value="${escapeAttr(t)}">
+                            <span>${m.icon} ${escapeHtml(m.label)}</span>
+                        </label>
+                    `;
+                }).join('') + `
+                    <div class="pj-tag-add-inline">
+                        <input type="text" id="pjcNewCustomTagInput" placeholder="+ Custom tag" maxlength="24">
+                        <button type="button" id="btnAddNewCustomTagPjc" title="Add tag">+</button>
+                    </div>
+                `;
+
+                body.innerHTML = `
+                    <div class="pj-form-grid">
+                        <div class="pj-form-field full">
+                            <label>Full / Display Name *</label>
+                            <input type="text" id="pjcName" placeholder="e.g. Sarah Jenkins" value="${escapeAttr(pf.name||'')}" autocomplete="off">
+                            <div id="pjcNameError" style="font-size:var(--fs-2xs);color:var(--danger);font-weight:600;display:none;margin-top:2px;">Please enter a contact name.</div>
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Nickname / Alias</label>
+                            <input type="text" id="pjcNickname" placeholder="e.g. SJ" value="${escapeAttr(pf.nickname||'')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Relationship / Category</label>
+                            <input type="text" id="pjcRelation" list="pjcRelationsList" placeholder="e.g. Friend, Colleague..." value="${escapeAttr(pf.relation||'')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Birthday</label>
+                            <input type="date" id="pjcBirthday" value="${escapeAttr(pf.birthday||'')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Keep in Touch Frequency (Days)</label>
+                            <input type="number" id="pjcFreq" min="0" max="365" placeholder="0 = default (60d)" value="${pf.contactFrequencyDays||''}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Organization / Company</label>
+                            <input type="text" id="pjcOrg" placeholder="Company or Institution" value="${escapeAttr(pf.organization||'')}">
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Role / Job Title</label>
+                            <input type="text" id="pjcRole" placeholder="Job title" value="${escapeAttr(pf.role||'')}">
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Phone Numbers</label>
+                            <div id="pjcPhonesList" class="pj-multi-list">
+                                <div class="pj-multi-item">
+                                    <input type="tel" class="pjc-phone-input" placeholder="+1 555 1234" autocomplete="off">
+                                    <button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>
+                                </div>
+                            </div>
+                            <button type="button" class="pj-multi-add" id="btnAddPjcPhone" style="align-self:flex-start;margin-top:4px;">+ Add Phone</button>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Email Addresses</label>
+                            <div id="pjcEmailsList" class="pj-multi-list">
+                                <div class="pj-multi-item">
+                                    <input type="email" class="pjc-email-input" placeholder="name@example.com" autocomplete="off">
+                                    <button type="button" class="pj-multi-remove" data-remove="email">&times;</button>
+                                </div>
+                            </div>
+                            <button type="button" class="pj-multi-add" id="btnAddPjcEmail" style="align-self:flex-start;margin-top:4px;">+ Add Email</button>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Tags</label>
+                            <div class="pj-tag-picker" id="pjcTagPicker">${tagsHtml}</div>
+                        </div>
+                        <div class="pj-form-field">
+                            <label>Priority</label>
+                            <select id="pjcPriority">
+                                <option value="low">Low</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        <div class="pj-form-field">
+                            <label style="display:flex;align-items:center;gap:8px;margin-top:22px;cursor:pointer;">
+                                <input type="checkbox" id="pjcFavorite">
+                                <span style="font-size:var(--fs-xs);font-weight:600;">&#9733; Star as Favorite</span>
+                            </label>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Private Notes</label>
+                            <textarea id="pjcNotes" rows="3" placeholder="Background, family, interests, conversation topics...">${escapeHtml(pf.notes||'')}</textarea>
+                        </div>
+                    </div>
+                    ${relationsList}
+                    <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
+                        <button type="button" class="pj-toolbar-pill" id="btnCancelPjc">Cancel</button>
+                        <button type="button" class="btn-primary" id="btnSavePjc" style="padding:7px 18px;">&#128190; Save Contact</button>
+                    </div>
+                `;
+
+                document.getElementById('pjContactModalOverlay').classList.add('active');
+
+                document.getElementById('btnCancelPjc')?.addEventListener('click', closePjContactModal);
+                document.getElementById('btnSavePjc')?.addEventListener('click', savePjContact);
+                document.getElementById('btnAddPjcPhone')?.addEventListener('click', () => {
+                    const wrap = document.getElementById('pjcPhonesList');
+                    if(!wrap) return;
+                    const row = document.createElement('div');
+                    row.className = 'pj-multi-item';
+                    row.innerHTML = `<input type="tel" class="pjc-phone-input" placeholder="+1 555 1234" autocomplete="off"><button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>`;
+                    wrap.appendChild(row);
+                    row.querySelector('input')?.focus();
+                });
+                document.getElementById('btnAddPjcEmail')?.addEventListener('click', () => {
+                    const wrap = document.getElementById('pjcEmailsList');
+                    if(!wrap) return;
+                    const row = document.createElement('div');
+                    row.className = 'pj-multi-item';
+                    row.innerHTML = `<input type="email" class="pjc-email-input" placeholder="name@example.com" autocomplete="off"><button type="button" class="pj-multi-remove" data-remove="email">&times;</button>`;
+                    wrap.appendChild(row);
+                    row.querySelector('input')?.focus();
+                });
+                document.getElementById('btnAddNewCustomTagPjc')?.addEventListener('click', () => {
+                    const inp = document.getElementById('pjcNewCustomTagInput');
+                    const val = (inp?.value || '').trim().toLowerCase().replace(/\s+/g, '-');
+                    if(!val) return;
+                    if(!pjMeta.customTags.includes(val)){
+                        pjMeta.customTags.push(val);
+                        savePjMeta();
+                    }
+                    inp.value = '';
+                    const picker = document.getElementById('pjcTagPicker');
+                    if(picker){
+                        const meta = pjTagMeta(val);
+                        const label = document.createElement('label');
+                        label.className = 'pj-tag-check checked';
+                        label.dataset.tag = val;
+                        label.innerHTML = `<input type="checkbox" value="${escapeAttr(val)}" checked><span>${meta.icon} ${escapeHtml(meta.label)}</span>`;
+                        picker.insertBefore(label, picker.querySelector('.pj-tag-add-inline'));
+                    }
+                });
+                body.addEventListener('click', e => {
+                    const rm = e.target.closest('.pj-multi-remove');
+                    if(rm){
+                        const item = rm.closest('.pj-multi-item');
+                        if(item) item.remove();
+                    }
+                    const tag = e.target.closest('.pj-tag-check');
+                    if(tag && e.target.tagName !== 'INPUT'){
+                        const chk = tag.querySelector('input');
+                        if(chk){ chk.checked = !chk.checked; tag.classList.toggle('checked', chk.checked); }
+                    }
+                });
+                setTimeout(() => { document.getElementById('pjcName')?.focus(); }, 60);
+            }
+
+            function closePjContactModal(){
+                document.getElementById('pjContactModalOverlay')?.classList.remove('active');
+                const body = document.getElementById('pjContactModalBody');
+                if(body) body.innerHTML = '';
+            }
+
+            function savePjContact(){
+                const nameInp = document.getElementById('pjcName');
+                const name = (nameInp?.value || '').trim();
+                const err = document.getElementById('pjcNameError');
+                if(!name){
+                    if(err) err.style.display = 'block';
+                    if(nameInp) nameInp.focus();
+                    return;
+                }
+                if(err) err.style.display = 'none';
+
+                const nickname = (document.getElementById('pjcNickname')?.value || '').trim();
+                const relation = (document.getElementById('pjcRelation')?.value || '').trim();
+                const birthday = document.getElementById('pjcBirthday')?.value || '';
+                const freq = Math.max(0, parseInt(document.getElementById('pjcFreq')?.value, 10) || 0);
+                const org = (document.getElementById('pjcOrg')?.value || '').trim();
+                const role = (document.getElementById('pjcRole')?.value || '').trim();
+                const priority = document.getElementById('pjcPriority')?.value || 'normal';
+                const favorite = !!document.getElementById('pjcFavorite')?.checked;
+                const notes = (document.getElementById('pjcNotes')?.value || '').trim();
+
+                const phones = Array.from(document.querySelectorAll('#pjcPhonesList .pjc-phone-input')).map(i=>i.value.trim()).filter(Boolean);
+                const emails = Array.from(document.querySelectorAll('#pjcEmailsList .pjc-email-input')).map(i=>i.value.trim()).filter(Boolean);
+                const tags = Array.from(document.querySelectorAll('#pjcTagPicker input:checked')).map(i=>i.value);
+
+                const newPid = generatePjId('c_');
+                pushUndo('Add contact ' + name);
+
+                const contacts = loadPjContacts();
+                contacts.push({
+                    personId: newPid,
+                    name: name,
+                    nickname: nickname,
+                    phones: phones,
+                    emails: emails,
+                    relation: relation,
+                    tags: tags,
+                    birthday: birthday,
+                    organization: org,
+                    role: role,
+                    notes: notes,
+                    isContact: true,
+                    source: 'manual'
+                });
+                savePjContacts(contacts);
+
+                const pr = pjProfile(newPid);
+                pr.displayName = name;
+                pr.nickname = nickname;
+                pr.relation = relation;
+                pr.birthday = birthday;
+                pr.contactFrequencyDays = freq;
+                pr.priority = priority;
+                pr.favorite = favorite;
+                pr.notes = notes;
+                savePjMeta();
+
+                invalidatePjCache();
+                closePjContactModal();
+                if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+                if(document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjCenter();
+                renderCalendar();
+                showToast('Contact saved');
             }
 
             function deleteAllPjContacts(options){
@@ -5152,17 +5477,29 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 return map;
             }
 
+            function pjCanonicalName(p, pid){
+                const id = pid || (p && p.personId);
+                const pr = (id && pjMeta.profiles[id]) || {};
+                if(pr.displayName && pr.displayName.trim()) return pr.displayName.trim();
+                if(p && p.name && p.name.trim()) return p.name.trim();
+                return 'Unknown Person';
+            }
+
             function buildPjPeopleRegistry(){
                 const map = new Map();
+                const nameToPid = new Map();
+
                 loadPjContacts().forEach(c=>{
                     if(!c || !c.personId) return;
+                    const canonical = pjCanonicalName(c, c.personId);
+                    const pr = pjMeta.profiles[c.personId] || {};
                     map.set(c.personId, {
                         personId: c.personId,
-                        name: c.name || c.personId,
-                        nickname: c.nickname || '',
-                        relation: c.relation || '',
-                        birthday: c.birthday || '',
-                        notes: c.notes || '',
+                        name: canonical,
+                        nickname: pr.nickname || c.nickname || '',
+                        relation: pr.relation || c.relation || '',
+                        birthday: pr.birthday || c.birthday || '',
+                        notes: pr.notes || c.notes || '',
                         organization: c.organization || '',
                         role: c.role || '',
                         phones: Array.isArray(c.phones) ? c.phones.slice() : (c.phone ? [c.phone] : []),
@@ -5171,14 +5508,20 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         firstMet: null, lastSeen: null, encounters: [],
                         isContact: true, source: c.source || 'csv'
                     });
+                    if(c.name) nameToPid.set(normalizePjName(c.name), c.personId);
+                    if(canonical) nameToPid.set(normalizePjName(canonical), c.personId);
                 });
 
                 listAllPjDays().forEach(ds=>{
                     const data = getPjDayData(ds);
                     if(!data || !Array.isArray(data.encounters)) return;
                     data.encounters.forEach(e=>{
-                        const pid = e.personId || normalizePjName(e.name);
+                        let pid = e.personId;
+                        if(!pid && e.name){
+                            pid = nameToPid.get(normalizePjName(e.name)) || normalizePjName(e.name);
+                        }
                         if(!pid) return;
+
                         const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
                         const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
                         const existing = map.get(pid);
@@ -5186,16 +5529,20 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             existing.encounters.push(Object.assign({}, e, { _date: ds }));
                             if(!existing.firstMet || ds < existing.firstMet) existing.firstMet = ds;
                             if(!existing.lastSeen || ds > existing.lastSeen) existing.lastSeen = ds;
-                            if(e.name) existing.name = e.name;
+                            if(!existing.name && e.name) existing.name = e.name;
                             phones.forEach(p=>{ if(existing.phones.indexOf(p)===-1) existing.phones.push(p); });
                             emails.forEach(em=>{ if(existing.emails.indexOf(em)===-1) existing.emails.push(em); });
                             if(Array.isArray(e.tags)){
                                 e.tags.forEach(t=>{ if(existing.tags.indexOf(t)===-1) existing.tags.push(t); });
                             }
                         } else {
+                            const canonical = pjCanonicalName(e, pid);
                             map.set(pid, {
                                 personId: pid,
-                                name: e.name || pid,
+                                name: canonical,
+                                nickname: e.nickname || '',
+                                relation: e.relation || '',
+                                birthday: e.birthday || '',
                                 phones: phones,
                                 emails: emails,
                                 tags: Array.isArray(e.tags) ? e.tags.slice() : [],
@@ -5203,11 +5550,15 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 encounters: [Object.assign({}, e, { _date: ds })],
                                 isContact: false, source: 'encounter'
                             });
+                            if(e.name) nameToPid.set(normalizePjName(e.name), pid);
                         }
                     });
                 });
 
-                map.forEach(p => { p.profile = mergePjProfile(p.encounters); });
+                map.forEach(p => {
+                    p.name = pjCanonicalName(p, p.personId);
+                    p.profile = mergePjProfile(p.encounters);
+                });
                 return Array.from(map.values());
             }
 
@@ -5516,26 +5867,42 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 }
             }
 
-            function openAddPjEncounter(){
-                if(!selectedDateStr) selectedDateStr = getTodayStr();
+            function openAddPjEncounter(presetPersonOrPid, presetDate, isTodayExplicit){
+                let targetDate = getTodayStr();
+                if(isTodayExplicit){
+                    targetDate = getTodayStr();
+                } else if(presetDate && /^\d{4}-\d{2}-\d{2}$/.test(presetDate)){
+                    targetDate = presetDate;
+                } else if(selectedDateStr && /^\d{4}-\d{2}-\d{2}$/.test(selectedDateStr)){
+                    targetDate = selectedDateStr;
+                } else {
+                    targetDate = getTodayStr();
+                }
                 editingEncounterId = null;
-                editingEncounterDay = selectedDateStr;
-                document.getElementById('pjEncounterModalTitle').innerHTML = '&#128100; Add Person You Met';
-                renderPjEncounterForm(null);
+                editingEncounterDay = targetDate;
+                document.getElementById('pjEncounterModalTitle').innerHTML = '&#129504; Log Interaction';
+                renderPjEncounterForm(null, presetPersonOrPid, targetDate);
                 document.getElementById('pjEncounterModalOverlay').classList.add('active');
-                setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
+                setTimeout(()=>{
+                    const sel = document.getElementById('pjEncPersonSelect');
+                    if(sel && !presetPersonOrPid) sel.focus();
+                    else {
+                        const inp = document.getElementById('pjEncQuickName');
+                        if(inp) inp.focus();
+                    }
+                }, 60);
             }
 
-            function openEditPjEncounter(encId){
-                if(!selectedDateStr) return;
-                const data = getPjDayData(selectedDateStr);
+            function openEditPjEncounter(encId, date){
+                const targetDate = date || editingEncounterDay || selectedDateStr || getTodayStr();
+                const data = getPjDayData(targetDate);
                 if(!data) return;
                 const enc = (data.encounters||[]).find(e => e.id === encId);
                 if(!enc) return;
                 editingEncounterId = encId;
-                editingEncounterDay = selectedDateStr;
-                document.getElementById('pjEncounterModalTitle').innerHTML = '&#9998; Edit Encounter';
-                renderPjEncounterForm(enc);
+                editingEncounterDay = targetDate;
+                document.getElementById('pjEncounterModalTitle').innerHTML = '&#9998; Edit Interaction';
+                renderPjEncounterForm(enc, enc.personId, targetDate);
                 document.getElementById('pjEncounterModalOverlay').classList.add('active');
                 setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
             }
@@ -5590,20 +5957,35 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     </div>
                 `).join('');
 
+                const defaultDate = editingEncounterDay || selectedDateStr || getTodayStr();
+
                 const body = document.getElementById('pjEncounterModalBody');
                 body.innerHTML = `
                     <div class="pj-quick-grid">
                         <div class="pj-form-group">
-                            <label>&#128100; Who did you meet? *</label>
+                            <label>&#128100; Select Person or Type Name *</label>
+                            <div style="margin-bottom:6px;">
+                                <select id="pjEncPersonSelect" style="width:100%;padding:7px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:var(--fs-xs);">
+                                    <option value="">-- Choose Existing Contact (or type below) --</option>
+                                    ${allPeople.map(p => `<option value="${escapeAttr(p.personId)}" ${e.personId===p.personId?'selected':''}>${escapeHtml(pjCanonicalName(p, p.personId))}${p.profile?.relation||p.relation ? ' ('+escapeHtml(p.profile?.relation||p.relation)+')' : ''}</option>`).join('')}
+                                </select>
+                            </div>
                             <div class="pj-voice-field">
                                 <input type="text" id="pjEncQuickName" list="pjKnownNamesList" placeholder="Full name or clue" value="${escapeHtml(e.name||'')}" maxlength="80" autocomplete="off">
                                 <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickName" title="Dictate">&#127908;</button>
                             </div>
-                            <div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;" id="pjKnownHint"></div>
+                            <div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;margin-top:4px;" id="pjKnownHint"></div>
+                            <label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:var(--fs-xs);cursor:pointer;">
+                                <input type="checkbox" id="pjEncSaveAsContact" ${!e.id ? 'checked' : ''}>
+                                <span>Save or update contact card in Directory</span>
+                            </label>
                         </div>
                         <div class="pj-form-group">
-                            <label>&#128197; Date</label>
-                            <input type="text" value="${escapeHtml(editingEncounterDay||selectedDateStr||'')}" disabled>
+                            <label>&#128197; Interaction Date *</label>
+                            <div style="display:flex;gap:6px;">
+                                <input type="date" id="pjEncDate" value="${escapeHtml(defaultDate)}" style="flex:1;">
+                                <button type="button" class="btn-secondary" id="btnEncSetToday" style="padding:4px 10px;font-size:var(--fs-xs);" title="Set to Today">Today</button>
+                            </div>
                         </div>
                         <div class="pj-form-group pj-quick-memory">
                             <label>&#129504; Quick memory <span style="font-weight:500;color:var(--text-secondary);">(optional)</span></label>
@@ -5701,6 +6083,11 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 
                 document.getElementById('btnCancelPjEncounter').addEventListener('click', closePjEncounterModal);
                 document.getElementById('btnSavePjEncounter').addEventListener('click', savePjEncounter);
+                document.getElementById('btnEncSetToday')?.addEventListener('click', ()=>{
+                    const dinp = document.getElementById('pjEncDate');
+                    if(dinp) dinp.value = getTodayStr();
+                });
+
                 document.getElementById('btnAddPjPhone').addEventListener('click', ()=>{
                     document.getElementById('pjPhonesList').insertAdjacentHTML('beforeend', `
                         <div class="pj-multi-item">
@@ -5771,13 +6158,68 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     });
                 }
 
+                const personSelect = document.getElementById('pjEncPersonSelect');
+                if(personSelect){
+                    personSelect.addEventListener('change', ()=>{
+                        const val = personSelect.value;
+                        if(!val) return;
+                        const reg = getPjPeopleRegistry();
+                        const p = reg.find(x => x.personId === val);
+                        if(p){
+                            const nameInp = document.getElementById('pjEncQuickName');
+                            if(nameInp) nameInp.value = pjCanonicalName(p, p.personId);
+                            const hint = document.getElementById('pjKnownHint');
+                            if(hint) hint.innerHTML = '&#10003; Selected contact (' + escapeHtml(pjCanonicalName(p, p.personId)) + ')';
+                            const nNick = document.getElementById('pjEncNickname');
+                            const nRel = document.getElementById('pjEncRelation');
+                            const nBday = document.getElementById('pjEncBirthday');
+                            if(nNick && !nNick.value && p.profile?.nickname) nNick.value = p.profile.nickname;
+                            if(nRel && !nRel.value && p.profile?.relation) nRel.value = p.profile.relation;
+                            if(nBday && !nBday.value && p.profile?.birthday) nBday.value = p.profile.birthday;
+
+                            if(p.phones && p.phones.length){
+                                const pList = document.getElementById('pjPhonesList');
+                                if(pList){
+                                    const exPhones = Array.from(pList.querySelectorAll('.pj-phone-input')).map(i=>i.value.trim()).filter(Boolean);
+                                    if(!exPhones.length){
+                                        pList.innerHTML = p.phones.map(ph=>`
+                                            <div class="pj-multi-item">
+                                                <input type="tel" class="pj-phone-input" placeholder="+1 555 1234" value="${escapeHtml(ph)}" autocomplete="off">
+                                                <button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>
+                                            </div>
+                                        `).join('');
+                                    }
+                                }
+                            }
+                            if(p.emails && p.emails.length){
+                                const emList = document.getElementById('pjEmailsList');
+                                if(emList){
+                                    const exEmails = Array.from(emList.querySelectorAll('.pj-email-input')).map(i=>i.value.trim()).filter(Boolean);
+                                    if(!exEmails.length){
+                                        emList.innerHTML = p.emails.map(em=>`
+                                            <div class="pj-multi-item">
+                                                <input type="email" class="pj-email-input" placeholder="name@example.com" value="${escapeHtml(em)}" autocomplete="off">
+                                                <button type="button" class="pj-multi-remove" data-remove="email">&times;</button>
+                                            </div>
+                                        `).join('');
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
                 const qName = document.getElementById('pjEncQuickName');
                 if(qName){
                     qName.addEventListener('input', ()=>{
                         const k = findKnownPerson(qName.value.trim());
                         const hint = document.getElementById('pjKnownHint');
+                        const pSel = document.getElementById('pjEncPersonSelect');
                         if(k){
-                            hint.innerHTML = '&#10003; Known contact (' + escapeHtml(k.name) + ')';
+                            if(pSel && pSel.value !== k.personId){
+                                pSel.value = k.personId;
+                            }
+                            hint.innerHTML = '&#10003; Known contact (' + escapeHtml(pjCanonicalName(k, k.personId)) + ')';
                             if(!editingEncounterId){
                                 const nNick = document.getElementById('pjEncNickname');
                                 const nRel = document.getElementById('pjEncRelation');
@@ -5816,13 +6258,55 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const notes = (document.getElementById('pjEncNotes')?.value || '').trim();
 
                 const summary = quickMemory;
-                const day = editingEncounterDay || selectedDateStr;
-                const personId = normalizePjName(name) || generatePjId('p_');
+                const targetDay = (document.getElementById('pjEncDate')?.value || '').trim() || editingEncounterDay || selectedDateStr || getTodayStr();
+
+                // Resolve permanent personId
+                const selectedPid = document.getElementById('pjEncPersonSelect')?.value || '';
+                let personId = selectedPid;
+                if(!personId && editingEncounterId && editingEncounterDay){
+                    const oldDayData = getPjDayData(editingEncounterDay);
+                    const oldEnc = (oldDayData?.encounters||[]).find(x => x.id === editingEncounterId);
+                    if(oldEnc && oldEnc.personId) personId = oldEnc.personId;
+                }
+                if(!personId){
+                    const known = findKnownPerson(name);
+                    if(known) personId = known.personId;
+                    else personId = generatePjId('c_');
+                }
+
+                const saveAsContact = !!document.getElementById('pjEncSaveAsContact')?.checked;
+                if(saveAsContact){
+                    const contacts = loadPjContacts();
+                    let existing = contacts.find(c => c.personId === personId);
+                    if(!existing){
+                        existing = {
+                            personId,
+                            name,
+                            phones: phones.slice(),
+                            emails: emails.slice(),
+                            tags: tags.slice(),
+                            source: 'encounter'
+                        };
+                        contacts.push(existing);
+                    } else {
+                        existing.name = name;
+                        phones.forEach(ph => { if(!existing.phones.includes(ph)) existing.phones.push(ph); });
+                        emails.forEach(em => { if(!existing.emails.includes(em)) existing.emails.push(em); });
+                        tags.forEach(t => { if(!existing.tags.includes(t)) existing.tags.push(t); });
+                    }
+                    savePjContacts(contacts);
+                }
+
+                if(nickname || relation || birthday){
+                    const prof = pjProfile(personId);
+                    if(nickname && !prof.nickname) prof.nickname = nickname;
+                    if(relation && !prof.relation) prof.relation = relation;
+                    if(birthday && !prof.birthday) prof.birthday = birthday;
+                    if(!prof.displayName) prof.displayName = name;
+                    savePjMeta();
+                }
 
                 pushUndo(editingEncounterId ? 'Edit encounter' : 'Add encounter');
-
-                const dayData = getPjDayData(day) || { encounters: [] };
-                dayData.encounters = Array.isArray(dayData.encounters) ? dayData.encounters : [];
 
                 const payload = {
                     personId, name, phones, emails, tags,
@@ -5831,20 +6315,47 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     followUp: followUp || null, followUpAction, notes
                 };
 
-                if(editingEncounterId){
-                    const idx = dayData.encounters.findIndex(e => e.id === editingEncounterId);
-                    if(idx !== -1) dayData.encounters[idx] = Object.assign({}, dayData.encounters[idx], payload);
-                } else {
-                    dayData.encounters.push(Object.assign({
-                        id: generatePjId('e_'),
+                if(editingEncounterId && editingEncounterDay && editingEncounterDay !== targetDay){
+                    const oldDayData = getPjDayData(editingEncounterDay) || { encounters: [] };
+                    oldDayData.encounters = (oldDayData.encounters || []).filter(e => e.id !== editingEncounterId);
+                    savePjDayData(editingEncounterDay, oldDayData);
+                    updateSingleCell(editingEncounterDay, { pop: false });
+
+                    const newDayData = getPjDayData(targetDay) || { encounters: [] };
+                    newDayData.encounters = Array.isArray(newDayData.encounters) ? newDayData.encounters : [];
+                    newDayData.encounters.push(Object.assign({
+                        id: editingEncounterId,
                         createdAt: Date.now()
                     }, payload));
+                    savePjDayData(targetDay, newDayData);
+                    updateSingleCell(targetDay, { pop: true });
+                } else {
+                    const dayData = getPjDayData(targetDay) || { encounters: [] };
+                    dayData.encounters = Array.isArray(dayData.encounters) ? dayData.encounters : [];
+                    if(editingEncounterId){
+                        const idx = dayData.encounters.findIndex(e => e.id === editingEncounterId);
+                        if(idx !== -1) dayData.encounters[idx] = Object.assign({}, dayData.encounters[idx], payload);
+                    } else {
+                        dayData.encounters.push(Object.assign({
+                            id: generatePjId('e_'),
+                            createdAt: Date.now()
+                        }, payload));
+                    }
+                    savePjDayData(targetDay, dayData);
+                    updateSingleCell(targetDay, { pop: true });
                 }
 
-                savePjDayData(day, dayData);
+                invalidatePjCache();
                 closePjEncounterModal();
-                updateSingleCell(day, { pop:true });
-                renderPjDailySection(day);
+                if(selectedDateStr === targetDay || selectedDateStr === editingEncounterDay){
+                    renderPjDailySection(selectedDateStr);
+                }
+                if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                    renderPjCenter();
+                }
+                if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                    renderPjDirectory();
+                }
                 showToast(editingEncounterId ? 'Encounter updated' : 'Encounter logged');
             }
 
@@ -6553,15 +7064,40 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 document.getElementById('pjPeopleOverlay').classList.remove('active');
                 selectedPersonId = null;
             }
+            function selectPjDirectoryPerson(pid){
+                selectedPersonId = pid;
+                renderPjDirectory();
+                renderPjPersonDetail();
+            }
             function renderPjDirectory(){
-                const all = getPjPeopleRegistry().slice().sort((a,b)=>a.name.localeCompare(b.name));
+                const all = getPjPeopleRegistry().slice().sort((a,b)=>pjCanonicalName(a, a.personId).localeCompare(pjCanonicalName(b, b.personId)));
                 let filtered = all;
                 if(peopleViewMode === 'contacts') filtered = all.filter(p => p.isContact);
                 else if(peopleViewMode === 'encounters') filtered = all.filter(p => p.encounters.length > 0);
 
                 if(peopleFilter.trim()){
                     const q = peopleFilter.trim().toLowerCase();
-                    filtered = filtered.filter(p => (p.name + ' ' + (p.phones||[]).join(' ') + ' ' + (p.emails||[]).join(' ')).toLowerCase().includes(q));
+                    filtered = filtered.filter(p => {
+                        const canon = pjCanonicalName(p, p.personId);
+                        const hay = [
+                            canon,
+                            p.name,
+                            p.nickname,
+                            p.relation,
+                            p.organization,
+                            p.role,
+                            p.notes,
+                            (p.phones||[]).join(' '),
+                            (p.emails||[]).join(' '),
+                            (p.tags||[]).join(' '),
+                            p.profile?.nickname,
+                            p.profile?.relation,
+                            p.profile?.notes,
+                            p.profile?.organization,
+                            p.profile?.role
+                        ].filter(Boolean).join(' ').toLowerCase();
+                        return hay.includes(q);
+                    });
                 }
 
                 // Update duplicate badge
@@ -6571,26 +7107,44 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     dupBtn.innerHTML = `&#128256; Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
                 }
 
-                document.getElementById('pjPeopleCount').textContent = filtered.length + (filtered.length===1?' person':' people');
+                const filterActive = peopleViewMode !== 'all' || peopleFilter.trim().length > 0;
+                const filterBadge = filterActive ? ` <span class="pj-filter-badge">${peopleViewMode !== 'all' ? (peopleViewMode==='contacts'?'Contacts':'Met') : ''}${peopleFilter.trim() ? ` "${escapeHtml(peopleFilter.trim())}"` : ''} <button type="button" class="pj-filter-clear" id="btnPjClearDirFilters" title="Clear filter">&times;</button></span>` : '';
+                document.getElementById('pjPeopleCount').innerHTML = `${filtered.length} ${filtered.length===1?'person':'people'}${filterBadge}`;
+
+                const clearBtn = document.getElementById('btnPjClearDirFilters');
+                if(clearBtn){
+                    clearBtn.addEventListener('click', (ev)=>{
+                        ev.stopPropagation();
+                        peopleViewMode = 'all';
+                        peopleFilter = '';
+                        const sInp = document.getElementById('pjPeopleSearch');
+                        if(sInp) sInp.value = '';
+                        document.getElementById('pjFilterContacts')?.classList.remove('active');
+                        document.getElementById('pjFilterEncounters')?.classList.remove('active');
+                        renderPjDirectory();
+                    });
+                }
+
                 const listEl = document.getElementById('pjPeopleList');
                 if(!filtered.length){
                     listEl.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">No matches found.</div>`;
                 } else {
                     listEl.innerHTML = filtered.map(p => {
+                        const cName = pjCanonicalName(p, p.personId);
                         const isActive = p.personId === selectedPersonId;
-                        const initials = initialsOfPj(p.name);
+                        const initials = initialsOfPj(cName);
                         const firstPhone = (p.phones && p.phones.length) ? p.phones[0] : '';
                         return `
-                            <div class="pj-dir-item ${isActive?'active':''}" data-pid="${escapeHtml(p.personId)}">
+                            <button type="button" class="pj-dir-item ${isActive?'active':''}" data-pid="${escapeHtml(p.personId)}">
                                 <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:30px;height:30px;font-size:0.7rem;">${escapeHtml(initials)}</div>
-                                <div style="flex:1;min-width:0;">
-                                    <div style="font-size:var(--fs-xs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+                                <div style="flex:1;min-width:0;text-align:left;">
+                                    <div style="font-size:var(--fs-xs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(cName)}</div>
                                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);display:flex;align-items:center;gap:6px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
                                         ${firstPhone ? `<span style="color:var(--accent);font-weight:600;font-family:var(--font-mono);">&#128222; ${escapeHtml(firstPhone)}</span>` : ''}
                                         <span>${p.encounters.length} met</span>
                                     </div>
                                 </div>
-                            </div>
+                            </button>
                         `;
                     }).join('');
                 }
@@ -6609,8 +7163,9 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 }
                 const p = getPjPeopleRegistry().find(x => x.personId === selectedPersonId);
                 if(!p) return;
+                const cName = pjCanonicalName(p, p.personId);
                 const profile = p.profile || {};
-                const initials = initialsOfPj(p.name);
+                const initials = initialsOfPj(cName);
                 const encs = (p.encounters||[]).slice().sort((a,b)=>String(b._date).localeCompare(String(a._date)));
 
                 let contactsPills = '';
@@ -6633,6 +7188,53 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     `;
                 }
 
+                let actionButtonsHtml = `
+                    <button type="button" class="pj-toolbar-pill" id="btnEditCurrentProfile" data-pid="${escapeAttr(p.personId)}" title="Edit profile details, phone numbers, email">&#9998; Edit Profile</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnLogEncounterForPerson" data-pid="${escapeAttr(p.personId)}" title="Log interaction">&#128100; Log Interaction</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeAttr(p.personId)}" title="Merge with another person">&#128256; Merge</button>
+                `;
+
+                if(p.isContact && encs.length > 0){
+                    actionButtonsHtml += `
+                        <button type="button" class="pj-toolbar-pill" id="btnRemoveContactCard" data-pid="${escapeAttr(p.personId)}" title="Remove contact card but keep calendar encounters">&#128465; Remove Contact Card</button>
+                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeletePersonHistory" data-pid="${escapeAttr(p.personId)}" title="Permanently delete person and all encounters">&#9888; Delete Person & History</button>
+                    `;
+                } else if(p.isContact && encs.length === 0){
+                    actionButtonsHtml += `
+                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteCurrentContact" data-pid="${escapeAttr(p.personId)}" title="Delete saved contact">&#128465; Delete Contact</button>
+                    `;
+                } else {
+                    actionButtonsHtml += `
+                        <button type="button" class="pj-toolbar-pill" id="btnSaveAsSavedContact" data-pid="${escapeAttr(p.personId)}" title="Save as permanent contact in directory">&#43; Save as Contact</button>
+                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeletePersonHistory" data-pid="${escapeAttr(p.personId)}" title="Permanently delete person and all encounters">&#128465; Delete Person & History</button>
+                    `;
+                }
+
+                let followUpSectionHtml = '';
+                const pendingFu = (profile.nextAction && profile.nextActionStatus !== 'done') ? {
+                    text: profile.nextAction,
+                    due: profile.nextActionDue,
+                    source: 'profile'
+                } : encs.find(e => e.followUp && !e.followUpDone) ? {
+                    text: encs.find(e => e.followUp && !e.followUpDone).followUpAction || 'Follow-up',
+                    due: encs.find(e => e.followUp && !e.followUpDone).followUp,
+                    source: 'encounter',
+                    encounterId: encs.find(e => e.followUp && !e.followUpDone).id,
+                    encounterDate: encs.find(e => e.followUp && !e.followUpDone)._date
+                } : null;
+
+                if(pendingFu){
+                    followUpSectionHtml = `
+                        <div style="background:var(--card-bg);border:1.5px solid var(--warning);border-radius:var(--r-md);padding:10px 12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                            <div>
+                                <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--warning);text-transform:uppercase;">&#9200; Pending Follow-up (${pendingFu.due ? getShortDate(pendingFu.due) : 'No date'})</div>
+                                <div style="font-size:var(--fs-xs);font-weight:600;margin-top:2px;">${escapeHtml(pendingFu.text)}</div>
+                            </div>
+                            <button type="button" class="pj-toolbar-pill" data-mark-fu-done="${escapeAttr(p.personId)}" data-source="${pendingFu.source}" data-enc-id="${pendingFu.encounterId||''}" data-enc-date="${pendingFu.encounterDate||''}" style="background:var(--success);color:#fff;font-weight:700;">&#10003; Mark Done</button>
+                        </div>
+                    `;
+                }
+
                 const timelineHtml = encs.map(e => `
                     <div class="pj-dir-timeline-item">
                         <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--accent);margin-bottom:2px;">${getShortDate(e._date)}</div>
@@ -6640,27 +7242,36 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             ${e.venue?`<div><strong>&#127963; ${escapeHtml(e.venue)}</strong></div>`:''}
                             ${e.summary?`<div style="margin-top:4px;">${escapeHtml(e.summary)}</div>`:''}
                             ${e.topics?`<div class="pj-md-content" style="margin-top:4px;">${renderMarkdown(e.topics)}</div>`:''}
-                            ${e.followUp?`<div style="margin-top:4px;font-size:var(--fs-2xs);color:var(--warning);font-weight:600;">&#9200; Follow-up: ${getShortDate(e.followUp)}</div>`:''}
+                            ${e.followUp?`
+                                <div class="pj-fu-action-row" style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:6px;">
+                                    <span style="font-size:var(--fs-2xs);color:${e.followUpDone?'var(--success)':'var(--warning)'};font-weight:600;">
+                                        &#9200; Follow-up (${getShortDate(e.followUp)}): ${escapeHtml(e.followUpAction||'Check in')} ${e.followUpDone?'[Done]':''}
+                                    </span>
+                                    ${!e.followUpDone ? `
+                                        <button type="button" class="pj-btn-done" data-mark-fu-done="${escapeAttr(p.personId)}" data-source="encounter" data-enc-id="${escapeAttr(e.id)}" data-enc-date="${escapeAttr(e._date)}">&#10003; Done</button>
+                                    ` : ''}
+                                </div>
+                            `:''}
                         </div>
                     </div>
                 `).join('');
 
                 mainEl.innerHTML = `
                     ${dupBannerHtml}
-                    <div style="display:flex;align-items:flex-start;gap:16px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;">
-                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:48px;height:48px;font-size:1.1rem;">${escapeHtml(initials)}</div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                                <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeAttr(p.personId)}" title="Merge with another person">&#128256; Merge</button>
-                                    <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteCurrentContact" data-pid="${escapeAttr(p.personId)}" title="Delete this contact">&#128465; Delete</button>
-                                </div>
+                    <div style="display:flex;flex-direction:column;gap:12px;padding:16px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:16px;">
+                        <div style="display:flex;align-items:flex-start;gap:14px;">
+                            <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:48px;height:48px;font-size:1.1rem;">${escapeHtml(initials)}</div>
+                            <div style="flex:1;min-width:0;">
+                                <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(cName)}</div>
+                                ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;">${escapeHtml(profile.relation)}</div>` : ''}
+                                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactsPills}</div>
                             </div>
-                            ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);">${escapeHtml(profile.relation)}</div>` : ''}
-                            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactsPills}</div>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:10px;border-top:1px solid var(--border);">
+                            ${actionButtonsHtml}
                         </div>
                     </div>
+                    ${followUpSectionHtml}
                     <div style="font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;color:var(--text-secondary);margin-bottom:8px;">Interaction Timeline (${encs.length})</div>
                     <div class="pj-dir-timeline">${timelineHtml || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);font-style:italic;">No recorded interactions yet.</div>'}</div>
                 `;
@@ -6811,13 +7422,31 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(!modal || !body) return;
                 const pr = pjProfile(p.personId);
                 const health = pjHealth(p);
+                const cName = pjCanonicalName(p, p.personId);
+
+                const phones = Array.isArray(p.phones) ? p.phones : [];
+                const emails = Array.isArray(p.emails) ? p.emails : [];
+
+                const phonesRows = (phones.length ? phones : ['']).map(ph => `
+                    <div class="pj-multi-item">
+                        <input type="tel" class="pjp-phone-input" placeholder="+1 555 1234" value="${escapeHtml(ph)}" autocomplete="off">
+                        <button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>
+                    </div>
+                `).join('');
+
+                const emailsRows = (emails.length ? emails : ['']).map(em => `
+                    <div class="pj-multi-item">
+                        <input type="email" class="pjp-email-input" placeholder="name@example.com" value="${escapeHtml(em)}" autocomplete="off">
+                        <button type="button" class="pj-multi-remove" data-remove="email">&times;</button>
+                    </div>
+                `).join('');
 
                 body.innerHTML = `
                     <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;">
-                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:44px;height:44px;font-size:1rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:44px;height:44px;font-size:1rem;">${escapeHtml(initialsOfPj(cName))}</div>
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;gap:8px;">
-                                <span style="font-size:var(--fs-md);font-weight:750;">${escapeHtml(p.name)}</span>
+                                <span style="font-size:var(--fs-md);font-weight:750;">${escapeHtml(cName)}</span>
                                 <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
                                 ${pr.favorite ? '<span class="pj-fav" title="Starred">&#9733;</span>' : ''}
                             </div>
@@ -6830,7 +7459,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
                     <div class="pj-form-grid">
                         <div class="pj-form-field">
-                            <label>Display / Full Name</label>
+                            <label>Display / Full Name *</label>
                             <input type="text" id="pjpName" value="${escapeAttr(pr.displayName || p.name)}" placeholder="Full Name">
                         </div>
                         <div class="pj-form-field">
@@ -6856,6 +7485,16 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <option value="normal" ${pr.priority==='normal'||!pr.priority?'selected':''}>Normal</option>
                                 <option value="high" ${pr.priority==='high'?'selected':''}>High</option>
                             </select>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Phone Numbers</label>
+                            <div id="pjpPhonesList" class="pj-multi-list">${phonesRows}</div>
+                            <button type="button" class="pj-multi-add" id="btnAddPjpPhone" style="align-self:flex-start;margin-top:4px;">+ Add Phone</button>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Email Addresses</label>
+                            <div id="pjpEmailsList" class="pj-multi-list">${emailsRows}</div>
+                            <button type="button" class="pj-multi-add" id="btnAddPjpEmail" style="align-self:flex-start;margin-top:4px;">+ Add Email</button>
                         </div>
                         <div class="pj-form-field full">
                             <label>Next Action / Follow-up</label>
@@ -6884,20 +7523,17 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         </div>
                     </div>
 
-                    ${(p.phones && p.phones.length) || (p.emails && p.emails.length) ? `
-                        <div style="margin-top:12px;padding:10px 12px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-md);">
-                            <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:6px;">Contact Channels</div>
-                            <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                                ${(p.phones||[]).map(ph=>`<span class="pj-contact-pill">&#128222; <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a></span>`).join('')}
-                                ${(p.emails||[]).map(em=>`<span class="pj-contact-pill">&#9993; <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a></span>`).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
-                        <div style="display:flex;gap:6px;align-items:center;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                             <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">&#128220; History (${p.encounters.length})</button>
-                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}">&#128465; Delete Contact</button>
+                            ${p.isContact && p.encounters.length > 0 ? `
+                                <button type="button" class="pj-toolbar-pill" id="btnPjpRemoveContact" data-pid="${escapeAttr(p.personId)}" title="Remove contact card but keep historical interactions">&#128465; Remove Contact Card</button>
+                                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all calendar encounters">&#9888; Delete Person & History</button>
+                            ` : p.isContact ? `
+                                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}" title="Delete saved contact">&#128465; Delete Contact</button>
+                            ` : `
+                                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all encounters">&#128465; Delete Person & History</button>
+                            `}
                         </div>
                         <div style="display:flex;gap:8px;">
                             <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
@@ -6910,9 +7546,72 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
                 document.getElementById('btnPjpCancel')?.addEventListener('click', closePjProfile);
                 document.getElementById('btnPjpDelete')?.addEventListener('click', () => { deletePjContact(p.personId); });
+                document.getElementById('btnPjpRemoveContact')?.addEventListener('click', () => { deletePjContact(p.personId, { removeContactOnly: true }); });
+                document.getElementById('btnPjpDeleteAll')?.addEventListener('click', () => { deletePjContact(p.personId, { deleteHistory: true }); });
+
+                document.getElementById('btnAddPjpPhone')?.addEventListener('click', ()=>{
+                    const wrap = document.getElementById('pjpPhonesList');
+                    if(!wrap) return;
+                    const row = document.createElement('div');
+                    row.className = 'pj-multi-item';
+                    row.innerHTML = `<input type="tel" class="pjp-phone-input" placeholder="+1 555 1234" autocomplete="off"><button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>`;
+                    wrap.appendChild(row);
+                    row.querySelector('input')?.focus();
+                });
+
+                document.getElementById('btnAddPjpEmail')?.addEventListener('click', ()=>{
+                    const wrap = document.getElementById('pjpEmailsList');
+                    if(!wrap) return;
+                    const row = document.createElement('div');
+                    row.className = 'pj-multi-item';
+                    row.innerHTML = `<input type="email" class="pjp-email-input" placeholder="name@example.com" autocomplete="off"><button type="button" class="pj-multi-remove" data-remove="email">&times;</button>`;
+                    wrap.appendChild(row);
+                    row.querySelector('input')?.focus();
+                });
+
+                body.addEventListener('click', (ev)=>{
+                    const rm = ev.target.closest('.pj-multi-remove');
+                    if(rm){
+                        const item = rm.closest('.pj-multi-item');
+                        if(item) item.remove();
+                    }
+                });
+
                 document.getElementById('btnPjpSave')?.addEventListener('click', () => {
                     const name = (document.getElementById('pjpName')?.value || '').trim();
                     if(!name){ alert('Name cannot be empty.'); return; }
+                    const newPhones = Array.from(document.querySelectorAll('#pjpPhonesList .pjp-phone-input')).map(i=>i.value.trim()).filter(Boolean);
+                    const newEmails = Array.from(document.querySelectorAll('#pjpEmailsList .pjp-email-input')).map(i=>i.value.trim()).filter(Boolean);
+
+                    pushUndo(`Edit profile ${name}`);
+
+                    // 1. Update contact registry if it's a contact or if user edited contact details
+                    const contacts = loadPjContacts();
+                    let c = contacts.find(x => x.personId === p.personId);
+                    if(c){
+                        c.name = name;
+                        c.phones = newPhones;
+                        c.emails = newEmails;
+                        savePjContacts(contacts);
+                    }
+
+                    // 2. Update encounters name if changed
+                    const days = listAllPjDays();
+                    days.forEach(ds => {
+                        const dayData = getPjDayData(ds);
+                        if(dayData && Array.isArray(dayData.encounters)){
+                            let mod = false;
+                            dayData.encounters.forEach(e => {
+                                if(e.personId === p.personId){
+                                    e.name = name;
+                                    mod = true;
+                                }
+                            });
+                            if(mod) savePjDayData(ds, dayData);
+                        }
+                    });
+
+                    // 3. Update profile
                     const prObj = pjProfile(p.personId);
                     prObj.displayName = name;
                     prObj.nickname = (document.getElementById('pjpNickname')?.value || '').trim();
@@ -6926,10 +7625,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     prObj.favorite = !!document.getElementById('pjpFavorite')?.checked;
                     prObj.notes = (document.getElementById('pjpNotes')?.value || '').trim();
                     savePjMeta();
+
                     invalidatePjCache();
                     closePjProfile();
                     renderPjCenter();
                     if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+                    if(selectedDateStr) renderPjDailySection(selectedDateStr);
                     showToast('Profile saved');
                 });
                 document.getElementById('btnPjpTimeline')?.addEventListener('click', () => {
@@ -6968,7 +7669,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div class="pj-toolbar-row" style="justify-content:space-between;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;">
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                 <span style="font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;">Quick Actions:</span>
-                                <button type="button" class="pj-toolbar-pill" id="btnDashAddPerson" style="background:var(--accent);color:#fff;font-weight:700;">+ Add Person</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddContact" style="background:var(--accent);color:#fff;font-weight:700;">+ Add Contact</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashLogInteraction">&#128100; Log Interaction</button>
                                 <button type="button" class="pj-toolbar-pill" id="btnDashAddFu">&#9200; Schedule Follow-up</button>
                                 <button type="button" class="pj-toolbar-pill" id="btnDashAddBday">&#127874; Add Birthday</button>
                             </div>
@@ -6993,7 +7695,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <div class="pj-center-stat-val" style="color:${fusDue.length ? 'var(--warning)' : 'var(--text)'};">${fusDue.length}</div>
                             </div>
                             <div class="pj-center-stat" data-tab="people" data-filter="neglected" title="Not contacted in ${pjMeta.notContactedDays||60} days">
-                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Needs Contact (60d+)</div>
+                                <div style="font-size:var(--fs-2xs);text-transform:uppercase;color:var(--text-secondary);font-weight:700;">Needs Contact (${pjMeta.notContactedDays||60}d+)</div>
                                 <div class="pj-center-stat-val" style="color:${neglectedPeople.length ? 'var(--danger)' : 'var(--success)'};">${neglectedPeople.length}</div>
                             </div>
                         </div>
@@ -7006,7 +7708,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <div class="pj-card">
                                     <div class="pj-card-head">
                                         <span>&#128197; Today's Interactions (${encToday.length})</span>
-                                        <button type="button" class="pj-toolbar-pill" id="btnDashLogToday">+ Log Person</button>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashLogToday">+ Log Person Met Today</button>
                                     </div>
                                     <div style="display:flex;flex-direction:column;gap:6px;">
                                         ${encToday.map(e => `
@@ -7113,7 +7815,9 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     `;
 
                     // Bind Dashboard events
-                    document.getElementById('btnDashAddPerson')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnDashAddContact')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
+                    document.getElementById('btnDashLogInteraction')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
+                    document.getElementById('btnDashAddPerson')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
                     document.getElementById('btnDashAddFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
                     document.getElementById('btnDashScheduleFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
                     document.getElementById('btnDashAddFuEmpty')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
@@ -7124,8 +7828,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     document.getElementById('btnDashViewDir')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
                     document.getElementById('btnDashStarEmpty')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
                     document.getElementById('btnDashDuplicates')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
-                    document.getElementById('btnDashLogToday')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
-                    document.getElementById('btnDashLogTodayEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnDashLogToday')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
+                    document.getElementById('btnDashLogTodayEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
 
                 } else if(pjActiveTab === 'people'){
                     let filtered = people;
@@ -7160,7 +7864,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <input type="text" id="pjCenterPeopleSearchInput" placeholder="Filter people..." value="${escapeAttr(pjCenterPeopleSearch)}" style="font-size:var(--fs-xs);padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--border);width:160px;">
                             </div>
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                <button type="button" class="btn-primary" id="btnPeopleAdd" style="font-size:var(--fs-xs);padding:5px 12px;">+ Add Person</button>
+                                <button type="button" class="btn-primary" id="btnPeopleAdd" style="font-size:var(--fs-xs);padding:5px 12px;">+ Add Contact</button>
                                 <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsv">&#128229; Import CSV</button>
                                 <button type="button" class="pj-toolbar-pill" id="btnPeopleMergeDups">&#9851; Merge</button>
                                 <button type="button" class="pj-toolbar-pill" id="btnPeopleExportCsv">&#128228; CSV</button>
@@ -7217,7 +7921,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     <div style="font-size:1.8rem;opacity:.5;">&#128101;</div>
                                     <div style="font-size:var(--fs-sm);font-weight:600;">No people match this view.</div>
                                     <div style="display:flex;gap:8px;margin-top:4px;">
-                                        <button type="button" class="btn-primary" id="btnPeopleAddEmpty" style="padding:6px 14px;">+ Add Person</button>
+                                        <button type="button" class="btn-primary" id="btnPeopleAddEmpty" style="padding:6px 14px;">+ Add Contact</button>
                                         <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsvEmpty">&#128199; Import Google Contacts CSV</button>
                                     </div>
                                 </div>
@@ -7228,8 +7932,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     // Bind People Tab events
                     document.getElementById('pjCenterSort')?.addEventListener('change', e => { pjCenterPeopleSort = e.target.value; renderPjCenter(); });
                     document.getElementById('pjCenterPeopleSearchInput')?.addEventListener('input', e => { pjCenterPeopleSearch = e.target.value; renderPjCenter(); });
-                    document.getElementById('btnPeopleAdd')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
-                    document.getElementById('btnPeopleAddEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+                    document.getElementById('btnPeopleAdd')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
+                    document.getElementById('btnPeopleAddEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
                     document.getElementById('btnPeopleImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
                     document.getElementById('btnPeopleImportCsvEmpty')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
                     document.getElementById('btnPeopleMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
@@ -9405,6 +10109,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(eisenDateStr)updateSingleCell(eisenDateStr);
                 dates.forEach(ds=>{if(ds&&ds!==eisenDateStr)updateSingleCell(ds)});
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
             }
             function toggleEisenItemDone(kind,sourceId){
                 if(!eisenDateStr||!sourceId)return;
@@ -10447,6 +11155,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     updateSingleCell(eisenDateStr,{pop:true});
                     updateSingleCell(target,{pop:true});
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof invalidatePjCache==='function')invalidatePjCache();
+                if(typeof loadPjMeta==='function')loadPjMeta();
+                if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
+                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
                     showToast('📅 Moved to '+getShortDate(target));
                     return;
                 }
@@ -11154,6 +11866,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
                 const btnTopAddText=document.getElementById('btnTopAddText');
                 if(btnTopAddText)btnTopAddText.addEventListener('click',addTextCalendarEntry);
+                const btnTopAddContact=document.getElementById('btnTopAddContact');
+                if(btnTopAddContact)btnTopAddContact.addEventListener('click',()=>openAddPjContact());
                 const btnTopAddEncounter=document.getElementById('btnTopAddEncounter');
                 if(btnTopAddEncounter)btnTopAddEncounter.addEventListener('click',openAddPjEncounter);
                 const btnTopDirectory=document.getElementById('btnTopDirectory');
@@ -11180,6 +11894,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(pjCsvInp)pjCsvInp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importGoogleContactsCSV(f);ev.target.value='';});
                 const pjBackupInp=document.getElementById('pjEnhancedBackupInput');
                 if(pjBackupInp)pjBackupInp.addEventListener('change',ev=>{const f=ev.target.files?.[0];if(f)importPjEnhancedBackup(f);ev.target.value='';});
+                const btnPjAddContact=document.getElementById('btnPjAddContact');
+                if(btnPjAddContact)btnPjAddContact.addEventListener('click',()=>openAddPjContact());
                 const btnAddPjEncounter=document.getElementById('btnAddPjEncounter');
                 if(btnAddPjEncounter)btnAddPjEncounter.addEventListener('click',openAddPjEncounter);
                 const btnPjDirectory=document.getElementById('btnPjDirectory');
@@ -11199,6 +11915,14 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(btnPjModalClose)btnPjModalClose.addEventListener('click',closePjEncounterModal);
                 const pjEncounterModalOverlay=document.getElementById('pjEncounterModalOverlay');
                 if(pjEncounterModalOverlay)pjEncounterModalOverlay.addEventListener('click',e=>{if(e.target===pjEncounterModalOverlay)closePjEncounterModal()});
+                const btnPjContactModalClose=document.getElementById('pjContactModalClose');
+                if(btnPjContactModalClose)btnPjContactModalClose.addEventListener('click',closePjContactModal);
+                const pjContactModalOverlay=document.getElementById('pjContactModalOverlay');
+                if(pjContactModalOverlay)pjContactModalOverlay.addEventListener('click',e=>{if(e.target===pjContactModalOverlay)closePjContactModal();});
+                const pjDirAddContact=document.getElementById('pjDirAddContact');
+                if(pjDirAddContact)pjDirAddContact.addEventListener('click',()=>openAddPjContact());
+                const pjCenterAddContact=document.getElementById('pjCenterAddContact');
+                if(pjCenterAddContact)pjCenterAddContact.addEventListener('click',()=>openAddPjContact());
                 const btnPjPeopleClose=document.getElementById('pjPeopleClose');
                 if(btnPjPeopleClose)btnPjPeopleClose.addEventListener('click',closePjDirectory);
                 const pjPeopleOverlay=document.getElementById('pjPeopleOverlay');
@@ -11223,10 +11947,54 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(qMerge){openPjMergeModal(qMerge.dataset.p1,qMerge.dataset.p2);return;}
                     const mMerge=e.target.closest('#btnManualMergePerson');
                     if(mMerge){openPjMergeModal(mMerge.dataset.pid);return;}
+                    const editProf=e.target.closest('#btnEditCurrentProfile')||e.target.closest('#btnEditCurrentContact');
+                    if(editProf){const pid=editProf.dataset.pid||selectedPersonId;if(pid)openPjProfile(pid);return;}
+                    const logEnc=e.target.closest('#btnLogEncounterForPerson');
+                    if(logEnc){const pid=logEnc.dataset.pid||selectedPersonId;const p=getPjPeopleRegistry().find(x=>x.personId===pid);if(p)openAddPjEncounter(p,selectedDateStr||getTodayStr());return;}
+                    const saveContact=e.target.closest('#btnSaveAsSavedContact');
+                    if(saveContact){
+                        const pid=saveContact.dataset.pid||selectedPersonId;
+                        const p=getPjPeopleRegistry().find(x=>x.personId===pid);
+                        if(p){
+                            pushUndo(`Save contact ${p.name}`);
+                            const contacts=loadPjContacts();
+                            if(!contacts.some(c=>c.personId===p.personId)){
+                                contacts.push({personId:p.personId,name:p.name,phones:(p.phones||[]).slice(),emails:(p.emails||[]).slice(),tags:(p.tags||[]).slice(),source:'manual'});
+                                savePjContacts(contacts);
+                                invalidatePjCache();
+                                renderPjDirectory();
+                                showToast(`Saved "${p.name}" to contacts`);
+                            }
+                        }
+                        return;
+                    }
+                    const rmContact=e.target.closest('#btnRemoveContactCard');
+                    if(rmContact){const pid=rmContact.dataset.pid||selectedPersonId;if(pid)deletePjContact(pid,{removeContactOnly:true});return;}
+                    const delHistory=e.target.closest('#btnDeletePersonHistory');
+                    if(delHistory){const pid=delHistory.dataset.pid||selectedPersonId;if(pid)deletePjContact(pid,{deleteHistory:true});return;}
                     const delBtn=e.target.closest('#btnDeleteCurrentContact')||e.target.closest('[data-delete-person]');
                     if(delBtn){
-                        const pid=delBtn.dataset.deletePerson||selectedPersonId;
+                        const pid=delBtn.dataset.deletePerson||delBtn.dataset.pid||selectedPersonId;
                         if(pid)deletePjContact(pid);
+                        return;
+                    }
+                    const md=e.target.closest('[data-mark-fu-done]');
+                    if(md){
+                        const pid=md.dataset.markFuDone||selectedPersonId;
+                        const pr=pjProfile(pid);
+                        pr.nextActionStatus='done';
+                        if(md.dataset.source==='encounter'&&md.dataset.encDate){
+                            const d=getPjDayData(md.dataset.encDate);
+                            if(d&&d.encounters){
+                                const enc=d.encounters.find(x=>x.id===md.dataset.encId);
+                                if(enc)enc.followUpDone=true;
+                                savePjDayData(md.dataset.encDate,d);
+                            }
+                        }
+                        savePjMeta();
+                        invalidatePjCache();
+                        renderPjDirectory();
+                        showToast('Follow-up marked completed');
                         return;
                     }
                 });
@@ -11383,6 +12151,14 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     }
                 });
 
+                window.addEventListener('td-tasks-changed',()=>{
+                    loadPjMeta();
+                    invalidatePjCache();
+                    if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+                    if(document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjCenter();
+                    if(selectedDateStr) renderPjDailySection(selectedDateStr);
+                });
+
                 btnExport.addEventListener('click',exportJSON);
                 btnExportPdf.addEventListener('click',exportPDF);
                 btnImport.addEventListener('click',()=>importFileInput.click());
@@ -11512,13 +12288,25 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         r.classList.remove('text-calendar-dragging','text-calendar-drag-over-top','text-calendar-drag-over-bottom');
                     });
                 });
+                let textCalendarDebounceTimer=null;
                 taskList.addEventListener('keydown',e=>{
                     if(!textCalendarMode||!e.target.classList.contains('text-calendar-input'))return;
-                    if(e.key==='Enter'){e.preventDefault();const idx=parseInt(e.target.dataset.textIndex,10);const arr=getTextCalendarData().slice();if(!Number.isNaN(idx)){arr[idx]=e.target.value.trim();saveTextCalendarList(arr);addTextCalendarEntry();}}
+                    if(e.key==='Enter'){
+                        e.preventDefault();
+                        if(textCalendarDebounceTimer){clearTimeout(textCalendarDebounceTimer);textCalendarDebounceTimer=null;}
+                        const idx=parseInt(e.target.dataset.textIndex,10);
+                        const arr=getTextCalendarData().slice();
+                        if(!Number.isNaN(idx)){
+                            arr[idx]=e.target.value.trim();
+                            saveTextCalendarList(arr);
+                            addTextCalendarEntry();
+                        }
+                    }
                     else if(e.key==='Escape'){e.preventDefault();e.target.blur()}
                 });
                 taskList.addEventListener('blur',e=>{
                     if(!textCalendarMode||!e.target.classList.contains('text-calendar-input'))return;
+                    if(textCalendarDebounceTimer){clearTimeout(textCalendarDebounceTimer);textCalendarDebounceTimer=null;}
                     const idx=parseInt(e.target.dataset.textIndex,10);
                     const arr=getTextCalendarData().slice();
                     if(Number.isNaN(idx))return;
@@ -11531,7 +12319,31 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(e.target.classList.contains('text-calendar-input')){
                         const idx=parseInt(e.target.dataset.textIndex,10);
                         const arr=getTextCalendarData().slice();
-                        if(!Number.isNaN(idx)){arr[idx]=e.target.value;saveTextCalendarList(arr,false)}
+                        if(!Number.isNaN(idx)){
+                            arr[idx]=e.target.value;
+                            const cur=getCurrentData();
+                            cur.textCalendar=arr;
+                            const cell=calendarGrid.querySelector(`[data-date="${selectedDateStr}"]`);
+                            if(cell){
+                                let list=cell.querySelector('.text-calendar-cell-list');
+                                const visible=arr.filter(x=>String(x||'').trim()).slice(0,3);
+                                if(!list && visible.length){
+                                    list=document.createElement('div');
+                                    list.className='text-calendar-cell-list';
+                                    cell.appendChild(list);
+                                }
+                                if(list){
+                                    const itemsHtml=visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('');
+                                    const moreCount=arr.filter(x=>String(x||'').trim()).length-3;
+                                    const moreHtml=moreCount>0?`<div class="text-calendar-cell-more">+ ${moreCount} more</div>`:'';
+                                    list.innerHTML=itemsHtml+moreHtml;
+                                }
+                            }
+                            if(textCalendarDebounceTimer)clearTimeout(textCalendarDebounceTimer);
+                            textCalendarDebounceTimer=setTimeout(()=>{
+                                saveTextCalendarList(arr,false,{pop:false,quiet:true});
+                            },400);
+                        }
                         return;
                     }
                     if(e.target.classList.contains('task-text')){updateTaskText(e.target.dataset.id,e.target.value);autoResizeTextarea(e.target)}
@@ -11939,6 +12751,15 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             }
             function hideBreakReminder(){breakToast.classList.remove('visible');breakToast.classList.add('hiding');setTimeout(()=>{breakToast.classList.remove('hiding')},350)}
             window.__taskPlannerAppBridge = {
+                openAddPjContact,
+                closePjContactModal,
+                savePjContact,
+                selectPjDirectoryPerson,
+                buildPjPeopleRegistry,
+                pjCanonicalName,
+                performUndo,
+                pushUndo,
+                setTextCalendarMode,
                 getPjDayData,
                 savePjDayData,
                 openAddPjEncounter,
