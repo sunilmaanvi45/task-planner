@@ -2375,7 +2375,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-encounter-card:hover{border-color:var(--border-strong);background:var(--card-bg);box-shadow:var(--shadow-md)}
 .pj-encounter-header{display:flex;align-items:flex-start;gap:10px}
 .pj-encounter-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#7c5cf0);color:#fff;font-weight:700;font-size:var(--fs-xs);display:flex;align-items:center;justify-content:center;flex-shrink:0;user-select:none;position:relative}
-.pj-encounter-avatar.contact-marker::after{content:'📇';position:absolute;bottom:-3px;right:-3px;font-size:.5rem;line-height:1;background:var(--card-bg);border-radius:50%;padding:1px;border:1px solid var(--border-strong)}
+.pj-encounter-avatar.contact-marker::after{content:'\1F4C7';position:absolute;bottom:-3px;right:-3px;font-size:.5rem;line-height:1;background:var(--card-bg);border-radius:50%;padding:1px;border:1px solid var(--border-strong)}
 .pj-encounter-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .pj-encounter-name-row{font-size:var(--fs-sm);font-weight:600;color:var(--text);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .pj-encounter-relation{font-size:var(--fs-2xs);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:1px 6px;border-radius:var(--r-full);background:rgba(124,92,240,.12);color:#7c5cf0;border:1px solid rgba(124,92,240,.25);white-space:nowrap}
@@ -2530,6 +2530,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-search-result{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;cursor:pointer;transition:transform .16s,background-color .16s,border-color .16s,box-shadow .16s}
 .pj-search-result:hover,.pj-search-result.active{transform:translateY(-1px);background:var(--card-bg);border-color:var(--accent-border);box-shadow:var(--shadow-md)}
 .pj-search-result mark{background:rgba(217,119,6,.22);color:inherit;border-radius:3px;padding:1px 3px;font-weight:600}
+.pj-search-single-line{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;line-height:1.4;max-width:100%}
 
 @media(max-width:800px){
   .pj-center-grid{grid-template-columns:repeat(2,1fr)}
@@ -2620,19 +2621,19 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">ðŸ‘¥ People Directory</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">â™¥ Relationship Center</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">ðŸ” Search</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">&#128101; People Directory</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">&#9829; Relationship Center</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">&#128269; Search</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopImportCsv" title="Import Contacts from Google / Phone CSV">ðŸ“‡ Import CSV</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopExportCsv" title="Export People Directory to CSV">â¬‡ Export CSV</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopImportCsv" title="Import Contacts from Google / Phone CSV">&#128229; Import CSV</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopExportCsv" title="Export People Directory to CSV">&#128228; Export CSV</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopBackup" title="Backup People & Text Data (JSON)">ðŸ’¾ Backup</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopRestore" title="Restore People & Text Data (JSON)">ðŸ“‚ Restore</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopBackup" title="Backup People & Text Data (JSON)">&#128190; Backup</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopRestore" title="Restore People & Text Data (JSON)">&#128194; Restore</button>
             </div>
         </div>
         <div class="calendar-panel" id="calendarPanel">
@@ -2824,10 +2825,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     <button type="button" class="btn-add-text-calendar btn-add-pj-encounter" id="btnAddPjEncounter"><span>+</span> Add Person Met</button>
                 </div>
                 <div class="pj-mode-toolbar-pills">
-                    <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">ðŸ‘¥ Directory</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjCenter" title="Relationship Center (R)">â™¥ Center</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjSearch" title="Search Journal (Ctrl+K)">ðŸ” Search</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjImportCsv" title="Import Google Contacts CSV">ðŸ“‡ CSV</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">&#128101; Directory</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjCenter" title="Relationship Center (R)">&#9829; Center</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjSearch" title="Search Journal (Ctrl+K)">&#128269; Search</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjImportCsv" title="Import Google Contacts CSV">&#128229; CSV</button>
                 </div>
             </div>
             <div class="task-list" id="taskList"></div>
@@ -3088,8 +3089,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
     <div class="pj-overlay" id="pjEncounterModalOverlay">
         <div class="pj-modal-card" id="pjEncounterModal" role="dialog" aria-modal="true" aria-label="Encounter editor">
             <div class="pj-modal-header">
-                <span class="pj-modal-title" id="pjEncounterModalTitle">👤 Add Person You Met</span>
-                <button class="pj-modal-close" id="pjEncounterModalClose" aria-label="Close">✕</button>
+                <span class="pj-modal-title" id="pjEncounterModalTitle">&#128100; Add Person You Met</span>
+                <button class="pj-modal-close" id="pjEncounterModalClose" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body" id="pjEncounterModalBody"></div>
         </div>
@@ -3098,14 +3099,14 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
     <div class="pj-overlay" id="pjPeopleOverlay">
         <div class="pj-modal-card pj-dir-modal" id="pjPeopleModal" role="dialog" aria-modal="true" aria-label="People directory">
             <div class="pj-dir-header">
-                <div class="pj-dir-title">👥 People Directory</div>
-                <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email…" autocomplete="off" spellcheck="false">
-                <button type="button" class="pj-toolbar-pill" id="pjFilterContacts" title="Show only contacts">📇 Contacts only</button>
-                <button type="button" class="pj-toolbar-pill" id="pjFilterEncounters" title="Show only people with encounters">👥 With encounters</button>
-                <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">🔀 Merge Duplicates</button>
+                <div class="pj-dir-title">&#128101; People Directory</div>
+                <input type="text" class="pj-dir-search" id="pjPeopleSearch" placeholder="Search by name, phone, email..." autocomplete="off" spellcheck="false">
+                <button type="button" class="pj-toolbar-pill" id="pjFilterContacts" title="Show only contacts">&#128222; Contacts only</button>
+                <button type="button" class="pj-toolbar-pill" id="pjFilterEncounters" title="Show only people with encounters">&#128197; With encounters</button>
+                <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">&#9851; Merge Duplicates</button>
                 <span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary);margin-left:auto" id="pjPeopleCount">0 people</span>
-                <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">⬇ CSV</button>
-                <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">✕</button>
+                <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">&#128228; CSV</button>
+                <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">&times;</button>
             </div>
             <div class="pj-dir-body">
                 <aside class="pj-dir-sidebar">
@@ -3113,7 +3114,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 </aside>
                 <main class="pj-dir-main" id="pjPeopleMain">
                     <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-secondary);text-align:center;">
-                        <div style="font-size:2.4rem;opacity:.5;">👥</div>
+                        <div style="font-size:2.4rem;opacity:.5;">&#128101;</div>
                         <div>Select a person from the list to see their profile and interaction history.</div>
                     </div>
                 </main>
@@ -3124,10 +3125,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
     <div class="pj-overlay" id="pjCenterOverlay">
         <div class="pj-modal-card pj-center-modal" id="pjCenterModal" role="dialog" aria-modal="true" aria-label="Relationship Center">
             <div class="pj-center-head">
-                <div style="font-size:1rem;font-weight:750;letter-spacing:-.02em;">♥ Relationship Center</div>
-                <input class="pj-dir-search" id="pjCenterSearch" placeholder="Search people or use tag:work · followup:overdue · met:30d…" style="max-width:360px;margin-left:12px;">
+                <div style="font-size:1rem;font-weight:750;letter-spacing:-.02em;">&#9829; Relationship Center</div>
+                <input class="pj-dir-search" id="pjCenterSearch" placeholder="Search people or use tag:work &middot; followup:overdue &middot; met:30d..." style="max-width:360px;margin-left:12px;">
                 <button type="button" class="pj-toolbar-pill" id="pjCenterQuickAdd" style="margin-left:auto;background:var(--accent);color:#fff;">+ Add Person</button>
-                <button class="pj-modal-close" id="pjCenterClose" aria-label="Close">✕</button>
+                <button class="pj-modal-close" id="pjCenterClose" aria-label="Close">&times;</button>
             </div>
             <div class="pj-center-tabs" id="pjCenterTabs">
                 <button type="button" class="pj-center-tab active" data-tab="dashboard">Dashboard</button>
@@ -3147,23 +3148,23 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
         <div class="pj-modal-card pj-search-modal" id="pjGlobalSearchModal" role="dialog" aria-modal="true" aria-label="Journal Search">
             <div class="pj-search-head">
                 <div>
-                    <div style="font-size:1.05rem;font-weight:750;letter-spacing:-.025em;">🔎 Search Journal</div>
+                    <div style="font-size:1.05rem;font-weight:750;letter-spacing:-.025em;">&#128269; Search Journal</div>
                     <div style="font-size:.72rem;color:var(--text-secondary);margin-top:4px;">Search across names, words, sentences, places, topics, notes, phones, and dates.</div>
                 </div>
-                <button class="pj-modal-close" id="pjGlobalSearchClose" aria-label="Close">✕</button>
+                <button class="pj-modal-close" id="pjGlobalSearchClose" aria-label="Close">&times;</button>
             </div>
             <div class="pj-search-box-wrap">
-                <span style="font-size:1.2rem;color:var(--text-secondary);">⌕</span>
-                <input id="pjGlobalSearchInput" class="pj-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Try: “met near cafe”, “blue shirt”, “Ravi”, “Hyderabad”…">
-                <button id="pjGlobalSearchClear" style="width:26px;height:26px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;" type="button">×</button>
+                <span style="font-size:1.2rem;color:var(--text-secondary);">&#128269;</span>
+                <input id="pjGlobalSearchInput" class="pj-search-input" type="search" autocomplete="off" spellcheck="false" placeholder="Try: &quot;met near cafe&quot;, &quot;blue shirt&quot;, &quot;Ravi&quot;, &quot;Hyderabad&quot;...">
+                <button id="pjGlobalSearchClear" style="width:26px;height:26px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;" type="button">&times;</button>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 8px;" id="pjGlobalSearchFilters">
                 <button class="pj-toolbar-pill pj-filter-pill active" type="button" data-filter="all">All</button>
-                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="person">👤 Names</button>
-                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="place">📍 Places</button>
-                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="notes">🗒️ Notes</button>
-                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="followup">⏰ Follow-ups</button>
-                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="contact">📞 Contacts</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="person">&#128100; Names</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="place">&#128205; Places</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="notes">&#128221; Notes</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="followup">&#9200; Follow-ups</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="contact">&#128222; Contacts</button>
             </div>
             <div style="padding:2px 20px 8px;font-size:.68rem;color:var(--text-secondary);font-weight:600;" id="pjGlobalSearchMeta">Type anything to search.</div>
             <div class="pj-search-results" id="pjGlobalSearchResults"></div>
@@ -3173,8 +3174,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
     <div class="pj-overlay" id="pjProfileModal">
         <div class="pj-modal-card" style="max-width:620px;">
             <div class="pj-modal-header">
-                <span class="pj-modal-title">Person Profile</span>
-                <button class="pj-modal-close" id="pjProfileClose" aria-label="Close">✕</button>
+                <span class="pj-modal-title">&#128100; Person Profile</span>
+                <button class="pj-modal-close" id="pjProfileClose" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body" id="pjProfileBody"></div>
         </div>
@@ -3184,10 +3185,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
         <div class="pj-modal-card pj-merge-modal" id="pjMergeModal" role="dialog" aria-modal="true" aria-label="Duplicate detection and merge">
             <div class="pj-modal-header">
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <span style="font-size:1.1rem;">🔀</span>
+                    <span style="font-size:1.1rem;">&#9851;</span>
                     <span class="pj-modal-title" id="pjMergeModalTitle">Duplicate Detection & Merge</span>
                 </div>
-                <button class="pj-modal-close" id="pjMergeModalClose" aria-label="Close">✕</button>
+                <button class="pj-modal-close" id="pjMergeModalClose" aria-label="Close">&times;</button>
             </div>
             <div class="pj-merge-body" id="pjMergeModalBody"></div>
         </div>
@@ -4750,7 +4751,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>3?`<div class="text-calendar-cell-more">+ ${texts.length-3} more</div>`:''}${pjHtml}</div>`;
                         }
                         if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.some(e=>e.followUp)){
-                            mg=`<div class="cell-followup-badge" title="Has follow-up">â°</div>`;
+                            mg=`<div class="cell-followup-badge" title="Has follow-up">&#9200;</div>`;
                         }
                     }else{
                         if(data.dayTitle&&String(data.dayTitle).trim()){
@@ -4932,29 +4933,29 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             const PJ_META_KEY = 'tp_people_meta';
             const PJ_TAGS = ['family','friend','work','colleague','client','mentor','neighbor','community','doctor','service','school','vip','acquaintance','spiritual','fitness','other'];
             const PJ_TAG_META = {
-                family:{icon:'👨‍👩‍👧',label:'Family'},
-                friend:{icon:'🤝',label:'Friend'},
-                work:{icon:'💼',label:'Work'},
-                colleague:{icon:'👔',label:'Colleague'},
-                client:{icon:'💼',label:'Client'},
-                mentor:{icon:'🎓',label:'Mentor'},
-                neighbor:{icon:'🏡',label:'Neighbor'},
-                community:{icon:'🤲',label:'Community'},
-                doctor:{icon:'🩺',label:'Doctor / Health'},
-                service:{icon:'🛠️',label:'Service'},
-                school:{icon:'🎒',label:'School / College'},
-                vip:{icon:'⭐',label:'VIP / Priority'},
-                acquaintance:{icon:'👋',label:'Acquaintance'},
-                spiritual:{icon:'🕉️',label:'Spiritual'},
-                fitness:{icon:'🏃',label:'Fitness / Sports'},
-                other:{icon:'🏷️',label:'Other'}
+                family:{icon:'&#128104;&#128105;&#128103;',label:'Family'},
+                friend:{icon:'&#129309;',label:'Friend'},
+                work:{icon:'&#128188;',label:'Work'},
+                colleague:{icon:'&#128084;',label:'Colleague'},
+                client:{icon:'&#128188;',label:'Client'},
+                mentor:{icon:'&#127891;',label:'Mentor'},
+                neighbor:{icon:'&#127969;',label:'Neighbor'},
+                community:{icon:'&#129330;',label:'Community'},
+                doctor:{icon:'&#129658;',label:'Doctor / Health'},
+                service:{icon:'&#128736;',label:'Service'},
+                school:{icon:'&#127890;',label:'School / College'},
+                vip:{icon:'&#9733;',label:'VIP / Priority'},
+                acquaintance:{icon:'&#128075;',label:'Acquaintance'},
+                spiritual:{icon:'&#128329;',label:'Spiritual'},
+                fitness:{icon:'&#127939;',label:'Fitness / Sports'},
+                other:{icon:'&#127991;',label:'Other'}
             };
             const PJ_RELATION_OPTIONS = [
                 'Uncle','Aunt','Brother','Sister','Brother-in-law','Sister-in-law',
                 'Father','Mother','Father-in-law','Mother-in-law','Son','Daughter',
                 'Son-in-law','Daughter-in-law','Cousin','Nephew','Niece',
                 'Grandfather','Grandmother','Grandson','Granddaughter',
-                'Husband','Wife','Partner','Fiancé','Fiancée',
+                'Husband','Wife','Partner','Fianc\\u00e9','Fianc\\u00e9e',
                 'Friend','Best friend','Colleague','Manager','Report','Client',
                 'Vendor','Neighbor','Landlord','Tenant','Doctor','Teacher',
                 'Mentor','Student','Acquaintance'
@@ -5073,7 +5074,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     closePjProfile();
                 }
                 renderCalendar();
-                showToast(`✓ Deleted "${name}" from contacts`);
+                showToast(`Deleted "${name}" from contacts`);
                 return { success: true };
             }
 
@@ -5101,7 +5102,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     renderPjMergeModal();
                 }
                 renderCalendar();
-                showToast(`✓ Successfully deleted ${contacts.length} contact(s)`);
+                showToast(`Successfully deleted ${contacts.length} contact(s)`);
                 return { success: true, count: contacts.length };
             }
 
@@ -5128,7 +5129,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 appStorage.setItem(PJ_META_KEY, JSON.stringify(pjMeta));
             }
             function pjAllTags(){ return PJ_TAGS.concat(pjMeta.customTags||[]).filter((x,i,a)=>x&&a.indexOf(x)===i); }
-            function pjTagMeta(t){ return PJ_TAG_META[t] || { icon:'🏷️', label: t.replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase()) }; }
+            function pjTagMeta(t){ return PJ_TAG_META[t] || { icon:'&#127991;', label: t.replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase()) }; }
 
             function pjProfile(pid){
                 if(!pjMeta.profiles[pid]) pjMeta.profiles[pid] = { favorite:false, priority:'normal', contactFrequencyDays:0, nextAction:'', nextActionDue:'', nextActionStatus:'open', displayName:'', nickname:'', relation:'', birthday:'', notes:'', customTags:[] };
@@ -5330,7 +5331,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     }
                 };
                 rec.onerror = (ev)=>{
-                    if(ev.error !== 'aborted') showToast('🎤 Voice error: ' + (ev.error||'unknown'));
+                    if(ev.error !== 'aborted') showToast('Voice error: ' + (ev.error||'unknown'));
                     if(activeRecognition === rec) stopPjVoice();
                 };
                 rec.onend = ()=>{ if(activeRecognition === rec) stopPjVoice(); };
@@ -5340,7 +5341,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     activeVoiceTarget = targetId;
                     updatePjVoiceButtons();
                 }catch(err){
-                    showToast('🎤 Could not start voice input');
+                    showToast('Could not start voice input');
                     stopPjVoice();
                 }
             }
@@ -5362,7 +5363,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     people.push({ name: e.name || '?', tag: tags[0] || '' });
                 });
                 const visible = people.slice(0, 2);
-                let html = visible.map(p => `<div class="cell-person-name" data-tag="${escapeHtml(p.tag)}" title="${escapeHtml(p.name)}">👥 ${escapeHtml(p.name)}</div>`).join('');
+                let html = visible.map(p => `<div class="cell-person-name" data-tag="${escapeHtml(p.tag)}" title="${escapeHtml(p.name)}">&#128101; ${escapeHtml(p.name)}</div>`).join('');
                 if(people.length > 2){
                     html += `<div style="font-size:0.5rem;color:var(--text-secondary);padding-left:3px;">+ ${people.length - 2} more</div>`;
                 }
@@ -5389,10 +5390,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 
                 let html = `
                     <div class="pj-day-summary">
-                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">👥 People met</span><span class="pj-day-summary-value accent">${encs.length}</span></div>
-                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">✨ New faces</span><span class="pj-day-summary-value success">${newFaces}</span></div>
-                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">📇 Contacts saved</span><span class="pj-day-summary-value">${savedContacts}</span></div>
-                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">⏰ Follow-ups due</span><span class="pj-day-summary-value warning">${followUpsDue}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#128101; People met</span><span class="pj-day-summary-value accent">${encs.length}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#10024; New faces</span><span class="pj-day-summary-value success">${newFaces}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#128199; Contacts saved</span><span class="pj-day-summary-value">${savedContacts}</span></div>
+                        <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#9200; Follow-ups due</span><span class="pj-day-summary-value warning">${followUpsDue}</span></div>
                     </div>
                     <div class="pj-encounter-list">
                 `;
@@ -5416,26 +5417,26 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         const eEmails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
                         const emails = eEmails.length ? eEmails : (known && known.emails ? known.emails : []);
                         phones.forEach(p => {
-                            contactPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(p)}">${escapeHtml(p)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(p)}" title="Copy">📋</button></span>`;
+                            contactPills += `<span class="pj-contact-pill">&#128222; <a href="tel:${escapeHtml(p)}">${escapeHtml(p)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(p)}" title="Copy">&#128203;</button></span>`;
                         });
                         emails.forEach(em => {
-                            contactPills += `<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}" title="Copy">📋</button></span>`;
+                            contactPills += `<span class="pj-contact-pill">&#9993; <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}" title="Copy">&#128203;</button></span>`;
                         });
 
                         const detailRows = [];
-                        if(e.context) detailRows.push({ label: '📍 Context', val: e.context });
-                        if(e.venue) detailRows.push({ label: '🏛️ Venue', val: e.venue });
-                        if(e.city) detailRows.push({ label: '🌆 City', val: e.city });
-                        if(e.timeOfDay) detailRows.push({ label: '🕐 Time', val: e.timeOfDay });
-                        if(e.gifts) detailRows.push({ label: '🎁 Gifts', val: e.gifts });
-                        if(e.followUpAction) detailRows.push({ label: '📌 Follow-up action', val: e.followUpAction });
+                        if(e.context) detailRows.push({ label: '&#128205; Context', val: e.context });
+                        if(e.venue) detailRows.push({ label: '&#127963; Venue', val: e.venue });
+                        if(e.city) detailRows.push({ label: '&#127750; City', val: e.city });
+                        if(e.timeOfDay) detailRows.push({ label: '&#128336; Time', val: e.timeOfDay });
+                        if(e.gifts) detailRows.push({ label: '&#127873; Gifts', val: e.gifts });
+                        if(e.followUpAction) detailRows.push({ label: '&#128204; Follow-up action', val: e.followUpAction });
 
                         const rowsHtml = detailRows.map(r => `<div class="pj-detail-row"><span class="pj-detail-label">${r.label}:</span><span class="pj-detail-value">${escapeHtml(r.val)}</span></div>`).join('');
-                        const topicsHtml = e.topics ? `<div><div class="pj-md-label">💬 Topics</div><div class="pj-md-content">${renderMarkdown(e.topics)}</div></div>` : '';
-                        const summaryHtml = e.summary ? `<div><div class="pj-md-label">📝 Summary</div><div class="pj-md-content">${renderMarkdown(e.summary)}</div></div>` : '';
-                        const notesHtml = e.notes ? `<div><div class="pj-md-label">🗒️ Notes</div><div class="pj-md-content">${renderMarkdown(e.notes)}</div></div>` : '';
+                        const topicsHtml = e.topics ? `<div><div class="pj-md-label">&#128172; Topics</div><div class="pj-md-content">${renderMarkdown(e.topics)}</div></div>` : '';
+                        const summaryHtml = e.summary ? `<div><div class="pj-md-label">&#128221; Summary</div><div class="pj-md-content">${renderMarkdown(e.summary)}</div></div>` : '';
+                        const notesHtml = e.notes ? `<div><div class="pj-md-label">&#128466; Notes</div><div class="pj-md-content">${renderMarkdown(e.notes)}</div></div>` : '';
                         const isOverdue = e.followUp && e.followUp < todayStr;
-                        const fuHtml = e.followUp ? `<button type="button" class="pj-followup-badge-btn ${isOverdue?'overdue':''}" data-jump-followup="${escapeHtml(e.followUp)}">⏰ Follow-up: ${getShortDate(e.followUp)}</button>` : '';
+                        const fuHtml = e.followUp ? `<button type="button" class="pj-followup-badge-btn ${isOverdue?'overdue':''}" data-jump-followup="${escapeHtml(e.followUp)}">&#9200; Follow-up: ${getShortDate(e.followUp)}</button>` : '';
 
                         const isCollapsed = !expandedEncounters.has(e.id);
                         return `
@@ -5451,9 +5452,9 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                         ${tagsHtml ? `<div class="pj-tags-row">${tagsHtml}</div>` : ''}
                                     </div>
                                     <div class="pj-encounter-actions">
-                                        <button type="button" class="pj-action-btn pj-collapse-btn" data-action="toggle" title="Expand/Collapse">▾</button>
-                                        <button type="button" class="pj-action-btn" data-action="edit" title="Edit">✎</button>
-                                        <button type="button" class="pj-action-btn delete" data-action="delete" title="Delete">✕</button>
+                                        <button type="button" class="pj-action-btn pj-collapse-btn" data-action="toggle" title="Expand/Collapse">&#9662;</button>
+                                        <button type="button" class="pj-action-btn" data-action="edit" title="Edit">&#9998;</button>
+                                        <button type="button" class="pj-action-btn delete" data-action="delete" title="Delete">&times;</button>
                                     </div>
                                 </div>
                                 <div class="pj-encounter-details">
@@ -5490,7 +5491,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             renderCalendar({animate:true});
                         }
                         selectDate(target);
-                        showToast('⏰ Follow-up: ' + getShortDate(target));
+                        showToast('Follow-up: ' + getShortDate(target));
                     }
                     return;
                 }
@@ -5519,7 +5520,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(!selectedDateStr) selectedDateStr = getTodayStr();
                 editingEncounterId = null;
                 editingEncounterDay = selectedDateStr;
-                document.getElementById('pjEncounterModalTitle').textContent = '👤 Add Person You Met';
+                document.getElementById('pjEncounterModalTitle').innerHTML = '&#128100; Add Person You Met';
                 renderPjEncounterForm(null);
                 document.getElementById('pjEncounterModalOverlay').classList.add('active');
                 setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
@@ -5533,7 +5534,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(!enc) return;
                 editingEncounterId = encId;
                 editingEncounterDay = selectedDateStr;
-                document.getElementById('pjEncounterModalTitle').textContent = '✎ Edit Encounter';
+                document.getElementById('pjEncounterModalTitle').innerHTML = '&#9998; Edit Encounter';
                 renderPjEncounterForm(enc);
                 document.getElementById('pjEncounterModalOverlay').classList.add('active');
                 setTimeout(()=>{ const inp = document.getElementById('pjEncQuickName'); if(inp) inp.focus(); }, 60);
@@ -5578,14 +5579,14 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const phonesRows = (phones.length ? phones : ['']).map(p => `
                     <div class="pj-multi-item">
                         <input type="tel" class="pj-phone-input" placeholder="+1 555 1234" value="${escapeHtml(p)}" autocomplete="off">
-                        <button type="button" class="pj-multi-remove" data-remove="phone">×</button>
+                        <button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>
                     </div>
                 `).join('');
 
                 const emailsRows = (emails.length ? emails : ['']).map(em => `
                     <div class="pj-multi-item">
                         <input type="email" class="pj-email-input" placeholder="name@example.com" value="${escapeHtml(em)}" autocomplete="off">
-                        <button type="button" class="pj-multi-remove" data-remove="email">×</button>
+                        <button type="button" class="pj-multi-remove" data-remove="email">&times;</button>
                     </div>
                 `).join('');
 
@@ -5593,22 +5594,22 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 body.innerHTML = `
                     <div class="pj-quick-grid">
                         <div class="pj-form-group">
-                            <label>👤 Who did you meet? *</label>
+                            <label>&#128100; Who did you meet? *</label>
                             <div class="pj-voice-field">
                                 <input type="text" id="pjEncQuickName" list="pjKnownNamesList" placeholder="Full name or clue" value="${escapeHtml(e.name||'')}" maxlength="80" autocomplete="off">
-                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickName" title="Dictate">🎤</button>
+                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickName" title="Dictate">&#127908;</button>
                             </div>
                             <div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;" id="pjKnownHint"></div>
                         </div>
                         <div class="pj-form-group">
-                            <label>📅 Date</label>
+                            <label>&#128197; Date</label>
                             <input type="text" value="${escapeHtml(editingEncounterDay||selectedDateStr||'')}" disabled>
                         </div>
                         <div class="pj-form-group pj-quick-memory">
-                            <label>🧠 Quick memory <span style="font-weight:500;color:var(--text-secondary);">(optional)</span></label>
+                            <label>&#129504; Quick memory <span style="font-weight:500;color:var(--text-secondary);">(optional)</span></label>
                             <div class="pj-voice-field">
                                 <textarea id="pjEncQuickMemory" placeholder="Write words, topics, places, appearance or what you want to recall later..." maxlength="1000">${escapeHtml(e.summary||e.notes||'')}</textarea>
-                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickMemory" title="Dictate">🎤</button>
+                                <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickMemory" title="Dictate">&#127908;</button>
                             </div>
                         </div>
                     </div>
@@ -5616,7 +5617,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     ${namesDatalist}${relationsDatalist}${demeanorsDatalist}
 
                     <details class="form-section">
-                        <summary class="form-section-header">👤 Contact & Tags</summary>
+                        <summary class="form-section-header">&#128100; Contact & Tags</summary>
                         <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
                             <div class="pj-form-group">
                                 <label>Phone numbers</label>
@@ -5636,7 +5637,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     </details>
 
                     <details class="form-section">
-                        <summary class="form-section-header">👪 Personal Details (optional)</summary>
+                        <summary class="form-section-header">&#128106; Personal Details (optional)</summary>
                         <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
                             <div class="pj-form-row">
                                 <div class="pj-form-group"><label>Nickname</label><input type="text" id="pjEncNickname" placeholder="What they go by" value="${escapeHtml(e.nickname||'')}"></div>
@@ -5651,7 +5652,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     </details>
 
                     <details class="form-section">
-                        <summary class="form-section-header">💭 Impression & Interaction Details</summary>
+                        <summary class="form-section-header">&#128173; Impression & Interaction Details</summary>
                         <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
                             <div class="pj-form-row">
                                 <div class="pj-form-group"><label>Demeanor</label><input type="text" id="pjEncDemeanor" list="pjDemeanorsList" placeholder="Friendly, quiet..." value="${escapeHtml(e.demeanor||'')}"></div>
@@ -5665,7 +5666,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 <label>Topics Discussed</label>
                                 <div class="pj-voice-field">
                                     <textarea id="pjEncTopics" placeholder="What did you talk about?">${escapeHtml(e.topics||'')}</textarea>
-                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncTopics" title="Dictate">🎤</button>
+                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncTopics" title="Dictate">&#127908;</button>
                                 </div>
                             </div>
                             <div class="pj-form-group">
@@ -5676,7 +5677,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     </details>
 
                     <details class="form-section">
-                        <summary class="form-section-header">⏰ Follow-up & Extra Notes</summary>
+                        <summary class="form-section-header">&#9200; Follow-up & Extra Notes</summary>
                         <div class="form-section-body" style="padding:12px;display:flex;flex-direction:column;gap:8px;">
                             <div class="pj-form-row">
                                 <div class="pj-form-group"><label>Follow-up Date</label><input type="date" id="pjEncFollowUp" value="${escapeHtml(e.followUp||'')}"></div>
@@ -5686,7 +5687,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 <label>Additional Notes</label>
                                 <div class="pj-voice-field">
                                     <textarea id="pjEncNotes" placeholder="Additional observations...">${escapeHtml(e.notes||'')}</textarea>
-                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncNotes" title="Dictate">🎤</button>
+                                    <button type="button" class="pj-voice-btn" data-voice-target="pjEncNotes" title="Dictate">&#127908;</button>
                                 </div>
                             </div>
                         </div>
@@ -5704,7 +5705,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     document.getElementById('pjPhonesList').insertAdjacentHTML('beforeend', `
                         <div class="pj-multi-item">
                             <input type="tel" class="pj-phone-input" placeholder="+1 555 1234" autocomplete="off">
-                            <button type="button" class="pj-multi-remove" data-remove="phone">×</button>
+                            <button type="button" class="pj-multi-remove" data-remove="phone">&times;</button>
                         </div>
                     `);
                 });
@@ -5712,7 +5713,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     document.getElementById('pjEmailsList').insertAdjacentHTML('beforeend', `
                         <div class="pj-multi-item">
                             <input type="email" class="pj-email-input" placeholder="name@example.com" autocomplete="off">
-                            <button type="button" class="pj-multi-remove" data-remove="email">×</button>
+                            <button type="button" class="pj-multi-remove" data-remove="email">&times;</button>
                         </div>
                     `);
                 });
@@ -5755,7 +5756,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         label.className = 'pj-tag-check checked';
                         label.dataset.tag = tagKey;
                         const formattedLabel = raw.replace(/\b\w/g, c=>c.toUpperCase());
-                        label.innerHTML = `<input type="checkbox" value="${escapeAttr(tagKey)}" checked><span>🏷️ ${escapeHtml(formattedLabel)}</span>`;
+                        label.innerHTML = `<input type="checkbox" value="${escapeAttr(tagKey)}" checked><span>&#127991; ${escapeHtml(formattedLabel)}</span>`;
                         picker.insertBefore(label, addWrap);
                     }
                     customTagInput.value = '';
@@ -5776,7 +5777,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         const k = findKnownPerson(qName.value.trim());
                         const hint = document.getElementById('pjKnownHint');
                         if(k){
-                            hint.textContent = '✓ Known contact (' + (k.name) + ')';
+                            hint.innerHTML = '&#10003; Known contact (' + escapeHtml(k.name) + ')';
                             if(!editingEncounterId){
                                 const nNick = document.getElementById('pjEncNickname');
                                 const nRel = document.getElementById('pjEncRelation');
@@ -5888,7 +5889,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const dups = findPjDuplicates();
                 const dupBtn = document.getElementById('btnPjFindDuplicates');
                 if(dupBtn){
-                    dupBtn.innerHTML = `🔀 Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
+                    dupBtn.innerHTML = `&#128256; Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
                 }
             }
 
@@ -6032,7 +6033,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             pairs.push({
                                 p1: primary,
                                 p2: secondary,
-                                reason: reasons.join(' · ') || 'Matches selected criteria',
+                                reason: reasons.join(' &middot; ') || 'Matches selected criteria',
                                 matchType,
                                 confidence
                             });
@@ -6162,7 +6163,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 }
                 renderCalendar();
 
-                showToast(`✓ Successfully merged "${p2.name}" into "${targetName}"`);
+                showToast(`Successfully merged "${p2.name}" into "${targetName}"`);
                 return { success: true, targetPid, targetName, encountersUpdated };
             }
 
@@ -6356,7 +6357,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 }
                 renderCalendar();
 
-                showToast(`✓ Successfully merged ${totalMergedSecondaries} duplicate contacts!`);
+                showToast(`Successfully merged ${totalMergedSecondaries} duplicate contacts!`);
                 return {
                     success: true,
                     pairsMerged: dups.length,
@@ -6388,7 +6389,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const critHtml = `
                     <div class="pj-dup-criteria-card">
                         <div class="pj-dup-criteria-title">
-                            <span style="display:flex;align-items:center;gap:6px;">⚙️ <span>Duplicate Detection Criteria</span></span>
+                            <span style="display:flex;align-items:center;gap:6px;">&#9881; <span>Duplicate Detection Criteria</span></span>
                             <div class="pj-dup-mode-toggle" title="Choose how criteria are combined">
                                 <label class="pj-dup-radio-label">
                                     <input type="radio" name="pjDupMatchMode" value="any" ${pjDupCriteria.matchMode==='any'?'checked':''}> Match Any (OR)
@@ -6401,27 +6402,27 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         <div class="pj-dup-criteria-options">
                             <label class="pj-dup-check-pill ${pjDupCriteria.phone?'active':''}" title="Detect contacts with matching phone numbers (ignores formatting & country codes)">
                                 <input type="checkbox" id="pjCritPhone" ${pjDupCriteria.phone?'checked':''}>
-                                <span>📞 Same Phone</span>
+                                <span>&#128222; Same Phone</span>
                             </label>
                             <label class="pj-dup-check-pill ${pjDupCriteria.email?'active':''}" title="Detect contacts with matching email addresses">
                                 <input type="checkbox" id="pjCritEmail" ${pjDupCriteria.email?'checked':''}>
-                                <span>✉️ Same Email</span>
+                                <span>&#9993; Same Email</span>
                             </label>
                             <label class="pj-dup-check-pill ${pjDupCriteria.nameExact?'active':''}" title="Detect contacts with exact matching names">
                                 <input type="checkbox" id="pjCritNameExact" ${pjDupCriteria.nameExact?'checked':''}>
-                                <span>👤 Exact Name</span>
+                                <span>&#128100; Exact Name</span>
                             </label>
                             <label class="pj-dup-check-pill ${pjDupCriteria.nameNoPhone?'active':''}" title="Detect exact matching names where one contact has no phone number">
                                 <input type="checkbox" id="pjCritNameNoPhone" ${pjDupCriteria.nameNoPhone?'checked':''}>
-                                <span>📱 Exact Name, One No Phone</span>
+                                <span>&#128241; Exact Name, One No Phone</span>
                             </label>
                             <label class="pj-dup-check-pill ${pjDupCriteria.similarNoPhone?'active':''}" title="Detect similar names (e.g. 'Ravi' and 'Ravi Sharma') where one contact has no phone number">
                                 <input type="checkbox" id="pjCritSimilarNoPhone" ${pjDupCriteria.similarNoPhone?'checked':''}>
-                                <span>🔤 Similar Name, One No Phone</span>
+                                <span>&#128292; Similar Name, One No Phone</span>
                             </label>
                             <label class="pj-dup-check-pill ${pjDupCriteria.nameSimilar?'active':''}" title="Detect similar names regardless of phone number presence">
                                 <input type="checkbox" id="pjCritNameSimilar" ${pjDupCriteria.nameSimilar?'checked':''}>
-                                <span>👥 Similar Name (All)</span>
+                                <span>&#128101; Similar Name (All)</span>
                             </label>
                         </div>
                     </div>
@@ -6431,20 +6432,20 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(dups.length === 0){
                     dupsHtml = `
                         <div class="pj-dup-summary-banner clean">
-                            <span style="font-size:1.2rem;">✨</span>
+                            <span style="font-size:1.2rem;">&#10024;</span>
                             <div style="flex:1;"><strong>No duplicates detected!</strong> No records match the currently selected criteria.</div>
                         </div>
                     `;
                 } else {
                     dupsHtml = `
                         <div class="pj-dup-summary-banner">
-                            <span style="font-size:1.2rem;">🔍</span>
+                            <span style="font-size:1.2rem;">&#128269;</span>
                             <div style="flex:1;min-width:0;">
                                 <div style="font-weight:700;font-size:var(--fs-xs);color:var(--text);">Found <strong>${dups.length} potential duplicate pair(s)</strong></div>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">Merge all at once with 1-click, or review individual pairs below.</div>
                             </div>
                             <button type="button" class="pj-btn-merge-all" id="btnMergeAllDuplicates" title="Merge all detected duplicates into unified records with one click">
-                                <span>⚡ 1-Click Merge All (${dups.length})</span>
+                                <span>&#9889; 1-Click Merge All (${dups.length})</span>
                             </button>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:12px;">
@@ -6455,7 +6456,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 return `
                                     <div class="pj-dup-card" data-idx="${idx}">
                                         <div class="pj-dup-badge ${isHigh?'high':''}">
-                                            <span>${d.matchType === 'phone' ? '📞' : (d.matchType === 'email' ? '✉️' : ((d.matchType === 'name_no_phone' || d.matchType === 'similar_no_phone') ? '📱' : '👤'))}</span>
+                                            <span>${d.matchType === 'phone' ? '&#128222;' : (d.matchType === 'email' ? '&#9993;' : ((d.matchType === 'name_no_phone' || d.matchType === 'similar_no_phone') ? '&#128241;' : '&#128100;'))}</span>
                                             <span>${escapeHtml(d.reason)}</span>
                                         </div>
                                         <div class="pj-dup-comparison">
@@ -6464,26 +6465,26 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                                     <div class="pj-encounter-avatar ${p1.isContact?'contact-marker':''}" style="width:32px;height:32px;font-size:0.75rem;">${escapeHtml(initials1)}</div>
                                                     <div style="flex:1;min-width:0;">
                                                         <div class="pj-dup-name">${escapeHtml(p1.name)}</div>
-                                                        <div class="pj-dup-meta">${p1.encounters.length} encounter(s) · ${p1.isContact?'Saved Contact':'Encounter log'}</div>
+                                                        <div class="pj-dup-meta">${p1.encounters.length} encounter(s) &middot; ${p1.isContact?'Saved Contact':'Encounter log'}</div>
                                                     </div>
                                                 </div>
                                                 <div class="pj-dup-contacts">
-                                                    ${p1.phones.map(ph=>`<span class="pj-contact-pill">📞 ${escapeHtml(ph)}</span>`).join('')}
-                                                    ${p1.emails.map(em=>`<span class="pj-contact-pill">✉️ ${escapeHtml(em)}</span>`).join('')}
+                                                    ${p1.phones.map(ph=>`<span class="pj-contact-pill">&#128222; ${escapeHtml(ph)}</span>`).join('')}
+                                                    ${p1.emails.map(em=>`<span class="pj-contact-pill">&#9993; ${escapeHtml(em)}</span>`).join('')}
                                                 </div>
                                             </div>
-                                            <div class="pj-dup-merge-arrow">➔</div>
+                                            <div class="pj-dup-merge-arrow">&rarr;</div>
                                             <div class="pj-dup-side">
                                                 <div class="pj-dup-name-row">
                                                     <div class="pj-encounter-avatar ${p2.isContact?'contact-marker':''}" style="width:32px;height:32px;font-size:0.75rem;">${escapeHtml(initials2)}</div>
                                                     <div style="flex:1;min-width:0;">
                                                         <div class="pj-dup-name">${escapeHtml(p2.name)}</div>
-                                                        <div class="pj-dup-meta">${p2.encounters.length} encounter(s) · ${p2.isContact?'Saved Contact':'Encounter log'}</div>
+                                                        <div class="pj-dup-meta">${p2.encounters.length} encounter(s) &middot; ${p2.isContact?'Saved Contact':'Encounter log'}</div>
                                                     </div>
                                                 </div>
                                                 <div class="pj-dup-contacts">
-                                                    ${p2.phones.map(ph=>`<span class="pj-contact-pill">📞 ${escapeHtml(ph)}</span>`).join('')}
-                                                    ${p2.emails.map(em=>`<span class="pj-contact-pill">✉️ ${escapeHtml(em)}</span>`).join('')}
+                                                    ${p2.phones.map(ph=>`<span class="pj-contact-pill">&#128222; ${escapeHtml(ph)}</span>`).join('')}
+                                                    ${p2.emails.map(em=>`<span class="pj-contact-pill">&#9993; ${escapeHtml(em)}</span>`).join('')}
                                                 </div>
                                             </div>
                                         </div>
@@ -6496,7 +6497,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                                 </select>
                                             </div>
                                             <div class="pj-dup-actions">
-                                                <button type="button" class="btn-primary btn-merge-dup-pair" data-p1="${escapeHtml(p1.personId)}" data-p2="${escapeHtml(p2.personId)}" data-idx="${idx}">🔀 Merge Records</button>
+                                                <button type="button" class="btn-primary btn-merge-dup-pair" data-p1="${escapeHtml(p1.personId)}" data-p2="${escapeHtml(p2.personId)}" data-idx="${idx}">&#128256; Merge Records</button>
                                             </div>
                                         </div>
                                     </div>
@@ -6512,7 +6513,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const manualMergeHtml = `
                     <details class="pj-manual-merge-box" ${presetP1?'open':''}>
                         <summary style="cursor:pointer;font-weight:700;font-size:var(--fs-xs);color:var(--text);display:flex;align-items:center;gap:6px;">
-                            <span>🛠️</span><span>Manual Merge: Choose any two people to combine</span>
+                            <span>&#128736;</span><span>Manual Merge: Choose any two people to combine</span>
                         </summary>
                         <div class="pj-manual-merge-form">
                             <div>
@@ -6531,7 +6532,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             </div>
                         </div>
                         <div style="display:flex;justify-content:flex-end;margin-top:10px;">
-                            <button type="button" class="btn-primary" id="btnExecuteManualMerge">🔀 Merge Selected People</button>
+                            <button type="button" class="btn-primary" id="btnExecuteManualMerge">&#128256; Merge Selected People</button>
                         </div>
                     </details>
                 `;
@@ -6567,7 +6568,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const dups = findPjDuplicates();
                 const dupBtn = document.getElementById('btnPjFindDuplicates');
                 if(dupBtn){
-                    dupBtn.innerHTML = `🔀 Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
+                    dupBtn.innerHTML = `&#128256; Duplicates ${dups.length ? `<span class="pj-badge warn" style="margin-left:4px;">${dups.length}</span>` : ''}`;
                 }
 
                 document.getElementById('pjPeopleCount').textContent = filtered.length + (filtered.length===1?' person':' people');
@@ -6585,7 +6586,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                                 <div style="flex:1;min-width:0;">
                                     <div style="font-size:var(--fs-xs);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
                                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);display:flex;align-items:center;gap:6px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                        ${firstPhone ? `<span style="color:var(--accent);font-weight:600;font-family:var(--font-mono);">📞 ${escapeHtml(firstPhone)}</span>` : ''}
+                                        ${firstPhone ? `<span style="color:var(--accent);font-weight:600;font-family:var(--font-mono);">&#128222; ${escapeHtml(firstPhone)}</span>` : ''}
                                         <span>${p.encounters.length} met</span>
                                     </div>
                                 </div>
@@ -6603,7 +6604,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             function renderPjPersonDetail(){
                 const mainEl = document.getElementById('pjPeopleMain');
                 if(!selectedPersonId){
-                    mainEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-secondary);text-align:center;"><div style="font-size:2.4rem;opacity:.5;">👥</div><div>Select a person from the list.</div></div>`;
+                    mainEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text-secondary);text-align:center;"><div style="font-size:2.4rem;opacity:.5;">&#128101;</div><div>Select a person from the list.</div></div>`;
                     return;
                 }
                 const p = getPjPeopleRegistry().find(x => x.personId === selectedPersonId);
@@ -6613,8 +6614,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 const encs = (p.encounters||[]).slice().sort((a,b)=>String(b._date).localeCompare(String(a._date)));
 
                 let contactsPills = '';
-                (p.phones||[]).forEach(ph=>{ contactsPills += `<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(ph)}">📋</button></span>`; });
-                (p.emails||[]).forEach(em=>{ contactsPills += `<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}">📋</button></span>`; });
+                (p.phones||[]).forEach(ph=>{ contactsPills += `<span class="pj-contact-pill">&#128222; <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(ph)}">&#128203;</button></span>`; });
+                (p.emails||[]).forEach(em=>{ contactsPills += `<span class="pj-contact-pill">&#9993; <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a><button type="button" class="pj-contact-copy" data-copy="${escapeHtml(em)}">&#128203;</button></span>`; });
 
                 const pDups = findPjDuplicatesForPerson(p.personId);
                 let dupBannerHtml = '';
@@ -6623,7 +6624,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     const other = d.p1.personId === p.personId ? d.p2 : d.p1;
                     dupBannerHtml = `
                         <div class="pj-profile-dup-banner">
-                            <span style="font-size:1.15rem;">⚠️</span>
+                            <span style="font-size:1.15rem;">&#9888;</span>
                             <div style="flex:1;min-width:0;">
                                 <strong>Potential duplicate detected:</strong> "${escapeHtml(other.name)}" (${escapeHtml(d.reason)})
                             </div>
@@ -6636,10 +6637,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     <div class="pj-dir-timeline-item">
                         <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--accent);margin-bottom:2px;">${getShortDate(e._date)}</div>
                         <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:8px;font-size:var(--fs-xs);">
-                            ${e.venue?`<div><strong>🏛️ ${escapeHtml(e.venue)}</strong></div>`:''}
+                            ${e.venue?`<div><strong>&#127963; ${escapeHtml(e.venue)}</strong></div>`:''}
                             ${e.summary?`<div style="margin-top:4px;">${escapeHtml(e.summary)}</div>`:''}
                             ${e.topics?`<div class="pj-md-content" style="margin-top:4px;">${renderMarkdown(e.topics)}</div>`:''}
-                            ${e.followUp?`<div style="margin-top:4px;font-size:var(--fs-2xs);color:var(--warning);font-weight:600;">⏰ Follow-up: ${getShortDate(e.followUp)}</div>`:''}
+                            ${e.followUp?`<div style="margin-top:4px;font-size:var(--fs-2xs);color:var(--warning);font-weight:600;">&#9200; Follow-up: ${getShortDate(e.followUp)}</div>`:''}
                         </div>
                     </div>
                 `).join('');
@@ -6652,8 +6653,8 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                                 <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
                                 <div style="display:flex;align-items:center;gap:6px;">
-                                    <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeAttr(p.personId)}" title="Merge with another person">🔀 Merge</button>
-                                    <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteCurrentContact" data-pid="${escapeAttr(p.personId)}" title="Delete this contact">🗑️ Delete</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeAttr(p.personId)}" title="Merge with another person">&#128256; Merge</button>
+                                    <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteCurrentContact" data-pid="${escapeAttr(p.personId)}" title="Delete this contact">&#128465; Delete</button>
                                 </div>
                             </div>
                             ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);">${escapeHtml(profile.relation)}</div>` : ''}
@@ -6818,11 +6819,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <div style="display:flex;align-items:center;gap:8px;">
                                 <span style="font-size:var(--fs-md);font-weight:750;">${escapeHtml(p.name)}</span>
                                 <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
-                                ${pr.favorite ? '<span class="pj-fav" title="Starred">★</span>' : ''}
+                                ${pr.favorite ? '<span class="pj-fav" title="Starred">&#9733;</span>' : ''}
                             </div>
                             <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
-                                ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} · ` : 'Not met yet · '}
-                                ${p.encounters.length} interaction(s) · Health: <strong>${health}%</strong>
+                                ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} &middot; ` : 'Not met yet &middot; '}
+                                ${p.encounters.length} interaction(s) &middot; Health: <strong>${health}%</strong>
                             </div>
                         </div>
                     </div>
@@ -6874,7 +6875,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div class="pj-form-field full">
                             <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:var(--fs-xs);font-weight:600;">
                                 <input type="checkbox" id="pjpFavorite" ${pr.favorite?'checked':''}>
-                                <span>⭐ Star as Favorite / Priority Contact</span>
+                                <span>&#9733; Star as Favorite / Priority Contact</span>
                             </label>
                         </div>
                         <div class="pj-form-field full">
@@ -6887,20 +6888,20 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div style="margin-top:12px;padding:10px 12px;background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-md);">
                             <div style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-bottom:6px;">Contact Channels</div>
                             <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                                ${(p.phones||[]).map(ph=>`<span class="pj-contact-pill">📞 <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a></span>`).join('')}
-                                ${(p.emails||[]).map(em=>`<span class="pj-contact-pill">✉️ <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a></span>`).join('')}
+                                ${(p.phones||[]).map(ph=>`<span class="pj-contact-pill">&#128222; <a href="tel:${escapeHtml(ph)}">${escapeHtml(ph)}</a></span>`).join('')}
+                                ${(p.emails||[]).map(em=>`<span class="pj-contact-pill">&#9993; <a href="mailto:${escapeHtml(em)}">${escapeHtml(em)}</a></span>`).join('')}
                             </div>
                         </div>
                     ` : ''}
 
                                         <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
                         <div style="display:flex;gap:6px;align-items:center;">
-                            <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">📜 History (${p.encounters.length})</button>
-                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}">🗑️ Delete Contact</button>
+                            <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">&#128220; History (${p.encounters.length})</button>
+                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}">&#128465; Delete Contact</button>
                         </div>
                         <div style="display:flex;gap:8px;">
                             <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
-                            <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">💾 Save Profile</button>
+                            <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">&#128190; Save Profile</button>
                         </div>
                     </div>
                 `;
@@ -6929,7 +6930,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     closePjProfile();
                     renderPjCenter();
                     if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
-                    showToast('✓ Profile saved');
+                    showToast('Profile saved');
                 });
                 document.getElementById('btnPjpTimeline')?.addEventListener('click', () => {
                     closePjProfile();
@@ -6968,12 +6969,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                 <span style="font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;">Quick Actions:</span>
                                 <button type="button" class="pj-toolbar-pill" id="btnDashAddPerson" style="background:var(--accent);color:#fff;font-weight:700;">+ Add Person</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnDashAddFu">⏰ Schedule Follow-up</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnDashAddBday">🎂 Add Birthday</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddFu">&#9200; Schedule Follow-up</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashAddBday">&#127874; Add Birthday</button>
                             </div>
                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                <button type="button" class="pj-toolbar-pill" id="btnDashDirectory">👥 People Directory</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnDashDuplicates">🔀 Merge Duplicates</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashDirectory">&#128101; People Directory</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDashDuplicates">&#128256; Merge Duplicates</button>
                             </div>
                         </div>
 
@@ -7004,7 +7005,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <!-- Today's Encounters -->
                                 <div class="pj-card">
                                     <div class="pj-card-head">
-                                        <span>📅 Today's Interactions (${encToday.length})</span>
+                                        <span>&#128197; Today's Interactions (${encToday.length})</span>
                                         <button type="button" class="pj-toolbar-pill" id="btnDashLogToday">+ Log Person</button>
                                     </div>
                                     <div style="display:flex;flex-direction:column;gap:6px;">
@@ -7015,11 +7016,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                                     <div><strong>${escapeHtml(e.name)}</strong> ${e.venue?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">@ ${escapeHtml(e.venue)}</span>`:''}</div>
                                                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${escapeHtml(e.summary||e.notes||'Interaction logged today')}</div>
                                                 </div>
-                                                <span style="font-size:0.8rem;color:var(--accent);">↗</span>
+                                                <span style="font-size:0.8rem;color:var(--accent);">&rarr;</span>
                                             </div>
                                         `).join('') || `
                                             <div class="pj-empty-card">
-                                                <div style="font-size:1.6rem;opacity:.6;">📅</div>
+                                                <div style="font-size:1.6rem;opacity:.6;">&#128197;</div>
                                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No interactions recorded today yet.</div>
                                                 <button type="button" class="pj-toolbar-pill" id="btnDashLogTodayEmpty" style="background:var(--accent);color:#fff;">+ Log Person Met Today</button>
                                             </div>
@@ -7030,22 +7031,22 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <!-- Overdue & Due Follow-ups -->
                                 <div class="pj-card">
                                     <div class="pj-card-head">
-                                        <span>⏰ Overdue & Pending Follow-ups (${overdue.length + fusDueToday.length})</span>
+                                        <span>&#9200; Overdue & Pending Follow-ups (${overdue.length + fusDueToday.length})</span>
                                         <button type="button" class="pj-toolbar-pill" id="btnDashScheduleFu">+ Schedule</button>
                                     </div>
                                     <div style="display:flex;flex-direction:column;gap:6px;">
                                         ${(overdue.concat(fusDueToday)).slice(0, 6).map(f => `
                                             <div class="pj-center-row pj-card-interactive" data-jump-date="${escapeAttr(f.due||'')}">
-                                                <div style="font-size:1.1rem;">${f.due < today ? '🚨' : '⏰'}</div>
+                                                <div style="font-size:1.1rem;">${f.due < today ? '&#128680;' : '&#9200;'}</div>
                                                 <div style="flex:1;min-width:0;">
-                                                    <div><strong>${escapeHtml(f.p.name)}</strong> · ${escapeHtml(f.text)}</div>
+                                                    <div><strong>${escapeHtml(f.p.name)}</strong> &middot; ${escapeHtml(f.text)}</div>
                                                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${f.due < today ? `Overdue: ${f.due}` : 'Due Today'}</div>
                                                 </div>
                                                 <span class="pj-badge ${f.due < today ? 'bad' : 'accent'}">${f.due||'Today'}</span>
                                             </div>
                                         `).join('') || `
                                             <div class="pj-empty-card">
-                                                <div style="font-size:1.6rem;opacity:.6;">⏰</div>
+                                                <div style="font-size:1.6rem;opacity:.6;">&#9200;</div>
                                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No follow-ups due right now!</div>
                                                 <button type="button" class="pj-toolbar-pill" id="btnDashAddFuEmpty">+ Schedule a Follow-up</button>
                                             </div>
@@ -7059,22 +7060,22 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <!-- Upcoming Birthdays -->
                                 <div class="pj-card">
                                     <div class="pj-card-head">
-                                        <span>🎂 Upcoming Birthdays (Next 31 Days) (${birthdays30.length})</span>
+                                        <span>&#127874; Upcoming Birthdays (Next 31 Days) (${birthdays30.length})</span>
                                         <button type="button" class="pj-toolbar-pill" id="btnDashAddBdayTop">+ Add Birthday</button>
                                     </div>
                                     <div style="display:flex;flex-direction:column;gap:6px;">
                                         ${birthdays30.slice(0, 6).map(b => `
                                             <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(b.p.personId)}">
-                                                <div style="font-size:1.15rem;">🎂</div>
+                                                <div style="font-size:1.15rem;">&#127874;</div>
                                                 <div style="flex:1;min-width:0;">
                                                     <div><strong>${escapeHtml(b.p.name)}</strong> ${(b.p.profile?.relation||b.p._profile.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(b.p.profile?.relation||b.p._profile.relation)})</span>`:''}</div>
-                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${escapeHtml(b.dateStr)}${b.nextAge ? ` · Turning ${b.nextAge}` : ''}</div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${escapeHtml(b.dateStr)}${b.nextAge ? ` &middot; Turning ${b.nextAge}` : ''}</div>
                                                 </div>
-                                                <span class="pj-badge ${b.diff===0?'good':b.diff<=7?'warn':'accent'}">${b.diff===0?'🎉 Today!':b.diff===1?'Tomorrow':`In ${b.diff}d`}</span>
+                                                <span class="pj-badge ${b.diff===0?'good':b.diff<=7?'warn':'accent'}">${b.diff===0?'&#127881; Today!':b.diff===1?'Tomorrow':`In ${b.diff}d`}</span>
                                             </div>
                                         `).join('') || `
                                             <div class="pj-empty-card">
-                                                <div style="font-size:1.6rem;opacity:.6;">🎂</div>
+                                                <div style="font-size:1.6rem;opacity:.6;">&#127874;</div>
                                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No birthdays recorded for the next 31 days.</div>
                                                 <button type="button" class="pj-toolbar-pill" id="btnDashAddBdayEmpty">+ Add Birthday</button>
                                             </div>
@@ -7085,8 +7086,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <!-- Priority / Favorite Contacts -->
                                 <div class="pj-card">
                                     <div class="pj-card-head">
-                                        <span>⭐ Priority & Favorite Contacts (${priorityPeople.length})</span>
-                                        <button type="button" class="pj-toolbar-pill" id="btnDashViewDir">Directory ↗</button>
+                                        <span>&#9733; Priority & Favorite Contacts (${priorityPeople.length})</span>
+                                        <button type="button" class="pj-toolbar-pill" id="btnDashViewDir">Directory &rarr;</button>
                                     </div>
                                     <div style="display:flex;flex-direction:column;gap:6px;">
                                         ${priorityPeople.slice(0, 8).map(p => `
@@ -7094,15 +7095,15 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                                 <div class="pj-encounter-avatar" style="width:28px;height:28px;font-size:0.65rem;">${escapeHtml(initialsOfPj(p.name))}</div>
                                                 <div style="flex:1;min-width:0;">
                                                     <div><strong>${escapeHtml(p.name)}</strong> <span class="pj-badge ${p._status.cls}">${p._status.label}</span></div>
-                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s) · Health: ${p._health}%</div>
+                                                    <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p.encounters.length} encounter(s) &middot; Health: ${p._health}%</div>
                                                 </div>
-                                                <span style="color:#f59e0b;font-size:0.9rem;">★</span>
+                                                <span style="color:#f59e0b;font-size:0.9rem;">&#9733;</span>
                                             </div>
                                         `).join('') || `
                                             <div class="pj-empty-card">
-                                                <div style="font-size:1.6rem;opacity:.6;">⭐</div>
+                                                <div style="font-size:1.6rem;opacity:.6;">&#9733;</div>
                                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);">No priority contacts starred yet.</div>
-                                                <button type="button" class="pj-toolbar-pill" id="btnDashStarEmpty">⭐ Browse Directory to Star Contacts</button>
+                                                <button type="button" class="pj-toolbar-pill" id="btnDashStarEmpty">&#9733; Browse Directory to Star Contacts</button>
                                             </div>
                                         `}
                                     </div>
@@ -7152,7 +7153,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     <option value="frequency" ${pjCenterPeopleSort==='frequency'?'selected':''}>Most interactions</option>
                                     <option value="followup" ${pjCenterPeopleSort==='followup'?'selected':''}>Next follow-up</option>
                                     <option value="birthday" ${pjCenterPeopleSort==='birthday'?'selected':''}>Next birthday</option>
-                                    <option value="name" ${pjCenterPeopleSort==='name'?'selected':''}>Name (A–Z)</option>
+                                    <option value="name" ${pjCenterPeopleSort==='name'?'selected':''}>Name (A-Z)</option>
                                     <option value="firstMet" ${pjCenterPeopleSort==='firstMet'?'selected':''}>First met</option>
                                     <option value="favorite" ${pjCenterPeopleSort==='favorite'?'selected':''}>Favorites first</option>
                                 </select>
@@ -7160,21 +7161,21 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             </div>
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                 <button type="button" class="btn-primary" id="btnPeopleAdd" style="font-size:var(--fs-xs);padding:5px 12px;">+ Add Person</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsv">📇 Import CSV</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnPeopleMergeDups">🔀 Merge</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnPeopleExportCsv">⬇ CSV</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsv">&#128229; Import CSV</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleMergeDups">&#9851; Merge</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnPeopleExportCsv">&#128228; CSV</button>
                             </div>
                         </div>
 
                         <!-- Filter Pills -->
                         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
                             <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='all'?'active':''}" data-p-filter="all">All (${people.length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='favorites'?'active':''}" data-p-filter="favorites">⭐ Favorites (${people.filter(p=>p._profile.favorite).length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='active'?'active':''}" data-p-filter="active">🟢 Active (${activePeople.length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='cooling'?'active':''}" data-p-filter="cooling">🟡 Cooling (${people.filter(p=>p._status.label==='Cooling').length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='neglected'?'active':''}" data-p-filter="neglected">🔴 Neglected (${neglectedPeople.length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='contacts'?'active':''}" data-p-filter="contacts">📇 Contacts (${people.filter(p=>p.isContact).length})</button>
-                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='encounters'?'active':''}" data-p-filter="encounters">👥 Met (${people.filter(p=>p.encounters.length).length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='favorites'?'active':''}" data-p-filter="favorites">&#9733; Favorites (${people.filter(p=>p._profile.favorite).length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='active'?'active':''}" data-p-filter="active">&#128293; Active (${activePeople.length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='cooling'?'active':''}" data-p-filter="cooling">&#10052; Cooling (${people.filter(p=>p._status.label==='Cooling').length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='neglected'?'active':''}" data-p-filter="neglected">&#9203; Neglected (${neglectedPeople.length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='contacts'?'active':''}" data-p-filter="contacts">&#128222; Contacts (${people.filter(p=>p.isContact).length})</button>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterPeopleFilter==='encounters'?'active':''}" data-p-filter="encounters">&#128197; Met (${people.filter(p=>p.encounters.length).length})</button>
                         </div>
 
                         <!-- People Cards List -->
@@ -7186,7 +7187,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 return `
                                     <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
                                         <div style="display:flex;align-items:center;gap:6px;">
-                                            <button type="button" class="pj-star-btn ${pr.favorite?'active':''}" data-toggle-fav="${escapeAttr(p.personId)}" title="Toggle Favorite">★</button>
+                                            <button type="button" class="pj-star-btn ${pr.favorite?'active':''}" data-toggle-fav="${escapeAttr(p.personId)}" title="Toggle Favorite">&#9733;</button>
                                             <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:34px;height:34px;font-size:0.75rem;">${escapeHtml(initialsOfPj(p.name))}</div>
                                         </div>
                                         <div style="flex:1;min-width:0;">
@@ -7196,28 +7197,28 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                                 ${(p.profile?.relation||pr.relation) ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(p.profile?.relation||pr.relation)})</span>` : ''}
                                             </div>
                                             <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                                ${firstPhone ? `<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">📞 ${escapeHtml(firstPhone)}</span>` : ''}
+                                                ${firstPhone ? `<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">&#128222; ${escapeHtml(firstPhone)}</span>` : ''}
                                                 <span>${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'No interactions recorded'}</span>
-                                                <span>· ${p.encounters.length} met</span>
-                                                ${nextFu ? `<span class="pj-badge warn">⏰ Next: ${nextFu}</span>` : ''}
+                                                <span>&middot; ${p.encounters.length} met</span>
+                                                ${nextFu ? `<span class="pj-badge warn">&#9200; Next: ${nextFu}</span>` : ''}
                                             </div>
                                         </div>
                                         <div style="display:flex;align-items:center;gap:6px;">
-                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
                                             <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
-                                            <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">⏰ Follow-up</button>
-                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">🗑️ Delete</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">&#9200; Follow-up</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">&#128465; Delete</button>
 
                                         </div>
                                     </div>
                                 `;
                             }).join('') || `
                                 <div class="pj-empty-card">
-                                    <div style="font-size:1.8rem;opacity:.5;">👥</div>
+                                    <div style="font-size:1.8rem;opacity:.5;">&#128101;</div>
                                     <div style="font-size:var(--fs-sm);font-weight:600;">No people match this view.</div>
                                     <div style="display:flex;gap:8px;margin-top:4px;">
                                         <button type="button" class="btn-primary" id="btnPeopleAddEmpty" style="padding:6px 14px;">+ Add Person</button>
-                                        <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsvEmpty">📇 Import Google Contacts CSV</button>
+                                        <button type="button" class="pj-toolbar-pill" id="btnPeopleImportCsvEmpty">&#128199; Import Google Contacts CSV</button>
                                     </div>
                                 </div>
                             `}
@@ -7247,10 +7248,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;justify-content:space-between;">
                             <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <button type="button" class="pj-toolbar-pill ${pjFuFilter==='all'?'active':''}" data-fu-filter="all">Pending (${fus.filter(x=>x.status!=='done').length})</button>
-                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='overdue'?'active':''}" data-fu-filter="overdue">🚨 Overdue (${overdue.length})</button>
-                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='today'?'active':''}" data-fu-filter="today">📅 Today (${fusDueToday.length})</button>
-                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='upcoming'?'active':''}" data-fu-filter="upcoming">⏳ Upcoming (${fus.filter(x=>x.status!=='done'&&x.due>today).length})</button>
-                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='done'?'active':''}" data-fu-filter="done">✓ Completed (${fus.filter(x=>x.status==='done').length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='overdue'?'active':''}" data-fu-filter="overdue">&#128680; Overdue (${overdue.length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='today'?'active':''}" data-fu-filter="today">&#128197; Today (${fusDueToday.length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='upcoming'?'active':''}" data-fu-filter="upcoming">&#9203; Upcoming (${fus.filter(x=>x.status!=='done'&&x.due>today).length})</button>
+                                <button type="button" class="pj-toolbar-pill ${pjFuFilter==='done'?'active':''}" data-fu-filter="done">&#10003; Completed (${fus.filter(x=>x.status==='done').length})</button>
                             </div>
                             <button type="button" class="btn-primary" id="btnToggleFuForm" style="font-size:var(--fs-xs);padding:6px 14px;">+ Schedule Follow-up</button>
                         </div>
@@ -7259,8 +7260,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         ${pjShowFuForm ? `
                             <div class="pj-card" style="margin-bottom:14px;border:1.5px solid var(--accent-border);background:var(--card-bg);">
                                 <div class="pj-card-head">
-                                    <span>⏰ Schedule New Follow-up</span>
-                                    <button type="button" class="pj-modal-close" id="btnCancelFu" style="font-size:1rem;">✕</button>
+                                    <span>&#9200; Schedule New Follow-up</span>
+                                    <button type="button" class="pj-modal-close" id="btnCancelFu" style="font-size:1rem;">&times;</button>
                                 </div>
                                 <div class="pj-form-grid">
                                     <div class="pj-form-field">
@@ -7288,7 +7289,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 </div>
                                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
                                     <button type="button" class="pj-toolbar-pill" id="btnCancelFu2">Cancel</button>
-                                    <button type="button" class="btn-primary" id="btnSaveFu" style="padding:7px 16px;">💾 Save Follow-up</button>
+                                    <button type="button" class="btn-primary" id="btnSaveFu" style="padding:7px 16px;">&#128190; Save Follow-up</button>
                                 </div>
                             </div>
                         ` : ''}
@@ -7299,7 +7300,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 const isDone = f.status === 'done';
                                 return `
                                     <div class="pj-center-row" style="cursor:default;">
-                                        <div style="font-size:1.3rem;">${isDone ? '✓' : (f.due && f.due < today ? '🚨' : f.due === today ? '⏰' : '⏳')}</div>
+                                        <div style="font-size:1.3rem;">${isDone ? '&#10003;' : (f.due && f.due < today ? '&#128680;' : f.due === today ? '&#9200;' : '&#9203;')}</div>
                                         <div style="flex:1;min-width:0;">
                                             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                                 <strong style="${isDone?'text-decoration:line-through;color:var(--text-secondary);':''}">${escapeHtml(f.p.name)}</strong>
@@ -7311,19 +7312,19 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                         </div>
                                         <div style="display:flex;align-items:center;gap:6px;">
                                             ${!isDone ? `
-                                                <button type="button" class="pj-toolbar-pill" data-mark-fu-done="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" style="background:var(--success);color:#fff;" title="Mark Completed">✓ Done</button>
+                                                <button type="button" class="pj-toolbar-pill" data-mark-fu-done="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" style="background:var(--success);color:#fff;" title="Mark Completed">&#10003; Done</button>
                                             ` : `
-                                                <button type="button" class="pj-toolbar-pill" data-reopen-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Reopen Follow-up">↺ Reopen</button>
+                                                <button type="button" class="pj-toolbar-pill" data-reopen-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Reopen Follow-up">&#8634; Reopen</button>
                                             `}
-                                            ${f.due ? `<button type="button" class="pj-toolbar-pill" data-jump-date="${escapeAttr(f.due)}" title="Jump to date in calendar">📅 Calendar</button>` : ''}
-                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(f.personId)}">👤 Profile</button>
-                                            <button type="button" class="pj-toolbar-pill" data-clear-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Clear this follow-up">✕</button>
+                                            ${f.due ? `<button type="button" class="pj-toolbar-pill" data-jump-date="${escapeAttr(f.due)}" title="Jump to date in calendar">&#128197; Calendar</button>` : ''}
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(f.personId)}">&#128100; Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-clear-fu="${escapeAttr(f.personId)}" data-source="${f.source}" data-enc-date="${f.encounterDate||''}" data-enc-id="${f.encounterId||''}" title="Clear this follow-up">&times;</button>
                                         </div>
                                     </div>
                                 `;
                             }).join('') || `
                                 <div class="pj-empty-card">
-                                    <div style="font-size:1.8rem;opacity:.5;">⏰</div>
+                                    <div style="font-size:1.8rem;opacity:.5;">&#9200;</div>
                                     <div style="font-size:var(--fs-sm);font-weight:600;">No follow-ups in this view!</div>
                                     <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Never drop the ball on important commitments and check-ins.</div>
                                     <button type="button" class="btn-primary" id="btnScheduleFuEmpty" style="padding:7px 16px;margin-top:4px;">+ Schedule a Follow-up</button>
@@ -7353,7 +7354,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         invalidatePjCache();
                         pjShowFuForm = false;
                         renderPjCenter();
-                        showToast('✓ Follow-up scheduled');
+                        showToast('Follow-up scheduled');
                     });
 
                 } else if(pjActiveTab === 'birthdays'){
@@ -7375,8 +7376,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         ${pjShowBdayForm ? `
                             <div class="pj-card" style="margin-bottom:14px;border:1.5px solid var(--accent-border);background:var(--card-bg);">
                                 <div class="pj-card-head">
-                                    <span>🎂 Add / Set Birthday for a Contact</span>
-                                    <button type="button" class="pj-modal-close" id="btnCancelBday" style="font-size:1rem;">✕</button>
+                                    <span>&#127874; Add / Set Birthday for a Contact</span>
+                                    <button type="button" class="pj-modal-close" id="btnCancelBday" style="font-size:1rem;">&times;</button>
                                 </div>
                                 <div class="pj-form-grid">
                                     <div class="pj-form-field">
@@ -7397,7 +7398,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 </div>
                                 <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;">
                                     <button type="button" class="pj-toolbar-pill" id="btnCancelBday2">Cancel</button>
-                                    <button type="button" class="btn-primary" id="btnSaveBday" style="padding:7px 16px;">💾 Save Birthday</button>
+                                    <button type="button" class="btn-primary" id="btnSaveBday" style="padding:7px 16px;">&#128190; Save Birthday</button>
                                 </div>
                             </div>
                         ` : ''}
@@ -7406,30 +7407,30 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div style="display:flex;flex-direction:column;gap:8px;">
                             ${upcomingBdays.map(b => `
                                 <div class="pj-center-row" style="cursor:default;">
-                                    <div style="font-size:1.5rem;">🎂</div>
+                                    <div style="font-size:1.5rem;">&#127874;</div>
                                     <div style="flex:1;min-width:0;">
                                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                                             <strong>${escapeHtml(b.p.name)}</strong>
                                             ${(b.p.profile?.relation||b.p._profile?.relation) ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(b.p.profile?.relation||b.p._profile.relation)})</span>` : ''}
                                             <span class="pj-badge ${b.diff===0?'good':b.diff<=7?'warn':'accent'}">
-                                                ${b.diff===0?'🎉 Today!':b.diff===1?'🎂 Tomorrow!':`In ${b.diff} days`}
+                                                ${b.diff===0?'&#127881; Today!':b.diff===1?'&#127874; Tomorrow!':`In ${b.diff} days`}
                                             </span>
                                         </div>
                                         <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
                                             Birthday: <strong>${escapeHtml(b.dateStr)}</strong>
-                                            ${b.nextAge ? ` · Turning ${b.nextAge}` : ''}
-                                            ${b.p._profile?.notes ? ` · Note: ${escapeHtml(b.p._profile.notes)}` : ''}
+                                            ${b.nextAge ? ` &middot; Turning ${b.nextAge}` : ''}
+                                            ${b.p._profile?.notes ? ` &middot; Note: ${escapeHtml(b.p._profile.notes)}` : ''}
                                         </div>
                                     </div>
                                     <div style="display:flex;align-items:center;gap:6px;">
-                                        <button type="button" class="pj-toolbar-pill" data-open-bday-edit="${escapeAttr(b.p.personId)}">✏️ Edit</button>
-                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(b.p.personId)}">👤 Profile</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-bday-edit="${escapeAttr(b.p.personId)}">&#9998; Edit</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(b.p.personId)}">&#128100; Profile</button>
                                         <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(b.p.personId)}" style="background:var(--accent);color:#fff;" title="Log interaction today">+ Wish / Meet</button>
                                     </div>
                                 </div>
                             `).join('') || `
                                 <div class="pj-empty-card">
-                                    <div style="font-size:1.8rem;opacity:.5;">🎂</div>
+                                    <div style="font-size:1.8rem;opacity:.5;">&#127874;</div>
                                     <div style="font-size:var(--fs-sm);font-weight:600;">No birthdays recorded for this period.</div>
                                     <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Add birthdays for friends, family, and colleagues so you never miss their day.</div>
                                     <button type="button" class="btn-primary" id="btnAddBdayEmpty" style="padding:7px 16px;margin-top:4px;">+ Add Birthday for a Contact</button>
@@ -7456,7 +7457,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         invalidatePjCache();
                         pjShowBdayForm = false;
                         renderPjCenter();
-                        showToast('✓ Birthday saved');
+                        showToast('Birthday saved');
                     });
 
                 } else if(pjActiveTab === 'analytics'){
@@ -7507,10 +7508,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;justify-content:space-between;">
                             <div style="font-size:var(--fs-xs);font-weight:700;color:var(--text);">Network Health Actions:</div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsActive">🟢 View Active Network (${activePeople.length})</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsNeglected">🔴 Review Neglected (${neglectedPeople.length})</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsActive">&#128994; View Active Network (${activePeople.length})</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsNeglected">&#128308; Review Neglected (${neglectedPeople.length})</button>
                                 <button type="button" class="btn-primary" id="btnAnalyticsLog">+ Log New Interaction</button>
-                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsExportCsv">⬇ Export CSV Report</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnAnalyticsExportCsv">&#128228; Export CSV Report</button>
                             </div>
                         </div>
 
@@ -7519,7 +7520,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <!-- Most Met Contacts -->
                             <div class="pj-card">
                                 <div class="pj-card-head">
-                                    <span>🏆 Top Most Connected Contacts</span>
+                                    <span>&#127942; Top Most Connected Contacts</span>
                                     <span style="font-size:var(--fs-2xs);color:var(--text-secondary);">By interactions</span>
                                 </div>
                                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -7536,7 +7537,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                                     <span style="font-size:var(--fs-2xs);color:var(--text-secondary);">${p._health}%</span>
                                                 </div>
                                             </div>
-                                            <span style="font-size:0.8rem;color:var(--text-secondary);">↗</span>
+                                            <span style="font-size:0.8rem;color:var(--text-secondary);">&rarr;</span>
                                         </div>
                                     `).join('') || '<div class="pj-empty-card">No interactions recorded yet.</div>'}
                                 </div>
@@ -7545,7 +7546,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <!-- Topics & Places -->
                             <div style="display:flex;flex-direction:column;gap:14px;">
                                 <div class="pj-card">
-                                    <div class="pj-card-head">🏷️ Top Discussion Topics</div>
+                                    <div class="pj-card-head">&#127991; Top Discussion Topics</div>
                                     <div style="display:flex;flex-wrap:wrap;gap:6px;">
                                         ${topItems(topicMap, 12).map(t => `
                                             <span class="pj-badge" style="font-size:var(--fs-xs);padding:4px 9px;">${escapeHtml(t[0])} <strong style="color:var(--accent);margin-left:4px;">${t[1]}</strong></span>
@@ -7554,16 +7555,16 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 </div>
 
                                 <div class="pj-card">
-                                    <div class="pj-card-head">📍 Top Venues & Places</div>
+                                    <div class="pj-card-head">&#128205; Top Venues & Places</div>
                                     <div style="display:flex;flex-wrap:wrap;gap:6px;">
                                         ${topItems(placeMap, 8).map(pl => `
-                                            <span class="pj-badge" style="font-size:var(--fs-xs);padding:4px 9px;">📍 ${escapeHtml(pl[0])} <strong style="color:var(--accent);margin-left:4px;">${pl[1]}</strong></span>
+                                            <span class="pj-badge" style="font-size:var(--fs-xs);padding:4px 9px;">&#128205; ${escapeHtml(pl[0])} <strong style="color:var(--accent);margin-left:4px;">${pl[1]}</strong></span>
                                         `).join('') || '<div style="color:var(--text-secondary);font-size:var(--fs-xs);">No venues recorded.</div>'}
                                     </div>
                                 </div>
 
                                 <div class="pj-card">
-                                    <div class="pj-card-head">📅 Interactions by Year</div>
+                                    <div class="pj-card-head">&#128197; Interactions by Year</div>
                                     <table class="pj-table">
                                         <thead><tr><th>Year</th><th style="text-align:right;">Interactions Logged</th></tr></thead>
                                         <tbody>
@@ -7607,29 +7608,29 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <!-- Search Query Builder -->
                         <div class="pj-card" style="margin-bottom:14px;background:var(--card-bg);">
                             <div class="pj-card-head">
-                                <span>🔍 Advanced People & Journal Search</span>
+                                <span>&#128269; Advanced People & Journal Search</span>
                                 <div style="display:flex;gap:6px;">
-                                    <button type="button" class="pj-toolbar-pill" id="btnResetAdvSearch">🔄 Reset Filters</button>
-                                    <button type="button" class="pj-toolbar-pill" id="btnSaveAdvView">💾 Save as View</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnResetAdvSearch">&#128260; Reset Filters</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnSaveAdvView">&#128190; Save as View</button>
                                 </div>
                             </div>
                             <div style="display:flex;gap:10px;margin-bottom:12px;">
                                 <input type="text" id="pjAdvSearchInput" placeholder="Search keywords (e.g. coffee, project, Ravi, Bangalore, AI...)" value="${escapeAttr(c.query)}" style="flex:1;padding:8px 12px;border:1.5px solid var(--border-strong);border-radius:var(--r-md);font-size:var(--fs-sm);">
-                                <button type="button" class="btn-primary" id="btnExecuteAdvSearch" style="padding:8px 18px;">🔍 Search</button>
+                                <button type="button" class="btn-primary" id="btnExecuteAdvSearch" style="padding:8px 18px;">&#128269; Search</button>
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
                                 <span style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;">Status:</span>
                                 <button type="button" class="pj-toolbar-pill ${c.status===''?'active':''}" data-adv-status="">All</button>
-                                <button type="button" class="pj-toolbar-pill ${c.status==='Active'?'active':''}" data-adv-status="Active">🟢 Active</button>
-                                <button type="button" class="pj-toolbar-pill ${c.status==='Cooling'?'active':''}" data-adv-status="Cooling">🟡 Cooling</button>
-                                <button type="button" class="pj-toolbar-pill ${c.status==='Neglected'?'active':''}" data-adv-status="Neglected">🔴 Neglected</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Active'?'active':''}" data-adv-status="Active">&#128994; Active</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Cooling'?'active':''}" data-adv-status="Cooling">&#128993; Cooling</button>
+                                <button type="button" class="pj-toolbar-pill ${c.status==='Neglected'?'active':''}" data-adv-status="Neglected">&#128308; Neglected</button>
                                 <span style="margin:0 4px;color:var(--border);">|</span>
-                                <button type="button" class="pj-toolbar-pill ${c.hasPhone?'active':''}" id="btnAdvHasPhone">📞 Has Phone</button>
-                                <button type="button" class="pj-toolbar-pill ${c.hasEmail?'active':''}" id="btnAdvHasEmail">✉️ Has Email</button>
-                                <button type="button" class="pj-toolbar-pill ${c.missingPhone?'active':''}" id="btnAdvNoPhone">⚠️ Missing Phone</button>
-                                <button type="button" class="pj-toolbar-pill ${c.hasFu?'active':''}" id="btnAdvHasFu">⏰ Has Follow-up</button>
-                                <button type="button" class="pj-toolbar-pill ${c.hasBday?'active':''}" id="btnAdvHasBday">🎂 Has Birthday</button>
-                                <button type="button" class="pj-toolbar-pill ${c.favOnly?'active':''}" id="btnAdvFav">★ Favorites</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasPhone?'active':''}" id="btnAdvHasPhone">&#128222; Has Phone</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasEmail?'active':''}" id="btnAdvHasEmail">&#9993; Has Email</button>
+                                <button type="button" class="pj-toolbar-pill ${c.missingPhone?'active':''}" id="btnAdvNoPhone">&#9888; Missing Phone</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasFu?'active':''}" id="btnAdvHasFu">&#9200; Has Follow-up</button>
+                                <button type="button" class="pj-toolbar-pill ${c.hasBday?'active':''}" id="btnAdvHasBday">&#127874; Has Birthday</button>
+                                <button type="button" class="pj-toolbar-pill ${c.favOnly?'active':''}" id="btnAdvFav">&#9733; Favorites</button>
                             </div>
                         </div>
 
@@ -7650,22 +7651,22 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                             ${(p.profile?.relation||p._profile.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(p.profile?.relation||p._profile.relation)})</span>`:''}
                                         </div>
                                         <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
-                                            ${p.phones[0] ? `📞 ${escapeHtml(p.phones[0])} · ` : ''}
-                                            ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} · ` : 'Not met yet · '}
+                                            ${p.phones[0] ? `&#128222; ${escapeHtml(p.phones[0])} &middot; ` : ''}
+                                            ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} &middot; ` : 'Not met yet &middot; '}
                                             ${p.encounters.length} encounter(s)
                                         </div>
                                     </div>
                                     <div style="display:flex;gap:6px;">
-                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                        <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
                                         <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}">+ Meet</button>
                                     </div>
                                 </div>
                             `).join('') || `
                                 <div class="pj-empty-card">
-                                    <div style="font-size:1.8rem;opacity:.5;">🔍</div>
+                                    <div style="font-size:1.8rem;opacity:.5;">&#128269;</div>
                                     <div style="font-size:var(--fs-sm);font-weight:600;">No contacts match your search criteria.</div>
                                     <div style="font-size:var(--fs-xs);color:var(--text-secondary);">Try adjusting filters or clear keywords to view more contacts.</div>
-                                    <button type="button" class="btn-primary" id="btnResetAdvSearchEmpty" style="padding:6px 14px;margin-top:4px;">🔄 Reset Filters</button>
+                                    <button type="button" class="btn-primary" id="btnResetAdvSearchEmpty" style="padding:6px 14px;margin-top:4px;">&#128260; Reset Filters</button>
                                 </div>
                             `}
                         </div>
@@ -7698,7 +7699,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         if(name && name.trim()){
                             pjMeta.savedViews.push({ name: name.trim(), query: pjAdvSearchCriteria.query, criteria: Object.assign({}, pjAdvSearchCriteria), createdAt: Date.now() });
                             savePjMeta();
-                            showToast('✓ Search view saved');
+                            showToast('Search view saved');
                             pjActiveTab = 'saved';
                             renderPjCenter();
                         }
@@ -7714,40 +7715,40 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         </div>
                         <div class="pj-center-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px;">
                             <div class="pj-card pj-card-interactive" data-open-smart-view="favorites" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">⭐</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#9733;</div>
                                 <strong>Priority & Favorites</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>p._profile.favorite).length} starred contacts</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                             <div class="pj-card pj-card-interactive" data-open-smart-view="overdue" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">🚨</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#128680;</div>
                                 <strong>Overdue Follow-ups</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${overdue.length} commitments due</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                             <div class="pj-card pj-card-interactive" data-open-smart-view="birthdays" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">🎂</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#127874;</div>
                                 <strong>Upcoming Birthdays</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${birthdays30.length} in next 30 days</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                             <div class="pj-card pj-card-interactive" data-open-smart-view="missing-phone" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">📞</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#128222;</div>
                                 <strong>Missing Phone Numbers</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>!p.phones||!p.phones.length).length} contacts without phone</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                             <div class="pj-card pj-card-interactive" data-open-smart-view="neglected" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">💤</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#128164;</div>
                                 <strong>Needs Reconnection</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${neglectedPeople.length} not met in 60d+</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                             <div class="pj-card pj-card-interactive" data-open-smart-view="recent" style="cursor:pointer;">
-                                <div style="font-size:1.2rem;margin-bottom:4px;">✦</div>
+                                <div style="font-size:1.2rem;margin-bottom:4px;">&#10022;</div>
                                 <strong>Recent Encounters (14d)</strong>
                                 <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">${people.filter(p=>p.lastSeen&&pjDateDiff(p.lastSeen,today)<=14).length} met in last 2 weeks</div>
-                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View ↗</button>
+                                <button type="button" class="pj-toolbar-pill" style="margin-top:8px;">Open View &rarr;</button>
                             </div>
                         </div>
 
@@ -7773,7 +7774,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     </div>
                                     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
                                         <button type="button" class="pj-toolbar-pill" id="btnCancelSavedView">Cancel</button>
-                                        <button type="button" class="btn-primary" id="btnExecuteSaveView" style="padding:6px 14px;">💾 Save View</button>
+                                        <button type="button" class="btn-primary" id="btnExecuteSaveView" style="padding:6px 14px;">&#128190; Save View</button>
                                     </div>
                                 </div>
                             ` : ''}
@@ -7781,14 +7782,14 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <div style="display:flex;flex-direction:column;gap:6px;">
                                 ${savedViews.map((v, idx) => `
                                     <div class="pj-center-row" style="cursor:default;">
-                                        <div style="font-size:1.2rem;">📂</div>
+                                        <div style="font-size:1.2rem;">&#128194;</div>
                                         <div style="flex:1;min-width:0;">
                                             <strong>${escapeHtml(v.name)}</strong>
                                             <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">Query: "${escapeHtml(v.query||'All')}"</div>
                                         </div>
                                         <div style="display:flex;gap:6px;">
-                                            <button type="button" class="btn-primary" data-apply-saved-view="${idx}" style="font-size:var(--fs-xs);padding:4px 10px;">Open View ↗</button>
-                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-saved-view="${idx}">🗑️</button>
+                                            <button type="button" class="btn-primary" data-apply-saved-view="${idx}" style="font-size:var(--fs-xs);padding:4px 10px;">Open View &rarr;</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-saved-view="${idx}">&#128465;</button>
                                         </div>
                                     </div>
                                 `).join('') || `
@@ -7811,7 +7812,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         savePjMeta();
                         pjShowSavedViewForm = false;
                         renderPjCenter();
-                        showToast('✓ Custom view created');
+                        showToast('Custom view created');
                     });
 
                 } else if(pjActiveTab === 'data'){
@@ -7821,61 +7822,61 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         <div class="pj-two-col">
                             <!-- Card 1: Export & Backup -->
                             <div class="pj-card">
-                                <div class="pj-card-head">💾 Export & Download</div>
+                                <div class="pj-card-head">&#128190; Export & Download</div>
                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
                                     Create and download an exact offline backup containing all your people directory, interaction histories, day text notes, profiles, and settings.
                                 </div>
                                 <div style="display:flex;flex-direction:column;gap:8px;">
-                                    <button type="button" class="btn-primary" id="btnDataExportJson" style="padding:8px 14px;justify-content:center;">💾 Download Complete JSON Backup</button>
-                                    <button type="button" class="pj-toolbar-pill" id="btnDataExportCsv" style="padding:7px 14px;justify-content:center;">⬇ Export People Directory to CSV</button>
+                                    <button type="button" class="btn-primary" id="btnDataExportJson" style="padding:8px 14px;justify-content:center;">&#128190; Download Complete JSON Backup</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataExportCsv" style="padding:7px 14px;justify-content:center;">&#128228; Export People Directory to CSV</button>
                                 </div>
                             </div>
 
                             <!-- Card 2: Import & Restore -->
                             <div class="pj-card">
-                                <div class="pj-card-head">📂 Import & Restore</div>
+                                <div class="pj-card-head">&#128194; Import & Restore</div>
                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
                                     Import contacts from Google / Android / Apple CSV with names, phone numbers, and emails, or restore a complete JSON backup.
                                 </div>
                                 <div style="display:flex;flex-direction:column;gap:8px;">
-                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportCsv" style="padding:7px 14px;justify-content:center;">📇 Import Google Contacts CSV</button>
-                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportJson" style="padding:7px 14px;justify-content:center;">📂 Restore from JSON Backup</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportCsv" style="padding:7px 14px;justify-content:center;">&#128199; Import Google Contacts CSV</button>
+                                    <button type="button" class="pj-toolbar-pill" id="btnDataImportJson" style="padding:7px 14px;justify-content:center;">&#128194; Restore from JSON Backup</button>
                                 </div>
                             </div>
 
                             <!-- Card 3: Contact Deduplication -->
                             <div class="pj-card">
                                 <div class="pj-card-head">
-                                    <span>🔀 Contact Deduplication</span>
+                                    <span>&#128256; Contact Deduplication</span>
                                     <span class="pj-badge ${dups.length?'warn':'good'}">${dups.length ? `${dups.length} duplicates detected` : 'No duplicates'}</span>
                                 </div>
                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
                                     Detect duplicate entries across matching phone numbers, email addresses, exact names, or similar names, and merge them in 1-click.
                                 </div>
-                                <button type="button" class="btn-primary" id="btnDataMergeDups" style="padding:8px 14px;justify-content:center;">🔀 Open Duplicate Merge Center</button>
+                                <button type="button" class="btn-primary" id="btnDataMergeDups" style="padding:8px 14px;justify-content:center;">&#128256; Open Duplicate Merge Center</button>
                             </div>
 
                                                         <!-- Card 4: Contact Management & Privacy -->
                             <div class="pj-card">
-                                <div class="pj-card-head">🛡️ Contact Management & Privacy</div>
+                                <div class="pj-card-head">&#128737; Contact Management & Privacy</div>
                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
                                     Manage or delete individual contacts safely from the People directory or their Profile card. Calendar day notes and past interactions remain intact.
                                 </div>
-                                <button type="button" class="pj-toolbar-pill" id="btnDataGoToPeople" style="padding:8px 14px;justify-content:center;font-weight:600;">👥 Manage Individual Contacts</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDataGoToPeople" style="padding:8px 14px;justify-content:center;font-weight:600;">&#128101; Manage Individual Contacts</button>
                             </div>
                         </div>
 
 
                         <!-- Card 5: Settings & Snapshots -->
                         <div class="pj-card" style="margin-top:14px;">
-                            <div class="pj-card-head">⚙️ Relationship Settings & Stored Snapshots</div>
+                            <div class="pj-card-head">&#9881; Relationship Settings & Stored Snapshots</div>
                             <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
                                 <label style="font-size:var(--fs-xs);font-weight:600;">Mark contacts as Neglected after (days without contact):</label>
                                 <input type="number" id="pjStaleThresholdInput" min="7" max="365" value="${Number(pjMeta.notContactedDays||60)}" style="width:75px;padding:4px 8px;border:1px solid var(--border);border-radius:var(--r-sm);">
                                 <button type="button" class="pj-toolbar-pill" id="btnSaveStaleThreshold">Save Setting</button>
                             </div>
                             <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">
-                                Stored Backup Snapshots: <strong>${Array.isArray(pjMeta.backups)?pjMeta.backups.length:0}</strong> · Total People: <strong>${people.length}</strong> · Active Contacts: <strong>${activePeople.length}</strong>
+                                Stored Backup Snapshots: <strong>${Array.isArray(pjMeta.backups)?pjMeta.backups.length:0}</strong> &middot; Total People: <strong>${people.length}</strong> &middot; Active Contacts: <strong>${activePeople.length}</strong>
                             </div>
                         </div>
                     `;
@@ -7893,7 +7894,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             pjMeta.notContactedDays = val;
                             savePjMeta();
                             renderPjCenter();
-                            showToast(`✓ Neglected contact threshold set to ${val} days`);
+                            showToast(`Neglected contact threshold set to ${val} days`);
                         }
                     });
                 }
@@ -7972,6 +7973,33 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         }
                     });
                     return safe;
+                }
+
+                function getPjSearchSnippet(text, query, maxLen){
+                    if(!text) return '';
+                    const limit = maxLen || 120;
+                    const clean = String(text).replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+                    if(!query) return clean.length > limit ? clean.slice(0, limit) + '...' : clean;
+                    const qLower = query.toLowerCase().trim();
+                    const cleanLower = clean.toLowerCase();
+                    let idx = cleanLower.indexOf(qLower);
+                    if(idx === -1){
+                        const tks = qLower.split(/\s+/).filter(t => t.length > 1);
+                        for(const tok of tks){
+                            const pos = cleanLower.indexOf(tok);
+                            if(pos !== -1 && (idx === -1 || pos < idx)){
+                                idx = pos;
+                            }
+                        }
+                    }
+                    if(idx === -1){
+                        return clean.length > limit ? clean.slice(0, limit) + '...' : clean;
+                    }
+                    const start = Math.max(0, idx - 25);
+                    const end = Math.min(clean.length, start + limit);
+                    const prefix = start > 0 ? '... ' : '';
+                    const suffix = end < clean.length ? ' ...' : '';
+                    return prefix + clean.slice(start, end).trim() + suffix;
                 }
 
                 // 1. SEARCH CONTACTS & PEOPLE REGISTRY
@@ -8116,7 +8144,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(!totalCount){
                     resEl.innerHTML = `
                         <div class="pj-empty-card" style="margin:20px 0;">
-                            <div style="font-size:2rem;opacity:.5;">🔍</div>
+                            <div style="font-size:2rem;opacity:.5;">&#128269;</div>
                             <div style="font-size:var(--fs-sm);font-weight:700;">No matching results found</div>
                             <div style="font-size:var(--fs-xs);color:var(--text-secondary);max-width:320px;">
                                 We checked contact names, phones, emails, relations, interaction topics, notes, places, and day texts. Try fewer words or a different term.
@@ -8132,7 +8160,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(contactMatches.length > 0){
                     html += `
                         <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
-                            <span>👥 Contacts (${contactMatches.length})</span>
+                            <span>&#128101; Contacts (${contactMatches.length})</span>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
                             ${contactMatches.map(m => {
@@ -8140,28 +8168,42 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 const pr = m.pr;
                                 const firstPhone = m.phones[0] || '';
                                 const firstEmail = m.emails[0] || '';
+                                const contextParts = [];
+                                if(firstPhone) contextParts.push(`&#128222; ${highlightText(firstPhone)}`);
+                                if(firstEmail) contextParts.push(`&#9993; ${highlightText(firstEmail)}`);
+                                if(pr.relation||p.relation) contextParts.push(`&#127991; ${highlightText(pr.relation||p.relation)}`);
+                                if(pr.notes || p.notes){
+                                    const snip = getPjSearchSnippet(pr.notes || p.notes, query, 70);
+                                    contextParts.push(`&#128221; ${highlightText(snip)}`);
+                                }
+                                if(pr.nextAction){
+                                    contextParts.push(`&#9200; Next: ${highlightText(pr.nextAction, 40)}`);
+                                }
+                                if(pr.birthday || p.birthday){
+                                    contextParts.push(`&#127874; ${highlightText(pr.birthday || p.birthday)}`);
+                                }
+                                if(contextParts.length === 0){
+                                    contextParts.push(p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'Contact in directory');
+                                }
+                                const singleLineContext = contextParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
+
                                 return `
                                     <div class="pj-search-result pj-card-interactive" data-search-contact="${escapeAttr(p.personId)}">
-                                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:38px;height:38px;font-size:0.85rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:38px;height:38px;font-size:0.85rem;flex-shrink:0;">${escapeHtml(initialsOfPj(p.name))}</div>
                                         <div style="flex:1;min-width:0;">
                                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
                                                 <strong style="font-size:var(--fs-sm);">${highlightText(p.name)}</strong>
                                                 ${(pr.relation||p.relation)?`<span class="pj-badge">${highlightText(pr.relation||p.relation)}</span>`:''}
-                                                ${pr.favorite?'<span class="pj-fav" title="Starred">★</span>':''}
+                                                ${pr.favorite?'<span class="pj-fav" title="Starred">&#9733;</span>':''}
                                             </div>
-                                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                                ${firstPhone?`<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">📞 ${highlightText(firstPhone)}</span>`:''}
-                                                ${firstEmail?`<span>✉️ ${highlightText(firstEmail)}</span>`:''}
-                                                ${(pr.birthday||p.birthday)?`<span style="color:var(--accent);">🎂 ${highlightText(pr.birthday||p.birthday)}</span>`:''}
-                                                <span>${p.lastSeen?`Last met: ${getShortDate(p.lastSeen)}`:'Not met yet'}</span>
-                                                ${pr.nextAction?`<span class="pj-badge warn">⏰ ${highlightText(pr.nextAction, 40)}</span>`:''}
+                                            <div class="pj-search-single-line">
+                                                ${singleLineContext}
                                             </div>
-                                            ${(pr.notes||p.notes)?`<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:4px;">${highlightText(pr.notes||p.notes, 100)}</div>`:''}
                                         </div>
-                                        <div style="display:flex;align-items:center;gap:6px;">
-                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
                                             <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}">+ Meet</button>
-                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">🗑️</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">&#128465;</button>
                                         </div>
                                     </div>
                                 `;
@@ -8174,7 +8216,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(encounterMatches.length > 0){
                     html += `
                         <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
-                            <span>🤝 Interactions & Encounters (${encounterMatches.length})</span>
+                            <span>&#129309; Interactions & Encounters (${encounterMatches.length})</span>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
                             ${encounterMatches.map(m => {
@@ -8184,26 +8226,51 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     const meta = pjTagMeta(t);
                                     return `<span class="pj-tag ${escapeAttr(t)}" style="font-size:0.6rem;padding:1px 6px;">${meta.icon} ${meta.label}</span>`;
                                 }).join(' ');
+
+                                const encParts = [];
+                                if(e.venue || e.city){
+                                    const loc = [e.venue, e.city].filter(Boolean).join(', ');
+                                    encParts.push(`&#128205; ${highlightText(loc)}`);
+                                }
+                                if(e.topics){
+                                    const topSnippet = getPjSearchSnippet(e.topics, query, 60);
+                                    encParts.push(`&#128172; ${highlightText(topSnippet)}`);
+                                }
+                                if(e.summary || e.notes){
+                                    const noteText = e.summary ? (e.summary + (e.notes ? ' &middot; ' + e.notes : '')) : e.notes;
+                                    const noteSnippet = getPjSearchSnippet(noteText, query, 80);
+                                    encParts.push(`&#128221; ${highlightText(noteSnippet)}`);
+                                }
+                                if(e.followUp){
+                                    encParts.push(`&#9200; Follow-up: ${e.followUp}${e.followUpAction ? ` (${highlightText(e.followUpAction, 30)})` : ''}`);
+                                }
+                                if(e.gift){
+                                    encParts.push(`&#127873; ${highlightText(e.gift, 30)}`);
+                                }
+                                if(encParts.length === 0){
+                                    encParts.push('Interaction logged on this day');
+                                }
+                                const singleLineEncContext = encParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
+
                                 return `
                                     <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(ds)}" data-search-enc-id="${escapeAttr(e.id)}">
-                                        <div class="pj-encounter-avatar" style="width:38px;height:38px;font-size:0.85rem;">${escapeHtml(initialsOfPj(e.name))}</div>
+                                        <div class="pj-encounter-avatar" style="width:38px;height:38px;font-size:0.85rem;flex-shrink:0;">${escapeHtml(initialsOfPj(e.name))}</div>
                                         <div style="flex:1;min-width:0;">
                                             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                                                <div>
+                                                <div style="display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                                                     <strong style="font-size:var(--fs-sm);">${highlightText(e.name)}</strong>
-                                                    <span style="font-size:var(--fs-2xs);color:var(--accent);font-weight:700;margin-left:6px;">📅 ${getShortDate(ds)}</span>
-                                                    ${(e.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-left:4px;">(${highlightText(e.relation)})</span>`:''}
+                                                    <span style="font-size:var(--fs-2xs);color:var(--accent);font-weight:700;">&#128197; ${getShortDate(ds)}</span>
+                                                    ${(e.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${highlightText(e.relation)})</span>`:''}
                                                 </div>
-                                                <div style="display:flex;gap:4px;">${tagsHtml}</div>
+                                                <div style="display:flex;gap:4px;flex-shrink:0;">${tagsHtml}</div>
                                             </div>
-                                            ${(e.venue||e.city)?`<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">📍 ${highlightText([e.venue, e.city].filter(Boolean).join(', '))}</div>`:''}
-                                            ${e.topics ? `<div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;margin-top:2px;">💬 ${highlightText(e.topics, 120)}</div>` : ''}
-                                            ${(e.summary || e.notes) ? `<div style="font-size:var(--fs-xs);margin-top:3px;line-height:1.4;">${highlightText(e.summary || e.notes, 140)}</div>` : ''}
-                                            ${(e.followUp)?`<div style="font-size:var(--fs-2xs);color:var(--warning);font-weight:600;margin-top:3px;">⏰ Follow-up: ${e.followUp} ${e.followUpAction?`(${highlightText(e.followUpAction)})`:''}</div>`:''}
+                                            <div class="pj-search-single-line">
+                                                ${singleLineEncContext}
+                                            </div>
                                         </div>
-                                        <div style="display:flex;align-items:center;gap:6px;">
-                                            <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(ds)}" title="Go to this day">📅 Day ↗</button>
-                                            <button type="button" class="pj-toolbar-pill" data-search-edit-enc="${escapeAttr(e.id)}" data-search-enc-day="${escapeAttr(ds)}" title="Edit encounter">✏️</button>
+                                        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                            <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(ds)}" title="Go to this day">&#128197; Day &rarr;</button>
+                                            <button type="button" class="pj-toolbar-pill" data-search-edit-enc="${escapeAttr(e.id)}" data-search-enc-day="${escapeAttr(ds)}" title="Edit encounter">&#9998;</button>
                                         </div>
                                     </div>
                                 `;
@@ -8216,19 +8283,24 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(dayNoteMatches.length > 0){
                     html += `
                         <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
-                            <span>📝 Day Notes (${dayNoteMatches.length})</span>
+                            <span>&#128221; Day Notes (${dayNoteMatches.length})</span>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:8px;">
-                            ${dayNoteMatches.map(m => `
-                                <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(m.ds)}">
-                                    <div style="font-size:1.4rem;">📝</div>
-                                    <div style="flex:1;min-width:0;">
-                                        <div style="font-weight:700;font-size:var(--fs-sm);color:var(--accent);">Day Note · ${getShortDate(m.ds)}</div>
-                                        <div style="font-size:var(--fs-xs);margin-top:3px;line-height:1.4;">${highlightText(m.txt, 160)}</div>
+                            ${dayNoteMatches.map(m => {
+                                const noteSnippet = getPjSearchSnippet(m.txt, query, 140);
+                                return `
+                                    <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(m.ds)}">
+                                        <div style="font-size:1.4rem;flex-shrink:0;">&#128221;</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-weight:700;font-size:var(--fs-sm);color:var(--accent);">&#128197; Day Note &middot; ${getShortDate(m.ds)}</div>
+                                            <div class="pj-search-single-line">
+                                                ${highlightText(noteSnippet)}
+                                            </div>
+                                        </div>
+                                        <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(m.ds)}" style="flex-shrink:0;">&#128197; Day &rarr;</button>
                                     </div>
-                                    <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(m.ds)}">📅 Day ↗</button>
-                                </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
                         </div>
                     `;
                 }
@@ -8389,7 +8461,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         }
                         renderCalendar();
 
-                        showToast(`📇 Imported ${parsed.length} contacts (${newCount} new, ${mergedCount} updated)`);
+                        showToast(`Imported ${parsed.length} contacts (${newCount} new, ${mergedCount} updated)`);
                     } catch(err){
                         console.error('CSV import error:', err);
                         alert('Failed to import CSV: ' + err.message);
@@ -8423,7 +8495,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 a.click();
                 document.body.removeChild(a);
                 setTimeout(()=>URL.revokeObjectURL(url), 4000);
-                showToast('⬇ Exported ' + all.length + ' people');
+                showToast('Exported ' + all.length + ' people');
             }
 
             function exportPjEnhancedBackup(){
@@ -8462,7 +8534,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     a.click();
                     document.body.removeChild(a);
                     setTimeout(()=>URL.revokeObjectURL(url), 4000);
-                    showToast('💾 People & Text backup downloaded');
+                    showToast('People & Text backup downloaded');
                 } catch(err){
                     console.error('Backup error:', err);
                     alert('Failed to export backup: ' + err.message);
@@ -8581,7 +8653,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             renderPjCenter();
                         }
 
-                        showToast(`📂 Restored ${restoredContacts} contacts, ${restoredEncounters} encounters`);
+                        showToast(`Restored ${restoredContacts} contacts, ${restoredEncounters} encounters`);
                     } catch(err){
                         console.error('Restore error:', err);
                         alert('Failed to parse and restore backup: ' + err.message);
@@ -11229,7 +11301,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const bBtn=e.target.closest('[data-open-bday-edit]');
                     if(bBtn){e.stopPropagation();pjPrefillBdayPersonId=bBtn.dataset.openBdayEdit;pjShowBdayForm=true;pjActiveTab='birthdays';renderPjCenter();return;}
                     const favBtn=e.target.closest('[data-toggle-fav]');
-                    if(favBtn){e.stopPropagation();const pid=favBtn.dataset.toggleFav;const pr=pjProfile(pid);pr.favorite=!pr.favorite;savePjMeta();invalidatePjCache();renderPjCenter();showToast(pr.favorite?'⭐ Added to favorites':'Removed from favorites');return;}
+                    if(favBtn){e.stopPropagation();const pid=favBtn.dataset.toggleFav;const pr=pjProfile(pid);pr.favorite=!pr.favorite;savePjMeta();invalidatePjCache();renderPjCenter();showToast(pr.favorite?'Added to favorites':'Removed from favorites');return;}
                     const pf=e.target.closest('[data-p-filter]');
                     if(pf){pjCenterPeopleFilter=pf.dataset.pFilter;renderPjCenter();return;}
                     const ff=e.target.closest('[data-fu-filter]');
@@ -11245,7 +11317,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const dv=e.target.closest('[data-delete-saved-view]');
                     if(dv){const idx=Number(dv.dataset.deleteSavedView);if(confirm('Delete this saved view?')){pjMeta.savedViews.splice(idx,1);savePjMeta();renderPjCenter();showToast('Saved view removed');}return;}
                     const md=e.target.closest('[data-mark-fu-done]');
-                    if(md){const pid=md.dataset.markFuDone;const pr=pjProfile(pid);pr.nextActionStatus='done';if(md.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(md.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===md.dataset.encId);if(enc)enc.followUpDone=true;savePjDayData(md.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('✓ Follow-up marked completed');return;}
+                    if(md){const pid=md.dataset.markFuDone;const pr=pjProfile(pid);pr.nextActionStatus='done';if(md.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(md.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===md.dataset.encId);if(enc)enc.followUpDone=true;savePjDayData(md.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up marked completed');return;}
                     const ro=e.target.closest('[data-reopen-fu]');
                     if(ro){const pid=ro.dataset.reopenFu;const pr=pjProfile(pid);pr.nextActionStatus='open';if(ro.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(ro.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===ro.dataset.encId);if(enc)enc.followUpDone=false;savePjDayData(ro.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up reopened');return;}
                     const cl=e.target.closest('[data-clear-fu]');
