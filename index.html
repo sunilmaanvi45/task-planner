@@ -2420,7 +2420,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 /* Overlay and Modals */
 .pj-overlay{position:fixed;inset:0;z-index:11000;display:none;align-items:center;justify-content:center;background:var(--modal-overlay);opacity:0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:opacity var(--dur-base) var(--ease-in-out)}
 .pj-overlay.active{display:flex;opacity:1}
-.pj-modal-card{background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-lift);padding:var(--sp-5);width:92%;max-width:580px;max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3)}
+.pj-modal-card{background:var(--card-bg);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-lift);padding:var(--sp-5);width:min(1160px,95vw);max-width:min(1160px,95vw);height:min(780px,88vh);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;gap:var(--sp-3)}
 .pj-modal-header{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3)}
 .pj-modal-title{font-size:var(--fs-lg);font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
 .pj-modal-close{width:30px;height:30px;border-radius:var(--r-full);border:1px solid var(--border);background:var(--card-bg);cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all var(--dur-fast)}
@@ -2481,7 +2481,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-tag-add-inline button:hover{transform:scale(1.15)}
 
 /* People Directory modal */
-.pj-dir-modal{width:min(1080px,95vw);height:min(720px,90vh);padding:0;overflow:hidden}
+.pj-dir-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important;padding:0;overflow:hidden}
 .pj-dir-header{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-3) var(--sp-5);border-bottom:1px solid var(--border);background:var(--surface-2);flex-shrink:0;flex-wrap:wrap}
 .pj-dir-title{font-size:var(--fs-md);font-weight:600;color:var(--text);white-space:nowrap}
 .pj-dir-search{flex:1;min-width:0;max-width:320px;padding:6px 12px;border:1px solid var(--border-strong);border-radius:var(--r-full);background:var(--card-bg);color:var(--text);font-size:var(--fs-sm)}
@@ -2498,7 +2498,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-dir-timeline-item::before{content:'';position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--card-bg);box-shadow:0 0 0 2px var(--accent-border)}
 
 /* Relationship Center Modal */
-.pj-center-modal{width:min(1280px,96vw);height:min(860px,92vh);padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.28), 0 0 0 1px var(--border)}
+.pj-center-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.28), 0 0 0 1px var(--border)}
 .pj-center-head{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--surface-2) 0%,var(--card-bg) 100%);flex-wrap:wrap}
 .pj-center-tabs{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--surface-2);align-items:center}
 .pj-center-tab{border:1px solid transparent;background:transparent;color:var(--text-secondary);border-radius:999px;padding:7px 14px;font:650 .72rem var(--font-ui);cursor:pointer;white-space:nowrap;transition:all var(--dur-fast);user-select:none}
@@ -2521,7 +2521,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-fav{color:#f59e0b;font-size:.9rem}
 
 /* Global search overlay */
-.pj-search-modal{width:min(960px,96vw);max-height:86vh;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.3)}
+.pj-search-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.3)}
 .pj-search-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
 .pj-search-box-wrap{margin:14px 20px 8px;display:flex;align-items:center;gap:9px;padding:0 14px;border:1.5px solid var(--border-strong);background:var(--input-bg);border-radius:14px;transition:border-color .15s,box-shadow .15s}
 .pj-search-box-wrap:focus-within{border-color:var(--accent-border);box-shadow:var(--focus-ring);background:var(--input-bg-focus)}
@@ -2529,8 +2529,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-search-results{overflow:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:8px}
 .pj-search-result{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;cursor:pointer;transition:transform .16s,background-color .16s,border-color .16s,box-shadow .16s}
 .pj-search-result:hover,.pj-search-result.active{transform:translateY(-1px);background:var(--card-bg);border-color:var(--accent-border);box-shadow:var(--shadow-md)}
-.pj-search-result mark{background:rgba(217,119,6,.22);color:inherit;border-radius:3px;padding:1px 3px;font-weight:600}
+.search-highlight,.pj-search-single-line mark,.pj-search-result mark{background:rgba(245,158,11,.35) !important;color:inherit !important;font-weight:700 !important;border-radius:3px !important;padding:1px 4px !important;border:1px solid rgba(245,158,11,.5) !important}
+.pj-search-field-badge{display:inline-flex;align-items:center;gap:3px;font-weight:750;color:var(--accent);font-size:0.72rem;letter-spacing:0.02em;margin-right:5px}
 .pj-search-single-line{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;line-height:1.4;max-width:100%}
+.eisen-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important}
 
 @media(max-width:800px){
   .pj-center-grid{grid-template-columns:repeat(2,1fr)}
@@ -2540,7 +2542,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 }
 
 /* Duplicate Detection & Merge Modal Styles */
-.pj-merge-modal{width:min(740px,96vw);max-height:88vh;padding:0;overflow:hidden;display:flex;flex-direction:column}
+.pj-merge-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important;padding:0;overflow:hidden;display:flex;flex-direction:column}
 .pj-merge-body{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:14px}
 .pj-dup-summary-banner{padding:10px 14px;border-radius:var(--r-md);background:var(--accent-light);border:1px solid var(--accent-border);color:var(--text);font-size:var(--fs-xs);display:flex;align-items:center;gap:10px}
 .pj-dup-summary-banner.clean{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25);color:var(--text)}
@@ -3119,7 +3121,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     </div>
 
     <div class="pj-overlay" id="pjContactModalOverlay">
-        <div class="pj-modal-card" id="pjContactModal" style="max-width:620px;" role="dialog" aria-modal="true" aria-label="Contact editor">
+        <div class="pj-modal-card" id="pjContactModal" role="dialog" aria-modal="true" aria-label="Contact editor">
             <div class="pj-modal-header">
                 <span class="pj-modal-title" id="pjContactModalTitle">&#128100; Add Contact</span>
                 <button class="pj-modal-close" id="pjContactModalClose" aria-label="Close">&times;</button>
@@ -3206,7 +3208,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     </div>
 
     <div class="pj-overlay" id="pjProfileModal">
-        <div class="pj-modal-card" style="max-width:620px;">
+        <div class="pj-modal-card">
             <div class="pj-modal-header">
                 <span class="pj-modal-title">&#128100; Person Profile</span>
                 <button class="pj-modal-close" id="pjProfileClose" aria-label="Close">&times;</button>
@@ -3754,6 +3756,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 if(eisenOverlay.classList.contains('active'))renderEisen();
                 requestAnimationFrame(()=>{isUpdatingFromCode=false});
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -3920,6 +3923,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     showSaved();
                     if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -4024,6 +4028,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     showSaved();
                     if(typeof scheduleCloudPush==='function') scheduleCloudPush(100);
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -4755,6 +4760,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 }
                 updateProgressViz(data);
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -8670,10 +8676,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         }
                     }
                     let safe = escapeHtml(str);
+                    const minLen = (tokens.length === 1 && tokens[0].length === 1) ? 1 : 2;
                     tokens.forEach(tok => {
-                        if(tok.length >= 2){
+                        if(tok.length >= minLen){
                             const re = new RegExp('(' + tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
-                            safe = safe.replace(re, '<mark>$1</mark>');
+                            safe = safe.replace(re, '<mark class="search-highlight">$1</mark>');
                         }
                     });
                     return safe;
@@ -8681,7 +8688,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
                 function getPjSearchSnippet(text, query, maxLen){
                     if(!text) return '';
-                    const limit = maxLen || 120;
+                    const limit = maxLen || 85;
                     const clean = String(text).replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
                     if(!query) return clean.length > limit ? clean.slice(0, limit) + '...' : clean;
                     const qLower = query.toLowerCase().trim();
@@ -8699,7 +8706,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(idx === -1){
                         return clean.length > limit ? clean.slice(0, limit) + '...' : clean;
                     }
-                    const start = Math.max(0, idx - 25);
+                    const start = Math.max(0, idx - 22);
                     const end = Math.min(clean.length, start + limit);
                     const prefix = start > 0 ? '... ' : '';
                     const suffix = end < clean.length ? ' ...' : '';
@@ -8720,25 +8727,22 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const emails = Array.isArray(p.emails) ? p.emails : (p.email ? [p.email] : []);
                     const tags = (Array.isArray(p.tags) ? p.tags : []).concat(pr.customTags || []);
 
-                    const hayParts = [
-                        p.name,
-                        p.nickname,
-                        pr.nickname,
-                        p.relation,
-                        pr.relation,
-                        phones.join(' '),
-                        emails.join(' '),
-                        pr.birthday,
-                        p.birthday,
-                        pr.nextAction,
-                        pr.nextActionDue,
-                        pr.notes,
-                        p.notes,
-                        p.organization,
-                        p.role,
-                        tags.join(' '),
-                        p.source || ''
+                    const candidateFields = [
+                        { label: 'Name', value: p.name, icon: '&#128100;' },
+                        { label: 'Company / Org', value: p.organization, icon: '&#127970;' },
+                        { label: 'Role', value: p.role, icon: '&#128188;' },
+                        { label: 'Nickname', value: pr.nickname || p.nickname, icon: '&#127991;' },
+                        { label: 'Notes', value: pr.notes || p.notes, icon: '&#128221;' },
+                        { label: 'Relationship', value: pr.relation || p.relation, icon: '&#127991;' },
+                        { label: 'Tag', value: tags.join(', '), icon: '&#127991;' },
+                        { label: 'Next Action', value: pr.nextAction, icon: '&#9200;' },
+                        { label: 'Phone', value: phones.join(', '), icon: '&#128222;' },
+                        { label: 'Email', value: emails.join(', '), icon: '&#9993;' },
+                        { label: 'Birthday', value: pr.birthday || p.birthday, icon: '&#127874;' },
+                        { label: 'Native / Address', value: [pr.nativePlace, pr.homeAddress].filter(Boolean).join(', '), icon: '&#127968;' }
                     ];
+
+                    const hayParts = candidateFields.map(f => f.value).concat([p.source || '']);
                     const fullHay = hayParts.filter(Boolean).join(' ').toLowerCase();
 
                     const isMatch = matchesTokens(fullHay) || matchesDigits(phones);
@@ -8748,10 +8752,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(pjGlobalSearchFilter === 'person' && !matchesAnyToken(p.name + ' ' + (p.nickname||'') + ' ' + (pr.nickname||''))) return;
                     if(pjGlobalSearchFilter === 'contact' && !matchesAnyToken(phones.join(' ') + ' ' + emails.join(' ')) && !matchesDigits(phones)) return;
                     if(pjGlobalSearchFilter === 'followup' && (!pr.nextAction || !matchesAnyToken(pr.nextAction + ' ' + (pr.nextActionDue||'')))) return;
-                    if(pjGlobalSearchFilter === 'notes' && !matchesAnyToken(pr.notes)) return;
-                    if(pjGlobalSearchFilter === 'place') return;
+                    if(pjGlobalSearchFilter === 'notes' && !matchesAnyToken(pr.notes || p.notes)) return;
+                    if(pjGlobalSearchFilter === 'place' && !matchesAnyToken((pr.nativePlace||'') + ' ' + (pr.homeAddress||''))) return;
 
-                    contactMatches.push({ p, pr, phones, emails, tags });
+                    contactMatches.push({ p, pr, phones, emails, tags, candidateFields });
                 });
 
                 // 2. SEARCH DAILY ENCOUNTERS / INTERACTIONS
@@ -8764,28 +8768,22 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
                         const tags = Array.isArray(e.tags) ? e.tags : [];
 
-                        const hayParts = [
-                            e.name,
-                            e.nickname,
-                            e.relation,
-                            e.venue,
-                            e.city,
-                            e.context,
-                            e.topics,
-                            e.summary,
-                            e.notes,
-                            e.gifts,
-                            e.demeanor,
-                            e.timeOfDay,
-                            e.nativePlace,
-                            e.homeAddress,
-                            e.followUp,
-                            e.followUpAction,
-                            phones.join(' '),
-                            emails.join(' '),
-                            tags.join(' '),
-                            ds
+                        const candidateFields = [
+                            { label: 'Person', value: e.name, icon: '&#128100;' },
+                            { label: 'Location', value: [e.venue, e.city].filter(Boolean).join(', '), icon: '&#128205;' },
+                            { label: 'Native / Address', value: [e.nativePlace, e.homeAddress].filter(Boolean).join(', '), icon: '&#127968;' },
+                            { label: 'Topics', value: e.topics, icon: '&#128172;' },
+                            { label: 'Notes', value: [e.summary, e.notes].filter(Boolean).join(' &middot; '), icon: '&#128221;' },
+                            { label: 'Context', value: e.context, icon: '&#128204;' },
+                            { label: 'Follow-up', value: [e.followUp, e.followUpAction].filter(Boolean).join(': '), icon: '&#9200;' },
+                            { label: 'Gift', value: e.gift || e.gifts, icon: '&#127873;' },
+                            { label: 'Tags', value: tags.join(', '), icon: '&#127991;' },
+                            { label: 'Relationship', value: e.relation, icon: '&#127991;' },
+                            { label: 'Phone', value: phones.join(', '), icon: '&#128222;' },
+                            { label: 'Email', value: emails.join(', '), icon: '&#9993;' }
                         ];
+
+                        const hayParts = candidateFields.map(f => f.value).concat([e.demeanor || '', e.timeOfDay || '', ds]);
                         const fullHay = hayParts.filter(Boolean).join(' ').toLowerCase();
 
                         const isMatch = matchesTokens(fullHay) || matchesDigits(phones);
@@ -8798,52 +8796,74 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         if(pjGlobalSearchFilter === 'followup' && (!e.followUp || !matchesAnyToken((e.followUp||'') + ' ' + (e.followUpAction||'')))) return;
                         if(pjGlobalSearchFilter === 'contact' && !matchesAnyToken(phones.join(' ') + ' ' + emails.join(' ')) && !matchesDigits(phones)) return;
 
-                        encounterMatches.push({ e, ds, phones, emails, tags });
+                        encounterMatches.push({ e, ds, phones, emails, tags, candidateFields });
                     });
                 });
 
-                // 3. SEARCH DAY TEXT NOTES
+                // 3. SEARCH DAY TEXT, TASKS & DAY NOTES
                 const dayNoteMatches = [];
                 if(pjGlobalSearchFilter === 'all' || pjGlobalSearchFilter === 'notes'){
                     const searchedDates = new Set();
-                    listAllPjDays().forEach(ds => {
+                    const scanDate = function(ds){
+                        if(searchedDates.has(ds)) return;
                         searchedDates.add(ds);
                         const pjData = getPjDayData(ds);
                         const stdData = (typeof getData === 'function') ? getData(ds) : null;
-                        const texts = [];
-                        if(pjData && (pjData.dayNotes || pjData.dayText || pjData.notes)) texts.push(pjData.dayNotes || pjData.dayText || pjData.notes);
-                        if(stdData){
-                            if(Array.isArray(stdData.textCalendar)) texts.push(...stdData.textCalendar);
-                            if(stdData.notes) texts.push(stdData.notes);
+
+                        // Check individual tasks on this date
+                        if(stdData && Array.isArray(stdData.tasks)){
+                            stdData.tasks.forEach(t => {
+                                if(t && t.text && matchesTokens(t.text)){
+                                    dayNoteMatches.push({
+                                        ds,
+                                        type: 'task',
+                                        label: 'Task',
+                                        icon: '&#9745;',
+                                        txt: t.text
+                                    });
+                                }
+                            });
                         }
-                        const combined = texts.filter(Boolean).join(' ');
-                        if(combined && matchesTokens(combined)){
-                            dayNoteMatches.push({ ds, txt: combined });
+
+                        // Check day notes
+                        const noteStr = (pjData && (pjData.dayNotes || pjData.dayText || pjData.notes)) || (stdData && stdData.notes) || '';
+                        if(noteStr && matchesTokens(noteStr)){
+                            dayNoteMatches.push({
+                                ds,
+                                type: 'note',
+                                label: 'Day Note',
+                                icon: '&#128221;',
+                                txt: noteStr
+                            });
                         }
-                    });
+
+                        // Check text calendar list
+                        if(stdData && Array.isArray(stdData.textCalendar)){
+                            stdData.textCalendar.forEach(tc => {
+                                if(tc && matchesTokens(String(tc))){
+                                    dayNoteMatches.push({
+                                        ds,
+                                        type: 'calendarText',
+                                        label: 'Calendar Text',
+                                        icon: '&#128197;',
+                                        txt: String(tc)
+                                    });
+                                }
+                            });
+                        }
+                    };
+
+                    listAllPjDays().forEach(scanDate);
                     for(let i=0; i<appStorage.length; i++){
                         const k = appStorage.key(i);
-                        if(k && k.startsWith('td_') && !k.startsWith(PJ_DAYS_PREFIX) && !k.includes('_')){
-                            const ds = k.slice(3);
-                            if(/^\d{4}-\d{2}-\d{2}$/.test(ds) && !searchedDates.has(ds)){
-                                searchedDates.add(ds);
-                                const stdData = (typeof getData === 'function') ? getData(ds) : null;
-                                const texts = [];
-                                if(stdData){
-                                    if(Array.isArray(stdData.textCalendar)) texts.push(...stdData.textCalendar);
-                                    if(stdData.notes) texts.push(stdData.notes);
-                                }
-                                const combined = texts.filter(Boolean).join(' ');
-                                if(combined && matchesTokens(combined)){
-                                    dayNoteMatches.push({ ds, txt: combined });
-                                }
-                            }
+                        if(k && /^td_\d{4}-\d{2}-\d{2}$/.test(k)){
+                            scanDate(k.slice(3));
                         }
                     }
                 }
 
                 const totalCount = contactMatches.length + encounterMatches.length + dayNoteMatches.length;
-                metaEl.textContent = `Found ${totalCount} result(s): ${contactMatches.length} contact(s), ${encounterMatches.length} interaction(s), ${dayNoteMatches.length} day note(s) for "${query}"`;
+                metaEl.textContent = `Found ${totalCount} result(s): ${contactMatches.length} contact(s), ${encounterMatches.length} interaction(s), ${dayNoteMatches.length} note/task(s) for "${query}"`;
 
                 if(!totalCount){
                     resEl.innerHTML = `
@@ -8851,7 +8871,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             <div style="font-size:2rem;opacity:.5;">&#128269;</div>
                             <div style="font-size:var(--fs-sm);font-weight:700;">No matching results found</div>
                             <div style="font-size:var(--fs-xs);color:var(--text-secondary);max-width:320px;">
-                                We checked contact names, phones, emails, relations, interaction topics, notes, places, and day texts. Try fewer words or a different term.
+                                We checked contact names, phones, emails, relations, interaction topics, notes, places, tasks, and day texts. Try fewer words or a different term.
                             </div>
                         </div>
                     `;
@@ -8870,26 +8890,32 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             ${contactMatches.map(m => {
                                 const p = m.p;
                                 const pr = m.pr;
-                                const firstPhone = m.phones[0] || '';
-                                const firstEmail = m.emails[0] || '';
-                                const contextParts = [];
-                                if(firstPhone) contextParts.push(`&#128222; ${highlightText(firstPhone)}`);
-                                if(firstEmail) contextParts.push(`&#9993; ${highlightText(firstEmail)}`);
-                                if(pr.relation||p.relation) contextParts.push(`&#127991; ${highlightText(pr.relation||p.relation)}`);
-                                if(pr.notes || p.notes){
-                                    const snip = getPjSearchSnippet(pr.notes || p.notes, query, 70);
-                                    contextParts.push(`&#128221; ${highlightText(snip)}`);
+                                const candidateFields = m.candidateFields || [];
+                                const matchedContexts = [];
+                                candidateFields.forEach(f => {
+                                    if(!f.value) return;
+                                    const valLower = String(f.value).toLowerCase();
+                                    const hasMatch = (query && valLower.includes(query)) || (tokens.length && tokens.some(t => t.length >= 2 && valLower.includes(t))) || (queryDigits.length >= 3 && String(f.value).replace(/\D/g, '').includes(queryDigits));
+                                    if(hasMatch){
+                                        const snip = getPjSearchSnippet(f.value, query, 75);
+                                        matchedContexts.push(`<span class="pj-search-field-badge">${f.icon} ${escapeHtml(f.label)}:</span> ${highlightText(snip)}`);
+                                    }
+                                });
+
+                                let singleLineContext = '';
+                                if(matchedContexts.length > 0){
+                                    singleLineContext = matchedContexts.slice(0, 2).join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
+                                } else {
+                                    const fallbackParts = [];
+                                    if(m.phones[0]) fallbackParts.push(`&#128222; ${highlightText(m.phones[0])}`);
+                                    if(m.emails[0]) fallbackParts.push(`&#9993; ${highlightText(m.emails[0])}`);
+                                    if(pr.relation || p.relation) fallbackParts.push(`&#127991; ${highlightText(pr.relation || p.relation)}`);
+                                    if(p.organization) fallbackParts.push(`&#127970; ${highlightText(p.organization)}`);
+                                    if(fallbackParts.length === 0){
+                                        fallbackParts.push(p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'Contact in directory');
+                                    }
+                                    singleLineContext = fallbackParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
                                 }
-                                if(pr.nextAction){
-                                    contextParts.push(`&#9200; Next: ${highlightText(pr.nextAction, 40)}`);
-                                }
-                                if(pr.birthday || p.birthday){
-                                    contextParts.push(`&#127874; ${highlightText(pr.birthday || p.birthday)}`);
-                                }
-                                if(contextParts.length === 0){
-                                    contextParts.push(p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'Contact in directory');
-                                }
-                                const singleLineContext = contextParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
 
                                 return `
                                     <div class="pj-search-result pj-card-interactive" data-search-contact="${escapeAttr(p.personId)}">
@@ -8931,30 +8957,29 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     return `<span class="pj-tag ${escapeAttr(t)}" style="font-size:0.6rem;padding:1px 6px;">${meta.icon} ${meta.label}</span>`;
                                 }).join(' ');
 
-                                const encParts = [];
-                                if(e.venue || e.city){
-                                    const loc = [e.venue, e.city].filter(Boolean).join(', ');
-                                    encParts.push(`&#128205; ${highlightText(loc)}`);
+                                const candidateFields = m.candidateFields || [];
+                                const matchedEncContexts = [];
+                                candidateFields.forEach(f => {
+                                    if(!f.value) return;
+                                    const valLower = String(f.value).toLowerCase();
+                                    const hasMatch = (query && valLower.includes(query)) || (tokens.length && tokens.some(t => t.length >= 2 && valLower.includes(t))) || (queryDigits.length >= 3 && String(f.value).replace(/\D/g, '').includes(queryDigits));
+                                    if(hasMatch){
+                                        const snip = getPjSearchSnippet(f.value, query, 75);
+                                        matchedEncContexts.push(`<span class="pj-search-field-badge">${f.icon} ${escapeHtml(f.label)}:</span> ${highlightText(snip)}`);
+                                    }
+                                });
+
+                                let singleLineEncContext = '';
+                                if(matchedEncContexts.length > 0){
+                                    singleLineEncContext = matchedEncContexts.slice(0, 2).join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
+                                } else {
+                                    const encParts = [];
+                                    if(e.venue || e.city) encParts.push(`&#128205; ${highlightText([e.venue, e.city].filter(Boolean).join(', '))}`);
+                                    if(e.topics) encParts.push(`&#128172; ${highlightText(getPjSearchSnippet(e.topics, query, 60))}`);
+                                    if(e.summary || e.notes) encParts.push(`&#128221; ${highlightText(getPjSearchSnippet(e.summary ? (e.summary + (e.notes ? ' &middot; ' + e.notes : '')) : e.notes, query, 80))}`);
+                                    if(encParts.length === 0) encParts.push('Interaction logged on this day');
+                                    singleLineEncContext = encParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
                                 }
-                                if(e.topics){
-                                    const topSnippet = getPjSearchSnippet(e.topics, query, 60);
-                                    encParts.push(`&#128172; ${highlightText(topSnippet)}`);
-                                }
-                                if(e.summary || e.notes){
-                                    const noteText = e.summary ? (e.summary + (e.notes ? ' &middot; ' + e.notes : '')) : e.notes;
-                                    const noteSnippet = getPjSearchSnippet(noteText, query, 80);
-                                    encParts.push(`&#128221; ${highlightText(noteSnippet)}`);
-                                }
-                                if(e.followUp){
-                                    encParts.push(`&#9200; Follow-up: ${e.followUp}${e.followUpAction ? ` (${highlightText(e.followUpAction, 30)})` : ''}`);
-                                }
-                                if(e.gift){
-                                    encParts.push(`&#127873; ${highlightText(e.gift, 30)}`);
-                                }
-                                if(encParts.length === 0){
-                                    encParts.push('Interaction logged on this day');
-                                }
-                                const singleLineEncContext = encParts.join(' <span style="opacity:0.35;margin:0 4px;">&bull;</span> ');
 
                                 return `
                                     <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(ds)}" data-search-enc-id="${escapeAttr(e.id)}">
@@ -8983,22 +9008,25 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     `;
                 }
 
-                // Day Notes Section
+                // Day Notes & Tasks Section
                 if(dayNoteMatches.length > 0){
                     html += `
                         <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
-                            <span>&#128221; Day Notes (${dayNoteMatches.length})</span>
+                            <span>&#128221; Day Notes & Tasks (${dayNoteMatches.length})</span>
                         </div>
                         <div style="display:flex;flex-direction:column;gap:8px;">
                             ${dayNoteMatches.map(m => {
-                                const noteSnippet = getPjSearchSnippet(m.txt, query, 140);
+                                const noteSnippet = getPjSearchSnippet(m.txt, query, 120);
                                 return `
                                     <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(m.ds)}">
-                                        <div style="font-size:1.4rem;flex-shrink:0;">&#128221;</div>
+                                        <div style="font-size:1.3rem;flex-shrink:0;">${m.icon}</div>
                                         <div style="flex:1;min-width:0;">
-                                            <div style="font-weight:700;font-size:var(--fs-sm);color:var(--accent);">&#128197; Day Note &middot; ${getShortDate(m.ds)}</div>
+                                            <div style="font-weight:700;font-size:var(--fs-sm);color:var(--accent);display:flex;align-items:center;gap:6px;">
+                                                <span>&#128197; ${getShortDate(m.ds)}</span>
+                                                <span style="font-size:var(--fs-2xs);color:var(--text-secondary);font-weight:600;">(${escapeHtml(m.label)})</span>
+                                            </div>
                                             <div class="pj-search-single-line">
-                                                ${highlightText(noteSnippet)}
+                                                <span class="pj-search-field-badge">${m.icon} ${escapeHtml(m.label)}:</span> ${highlightText(noteSnippet)}
                                             </div>
                                         </div>
                                         <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(m.ds)}" style="flex-shrink:0;">&#128197; Day &rarr;</button>
@@ -10109,6 +10137,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(eisenDateStr)updateSingleCell(eisenDateStr);
                 dates.forEach(ds=>{if(ds&&ds!==eisenDateStr)updateSingleCell(ds)});
                 window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -11155,6 +11184,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     updateSingleCell(eisenDateStr,{pop:true});
                     updateSingleCell(target,{pop:true});
                     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+                if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
                 if(typeof invalidatePjCache==='function')invalidatePjCache();
                 if(typeof loadPjMeta==='function')loadPjMeta();
                 if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
@@ -12132,7 +12162,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const encEdit=e.target.closest('[data-search-edit-enc]');
                     if(encEdit){
                         closePjSearch();
-                        openAddPjEncounter(encEdit.dataset.date, encEdit.dataset.searchEditEnc);
+                        openAddPjEncounter(encEdit.dataset.searchEncDay || encEdit.dataset.date, encEdit.dataset.searchEditEnc);
                         return;
                     }
                     const delBtn=e.target.closest('[data-delete-person]');
@@ -13005,10 +13035,16 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             function saveForDate(){
                 if(!currentDate || window.__isApplyingRemoteUpdate) return;
                 try {
-                    appStorage.setItem(
-                        PERT_KEY_PREFIX + currentDate,
-                        JSON.stringify({ activities: activities, startTime: startTime, tasks: tasks })
-                    );
+                    const hasContent = (activities && activities.length > 0) || (tasks && tasks.length > 0) || (startTime && startTime !== START_DEFAULT);
+                    const existing = appStorage.getItem(PERT_KEY_PREFIX + currentDate);
+                    if(hasContent){
+                        appStorage.setItem(
+                            PERT_KEY_PREFIX + currentDate,
+                            JSON.stringify({ activities: activities, startTime: startTime, tasks: tasks })
+                        );
+                    } else if(existing !== null){
+                        appStorage.removeItem(PERT_KEY_PREFIX + currentDate);
+                    }
                 } catch(e){}
             }
             function sanitizeActivities(){
@@ -14788,7 +14824,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 zoom = 1;
                 if(ds) loadForDate(ds);
                 else { activities = []; tasks = []; startTime = START_DEFAULT; }
-                refresh();
+                refresh(true);
                 requestAnimationFrame(() => { if(baseW) fitToView(); });
             }
 
@@ -14853,16 +14889,17 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             window.addEventListener('td-idb-ready', function(){
                 setTimeout(function(){
                     const ds = window.__tdSelectedDate || null;
-                    setDate(ds);
+                    if(typeof reloadPertForDate === 'function') reloadPertForDate(ds);
+                    else setDate(ds, true);
                 }, 60);
             });
 
             if(window.__taskPlannerIDBReady && window.__taskPlannerIDBReady.then){
                 window.__taskPlannerIDBReady.then(() => {
                     setTimeout(function(){
-                        if(currentDate === null && window.__tdSelectedDate){
-                            setDate(window.__tdSelectedDate);
-                        }
+                        const ds = window.__tdSelectedDate || null;
+                        if(typeof reloadPertForDate === 'function') reloadPertForDate(ds);
+                        else setDate(ds, true);
                     }, 80);
                 });
             }
@@ -15433,15 +15470,27 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const localTs = localTimestamps[k] || 0;
                     const remoteTs = remoteTimestamps[k] || remoteDefaultTs;
 
+                    // Protect PERT network data from being overwritten by empty remote activities
+                    if(k.startsWith('td_pert_')){
+                        try {
+                            const lp = JSON.parse(cur || '{}');
+                            const rp = JSON.parse(strVal || '{}');
+                            if((lp.activities?.length || 0) > 0 && (rp.activities?.length || 0) === 0 && !force){
+                                hasLocalNewer = true;
+                                continue;
+                            }
+                        } catch(e){}
+                    }
+
                     // If key was deleted locally more recently than remote edit, NEVER RESURRECT IT!
                     const localDelTs = localDeleted[k] || 0;
-                    if(!force && hasPendingLocalEdits && localDelTs > 0 && localDelTs > remoteTs + 500){
+                    if(!force && localDelTs > 0 && localDelTs > remoteTs + 500){
                         hasLocalNewer = true;
                         continue;
                     }
 
                     // If local key exists and was edited more recently than remote, NEVER OVERWRITE LOCAL WORK!
-                    if(!force && hasPendingLocalEdits && cur !== null && cur !== undefined && localTs > remoteTs + 500){
+                    if(!force && cur !== null && cur !== undefined && localTs > remoteTs + 500){
                         hasLocalNewer = true;
                         continue;
                     }
@@ -15474,6 +15523,13 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                             localTimestamps[lk] = remoteDelTs;
                             changesMade = true;
                         } else if(remotePayload[lk] === undefined && !remoteDeleted[lk]){
+                            if(lk.startsWith('td_pert_')){
+                                try {
+                                    const curL = storage.getItem(lk);
+                                    const parsed = JSON.parse(curL || '{}');
+                                    if((parsed.activities?.length || 0) > 0 && !force) continue;
+                                } catch(e){}
+                            }
                             if(hasPendingLocalEdits){
                                 hasLocalNewer = true;
                             }
