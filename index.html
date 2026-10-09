@@ -2452,15 +2452,33 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-multi-add{padding:4px 10px;border-radius:var(--r-sm);border:1px dashed var(--border-strong);background:transparent;color:var(--text-secondary);cursor:pointer;font-size:var(--fs-xs);font-weight:600;align-self:flex-start}
 .pj-multi-add:hover{color:var(--accent);border-color:var(--accent-border);background:var(--accent-light)}
 
-.pj-tag-picker{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
-.pj-tag-check{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--r-full);border:1.5px solid var(--border-strong);background:var(--card-bg);font-size:var(--fs-xs);font-weight:600;color:var(--text);cursor:pointer;user-select:none}
+.pj-tag-picker{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pj-tag-check{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1.5px solid var(--border-strong);background:var(--card-bg);font-size:var(--fs-xs);font-weight:600;color:var(--text);cursor:pointer;user-select:none;transition:all var(--dur-fast)}
+.pj-tag-check:hover{border-color:var(--accent);transform:translateY(-1px)}
 .pj-tag-check input{display:none}
-.pj-tag-check.checked{color:#fff}
+.pj-tag-check.checked{color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
 .pj-tag-check[data-tag="family"].checked{background:#ec4899;border-color:#ec4899}
-.pj-tag-check[data-tag="friend"].checked{background:#22c55e;border-color:#22c55e}
-.pj-tag-check[data-tag="work"].checked{background:#3d6bf5;border-color:#3d6bf5}
-.pj-tag-check[data-tag="service"].checked{background:#f59e0b;border-color:#f59e0b}
-.pj-tag-check[data-tag="other"].checked{background:#64748b;border-color:#64748b}
+.pj-tag-check[data-tag="friend"].checked{background:#10b981;border-color:#10b981}
+.pj-tag-check[data-tag="work"].checked{background:#3b82f6;border-color:#3b82f6}
+.pj-tag-check[data-tag="colleague"].checked{background:#6366f1;border-color:#6366f1}
+.pj-tag-check[data-tag="client"].checked{background:#06b6d4;border-color:#06b6d4}
+.pj-tag-check[data-tag="mentor"].checked{background:#8b5cf6;border-color:#8b5cf6}
+.pj-tag-check[data-tag="neighbor"].checked{background:#14b8a6;border-color:#14b8a6}
+.pj-tag-check[data-tag="community"].checked{background:#f59e0b;border-color:#f59e0b}
+.pj-tag-check[data-tag="doctor"].checked{background:#ef4444;border-color:#ef4444}
+.pj-tag-check[data-tag="service"].checked{background:#f97316;border-color:#f97316}
+.pj-tag-check[data-tag="school"].checked{background:#7c3aed;border-color:#7c3aed}
+.pj-tag-check[data-tag="vip"].checked{background:#eab308;border-color:#eab308}
+.pj-tag-check[data-tag="acquaintance"].checked{background:#64748b;border-color:#64748b}
+.pj-tag-check[data-tag="spiritual"].checked{background:#d97706;border-color:#d97706}
+.pj-tag-check[data-tag="fitness"].checked{background:#16a34a;border-color:#16a34a}
+.pj-tag-check[data-tag="other"].checked{background:#6b7280;border-color:#6b7280}
+.pj-tag-check:not([data-tag="family"]):not([data-tag="friend"]):not([data-tag="work"]):not([data-tag="colleague"]):not([data-tag="client"]):not([data-tag="mentor"]):not([data-tag="neighbor"]):not([data-tag="community"]):not([data-tag="doctor"]):not([data-tag="service"]):not([data-tag="school"]):not([data-tag="vip"]):not([data-tag="acquaintance"]):not([data-tag="spiritual"]):not([data-tag="fitness"]):not([data-tag="other"]).checked{background:var(--accent);border-color:var(--accent)}
+
+.pj-tag-add-inline{display:inline-flex;align-items:center;gap:3px;border:1.5px dashed var(--border-strong);border-radius:999px;padding:2px 4px 2px 10px;background:var(--card-bg)}
+.pj-tag-add-inline input{border:none;outline:none;background:transparent;font-size:var(--fs-xs);font-family:inherit;color:var(--text);width:85px;padding:2px 0}
+.pj-tag-add-inline button{width:22px;height:22px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:0.85rem;display:flex;align-items:center;justify-content:center;transition:transform 0.15s}
+.pj-tag-add-inline button:hover{transform:scale(1.15)}
 
 /* People Directory modal */
 .pj-dir-modal{width:min(1080px,95vw);height:min(720px,90vh);padding:0;overflow:hidden}
@@ -2480,36 +2498,38 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-dir-timeline-item::before{content:'';position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--card-bg);box-shadow:0 0 0 2px var(--accent-border)}
 
 /* Relationship Center Modal */
-.pj-center-modal{width:min(1280px,96vw);height:min(860px,92vh);padding:0;overflow:hidden}
-.pj-center-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface-2);flex-wrap:wrap}
-.pj-center-tabs{display:flex;gap:5px;padding:8px 12px;border-bottom:1px solid var(--border);overflow:auto;background:var(--card-bg)}
-.pj-center-tab{border:1px solid transparent;background:transparent;color:var(--text-secondary);border-radius:9px;padding:6px 10px;font:650 .7rem var(--font-ui);cursor:pointer;white-space:nowrap}
-.pj-center-tab:hover{background:var(--surface-2);color:var(--text)}
-.pj-center-tab.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border)}
-.pj-center-body{flex:1;overflow:auto;padding:16px}
-.pj-center-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.pj-center-stat{padding:12px;border:1px solid var(--border);border-radius:13px;background:var(--surface-2);cursor:pointer}
-.pj-center-stat:hover{border-color:var(--accent-border);transform:translateY(-1px)}
-.pj-center-stat-val{font-size:1.3rem;font-weight:800;color:var(--text);margin-top:4px}
-.pj-badge{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:999px;padding:2px 6px;font-size:.52rem;font-weight:750;background:var(--card-bg);color:var(--text-secondary)}
+.pj-center-modal{width:min(1280px,96vw);height:min(860px,92vh);padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.28), 0 0 0 1px var(--border)}
+.pj-center-head{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--surface-2) 0%,var(--card-bg) 100%);flex-wrap:wrap}
+.pj-center-tabs{display:flex;gap:6px;padding:8px 16px;border-bottom:1px solid var(--border);overflow-x:auto;background:var(--surface-2);align-items:center}
+.pj-center-tab{border:1px solid transparent;background:transparent;color:var(--text-secondary);border-radius:999px;padding:7px 14px;font:650 .72rem var(--font-ui);cursor:pointer;white-space:nowrap;transition:all var(--dur-fast);user-select:none}
+.pj-center-tab:hover{background:var(--card-bg);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.pj-center-tab.active{background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff;border-color:transparent;box-shadow:0 2px 8px rgba(99,102,241,0.32);font-weight:750;transform:translateY(-1px)}
+.pj-center-body{flex:1;overflow:auto;padding:18px 20px}
+.pj-center-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.pj-center-stat{position:relative;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--surface-2);cursor:pointer;transition:all var(--dur-fast);overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.pj-center-stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),transparent);opacity:0;transition:opacity 0.2s ease}
+.pj-center-stat:hover{border-color:var(--accent-border);transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,0.06)}
+.pj-center-stat:hover::before{opacity:1}
+.pj-center-stat-val{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;color:var(--text);margin-top:6px}
+.pj-badge{display:inline-flex;align-items:center;gap:3px;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:.56rem;font-weight:750;background:var(--card-bg);color:var(--text-secondary)}
 .pj-badge.good{color:#15803d;background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.22)}
 .pj-badge.warn{color:#b45309;background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.22)}
 .pj-badge.bad{color:var(--danger);background:var(--danger-bg);border-color:var(--danger-border)}
 .pj-badge.accent{color:var(--accent);background:var(--accent-light);border-color:var(--accent-border)}
-.pj-center-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);cursor:pointer}
-.pj-center-row:hover{background:var(--card-bg);border-color:var(--accent-border)}
-.pj-fav{color:#f59e0b;font-size:.8rem}
+.pj-center-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 14px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2);cursor:pointer;transition:all var(--dur-fast)}
+.pj-center-row:hover{background:var(--card-bg);border-color:var(--accent-border);box-shadow:0 4px 12px rgba(0,0,0,0.05);transform:translateY(-1px)}
+.pj-fav{color:#f59e0b;font-size:.9rem}
 
 /* Global search overlay */
-.pj-search-modal{width:min(960px,96vw);max-height:86vh;padding:0;overflow:hidden}
+.pj-search-modal{width:min(960px,96vw);max-height:86vh;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.3)}
 .pj-search-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:18px 20px 12px;border-bottom:1px solid var(--border);background:var(--surface-2)}
-.pj-search-box-wrap{margin:14px 20px 8px;display:flex;align-items:center;gap:9px;padding:0 12px;border:1.5px solid var(--border-strong);background:var(--input-bg);border-radius:14px}
+.pj-search-box-wrap{margin:14px 20px 8px;display:flex;align-items:center;gap:9px;padding:0 14px;border:1.5px solid var(--border-strong);background:var(--input-bg);border-radius:14px;transition:border-color .15s,box-shadow .15s}
 .pj-search-box-wrap:focus-within{border-color:var(--accent-border);box-shadow:var(--focus-ring);background:var(--input-bg-focus)}
-.pj-search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:500 .9rem var(--font-ui);padding:11px 0}
+.pj-search-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);font:500 .92rem var(--font-ui);padding:11px 0}
 .pj-search-results{overflow:auto;padding:0 20px 20px;display:flex;flex-direction:column;gap:8px}
-.pj-search-result{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;padding:12px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;cursor:pointer;transition:transform .16s,background-color .16s,border-color .16s}
+.pj-search-result{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--border);background:var(--surface-2);border-radius:14px;cursor:pointer;transition:transform .16s,background-color .16s,border-color .16s,box-shadow .16s}
 .pj-search-result:hover,.pj-search-result.active{transform:translateY(-1px);background:var(--card-bg);border-color:var(--accent-border);box-shadow:var(--shadow-md)}
-.pj-search-result mark{background:rgba(217,119,6,.22);color:inherit;border-radius:3px;padding:1px 2px}
+.pj-search-result mark{background:rgba(217,119,6,.22);color:inherit;border-radius:3px;padding:1px 3px;font-weight:600}
 
 @media(max-width:800px){
   .pj-center-grid{grid-template-columns:repeat(2,1fr)}
@@ -2555,34 +2575,38 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-manual-merge-form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .pj-profile-dup-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(234,179,8,.12);border:1.5px solid rgba(234,179,8,.35);border-radius:var(--r-md);margin-bottom:12px;font-size:var(--fs-xs);color:var(--text)}
 @media(max-width:600px){.pj-dup-comparison{flex-direction:column}.pj-dup-merge-arrow{transform:rotate(90deg);padding:4px 0}.pj-manual-merge-form{grid-template-columns:1fr}}
-.pj-danger-pill{color:var(--danger) !important;border-color:rgba(239,68,68,.3) !important}
-.pj-danger-pill:hover{background:var(--danger-bg) !important;color:var(--danger) !important;border-color:var(--danger) !important}
+.pj-toolbar-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;border:1px solid var(--border-strong);background:var(--card-bg);color:var(--text);font-size:var(--fs-xs);font-weight:600;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.04);transition:all .18s cubic-bezier(0.4,0,0.2,1);user-select:none;white-space:nowrap}
+.pj-toolbar-pill:hover{transform:translateY(-1.5px);box-shadow:0 4px 10px rgba(0,0,0,0.08);border-color:var(--accent);color:var(--accent)}
+.pj-toolbar-pill:active{transform:translateY(0) scale(0.98)}
+.pj-toolbar-pill.active{background:var(--accent-light);color:var(--accent);border-color:var(--accent-border);font-weight:700;box-shadow:0 2px 6px rgba(99,102,241,0.15)}
+.pj-danger-pill,.pj-toolbar-pill.pj-danger-pill{color:var(--danger) !important;border-color:rgba(239,68,68,0.28) !important;background:rgba(239,68,68,0.04) !important}
+.pj-danger-pill:hover,.pj-toolbar-pill.pj-danger-pill:hover{background:var(--danger) !important;color:#fff !important;border-color:var(--danger) !important;box-shadow:0 4px 12px rgba(239,68,68,0.3) !important;transform:translateY(-1.5px)}
 
 /* Relationship Center Enhanced Tab & Form Styles */
-.pj-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:14px}
-.pj-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;font-size:var(--fs-sm);font-weight:700;color:var(--text)}
+.pj-card{background:var(--surface-2);border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:0 1px 3px rgba(0,0,0,0.02);transition:border-color .2s ease,box-shadow .2s ease}
+.pj-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:var(--fs-sm);font-weight:750;color:var(--text)}
 .pj-toolbar-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .pj-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
 @media(max-width:800px){.pj-two-col{grid-template-columns:1fr}}
-.pj-empty-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;text-align:center;gap:10px;border:1.5px dashed var(--border);border-radius:var(--r-lg);background:var(--card-bg)}
-.pj-star-btn{background:transparent;border:none;cursor:pointer;font-size:1.1rem;line-height:1;padding:2px;color:var(--text-secondary);transition:transform .15s,color .15s}
-.pj-star-btn:hover{transform:scale(1.2);color:#f59e0b}
+.pj-empty-card{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 18px;text-align:center;gap:10px;border:1.5px dashed var(--border);border-radius:16px;background:var(--card-bg)}
+.pj-star-btn{background:transparent;border:none;cursor:pointer;font-size:1.15rem;line-height:1;padding:2px 4px;color:var(--text-secondary);transition:transform .15s,color .15s}
+.pj-star-btn:hover{transform:scale(1.25);color:#f59e0b}
 .pj-star-btn.active{color:#f59e0b}
-.pj-healthbar-track{height:6px;border-radius:999px;background:var(--border);overflow:hidden;flex:1;min-width:50px}
+.pj-healthbar-track{height:7px;border-radius:999px;background:var(--border);overflow:hidden;flex:1;min-width:50px}
 .pj-healthbar-fill{height:100%;border-radius:999px;transition:width .3s}
 .pj-table{width:100%;border-collapse:collapse;font-size:var(--fs-xs)}
-.pj-table th{text-align:left;padding:7px 10px;border-bottom:1.5px solid var(--border);color:var(--text-secondary);font-weight:700;font-size:var(--fs-2xs);text-transform:uppercase}
-.pj-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.pj-table th{text-align:left;padding:8px 12px;border-bottom:1.5px solid var(--border);color:var(--text-secondary);font-weight:750;font-size:var(--fs-2xs);text-transform:uppercase;letter-spacing:.05em}
+.pj-table td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
 .pj-table tr:hover td{background:var(--surface-2)}
-.pj-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pj-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:600px){.pj-form-grid{grid-template-columns:1fr}}
-.pj-form-field{display:flex;flex-direction:column;gap:4px}
+.pj-form-field{display:flex;flex-direction:column;gap:5px}
 .pj-form-field.full{grid-column:1/-1}
-.pj-form-field label{font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase}
-.pj-form-field input,.pj-form-field select,.pj-form-field textarea{border:1px solid var(--border-strong);border-radius:var(--r-sm);padding:6px 9px;background:var(--card-bg);color:var(--text);font:inherit;font-size:var(--fs-xs)}
+.pj-form-field label{font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em}
+.pj-form-field input,.pj-form-field select,.pj-form-field textarea{border:1.5px solid var(--border);border-radius:10px;padding:7px 10px;background:var(--card-bg);color:var(--text);font:inherit;font-size:var(--fs-xs);transition:border-color .15s,box-shadow .15s}
 .pj-form-field input:focus,.pj-form-field select:focus,.pj-form-field textarea:focus{border-color:var(--accent);outline:none;box-shadow:var(--focus-ring)}
 .pj-card-interactive{transition:border-color var(--dur-fast),transform var(--dur-fast),box-shadow var(--dur-fast)}
-.pj-card-interactive:hover{border-color:var(--accent-border);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.pj-card-interactive:hover{border-color:var(--accent-border);box-shadow:0 6px 18px rgba(0,0,0,0.06);transform:translateY(-1.5px)}
 
 
 </style>
@@ -2596,19 +2620,19 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">👥 People Directory</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">♥ Relationship Center</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">🔍 Search</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopDirectory" title="People Directory (P)">ðŸ‘¥ People Directory</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopCenter" title="Relationship Center (R)">â™¥ Relationship Center</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopSearch" title="Search Journal (Ctrl+K)">ðŸ” Search</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopImportCsv" title="Import Contacts from Google / Phone CSV">📇 Import CSV</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopExportCsv" title="Export People Directory to CSV">⬇ Export CSV</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopImportCsv" title="Import Contacts from Google / Phone CSV">ðŸ“‡ Import CSV</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopExportCsv" title="Export People Directory to CSV">â¬‡ Export CSV</button>
             </div>
             <div class="pj-top-toolbar-divider"></div>
             <div class="pj-top-toolbar-group">
-                <button type="button" class="pj-top-btn pill" id="btnTopBackup" title="Backup People & Text Data (JSON)">💾 Backup</button>
-                <button type="button" class="pj-top-btn pill" id="btnTopRestore" title="Restore People & Text Data (JSON)">📂 Restore</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopBackup" title="Backup People & Text Data (JSON)">ðŸ’¾ Backup</button>
+                <button type="button" class="pj-top-btn pill" id="btnTopRestore" title="Restore People & Text Data (JSON)">ðŸ“‚ Restore</button>
             </div>
         </div>
         <div class="calendar-panel" id="calendarPanel">
@@ -2800,10 +2824,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     <button type="button" class="btn-add-text-calendar btn-add-pj-encounter" id="btnAddPjEncounter"><span>+</span> Add Person Met</button>
                 </div>
                 <div class="pj-mode-toolbar-pills">
-                    <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">👥 Directory</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjCenter" title="Relationship Center (R)">♥ Center</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjSearch" title="Search Journal (Ctrl+K)">🔍 Search</button>
-                    <button type="button" class="pj-toolbar-pill" id="btnPjImportCsv" title="Import Google Contacts CSV">📇 CSV</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjDirectory" title="People Directory (P)">ðŸ‘¥ Directory</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjCenter" title="Relationship Center (R)">â™¥ Center</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjSearch" title="Search Journal (Ctrl+K)">ðŸ” Search</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjImportCsv" title="Import Google Contacts CSV">ðŸ“‡ CSV</button>
                 </div>
             </div>
             <div class="task-list" id="taskList"></div>
@@ -3081,7 +3105,6 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 <button type="button" class="pj-toolbar-pill" id="btnPjFindDuplicates" title="Detect and merge duplicate people">🔀 Merge Duplicates</button>
                 <span style="font-size:var(--fs-xs);font-weight:600;color:var(--text-secondary);margin-left:auto" id="pjPeopleCount">0 people</span>
                 <button type="button" class="pj-toolbar-pill" id="btnExportPjPeopleCsv" title="Export as CSV">⬇ CSV</button>
-                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteAllPjContacts" title="Delete all saved contacts">🗑️ Delete All Contacts</button>
                 <button class="pj-modal-close" id="pjPeopleClose" aria-label="Close">✕</button>
             </div>
             <div class="pj-dir-body">
@@ -3135,12 +3158,12 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 <button id="pjGlobalSearchClear" style="width:26px;height:26px;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;" type="button">×</button>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap;padding:0 20px 8px;" id="pjGlobalSearchFilters">
-                <button class="pj-toolbar-pill active" type="button" data-filter="all">All</button>
-                <button class="pj-toolbar-pill" type="button" data-filter="person">👤 Names</button>
-                <button class="pj-toolbar-pill" type="button" data-filter="place">📍 Places</button>
-                <button class="pj-toolbar-pill" type="button" data-filter="notes">🗒️ Notes</button>
-                <button class="pj-toolbar-pill" type="button" data-filter="followup">⏰ Follow-ups</button>
-                <button class="pj-toolbar-pill" type="button" data-filter="contact">📞 Contacts</button>
+                <button class="pj-toolbar-pill pj-filter-pill active" type="button" data-filter="all">All</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="person">👤 Names</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="place">📍 Places</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="notes">🗒️ Notes</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="followup">⏰ Follow-ups</button>
+                <button class="pj-toolbar-pill pj-filter-pill" type="button" data-filter="contact">📞 Contacts</button>
             </div>
             <div style="padding:2px 20px 8px;font-size:.68rem;color:var(--text-secondary);font-weight:600;" id="pjGlobalSearchMeta">Type anything to search.</div>
             <div class="pj-search-results" id="pjGlobalSearchResults"></div>
@@ -4727,7 +4750,7 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                             taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>3?`<div class="text-calendar-cell-more">+ ${texts.length-3} more</div>`:''}${pjHtml}</div>`;
                         }
                         if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.some(e=>e.followUp)){
-                            mg=`<div class="cell-followup-badge" title="Has follow-up">⏰</div>`;
+                            mg=`<div class="cell-followup-badge" title="Has follow-up">â°</div>`;
                         }
                     }else{
                         if(data.dayTitle&&String(data.dayTitle).trim()){
@@ -4907,13 +4930,24 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             const PJ_DAYS_PREFIX = 'td_pj_';
             const PJ_CONTACTS_KEY = 'tp_contacts';
             const PJ_META_KEY = 'tp_people_meta';
-            const PJ_TAGS = ['family','friend','work','service','other'];
+            const PJ_TAGS = ['family','friend','work','colleague','client','mentor','neighbor','community','doctor','service','school','vip','acquaintance','spiritual','fitness','other'];
             const PJ_TAG_META = {
                 family:{icon:'👨‍👩‍👧',label:'Family'},
                 friend:{icon:'🤝',label:'Friend'},
                 work:{icon:'💼',label:'Work'},
+                colleague:{icon:'👔',label:'Colleague'},
+                client:{icon:'💼',label:'Client'},
+                mentor:{icon:'🎓',label:'Mentor'},
+                neighbor:{icon:'🏡',label:'Neighbor'},
+                community:{icon:'🤲',label:'Community'},
+                doctor:{icon:'🩺',label:'Doctor / Health'},
                 service:{icon:'🛠️',label:'Service'},
-                other:{icon:'📌',label:'Other'}
+                school:{icon:'🎒',label:'School / College'},
+                vip:{icon:'⭐',label:'VIP / Priority'},
+                acquaintance:{icon:'👋',label:'Acquaintance'},
+                spiritual:{icon:'🕉️',label:'Spiritual'},
+                fitness:{icon:'🏃',label:'Fitness / Sports'},
+                other:{icon:'🏷️',label:'Other'}
             };
             const PJ_RELATION_OPTIONS = [
                 'Uncle','Aunt','Brother','Sister','Brother-in-law','Sister-in-law',
@@ -4969,16 +5003,20 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                 if(!raw) return null;
                 try {
                     const parsed = JSON.parse(raw);
-                    return { encounters: Array.isArray(parsed.encounters) ? parsed.encounters : [] };
+                    return {
+                        encounters: Array.isArray(parsed.encounters) ? parsed.encounters : [],
+                        dayNotes: parsed.dayNotes || parsed.dayText || parsed.notes || ''
+                    };
                 } catch(e){ return null; }
             }
             function savePjDayData(ds, data){
                 if(!ds) return;
                 const encs = Array.isArray(data.encounters) ? data.encounters : [];
-                if(encs.length === 0){
+                const dayNotes = data.dayNotes || data.dayText || data.notes || '';
+                if(encs.length === 0 && !dayNotes){
                     appStorage.removeItem(PJ_DAYS_PREFIX + ds);
                 } else {
-                    appStorage.setItem(PJ_DAYS_PREFIX + ds, JSON.stringify({ encounters: encs }));
+                    appStorage.setItem(PJ_DAYS_PREFIX + ds, JSON.stringify({ encounters: encs, dayNotes }));
                 }
                 invalidatePjCache();
             }
@@ -5005,6 +5043,38 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
             function savePjContacts(arr){
                 appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(Array.isArray(arr) ? arr : []));
                 invalidatePjCache();
+            }
+
+            function deletePjContact(pid, options){
+                if(!pid) return { success: false };
+                const contacts = loadPjContacts();
+                const target = contacts.find(c => c.personId === pid);
+                const reg = getPjPeopleRegistry().find(x => x.personId === pid);
+                const name = (target && target.name) || (reg && reg.name) || pid;
+                if(!options?.skipConfirm){
+                    const ok = confirm(`Are you sure you want to delete "${name}" from your contacts?\n\nThis will remove their contact entry and profile.`);
+                    if(!ok) return { success: false, canceled: true };
+                }
+                const filtered = contacts.filter(c => c.personId !== pid);
+                savePjContacts(filtered);
+                if(pjMeta.profiles && pjMeta.profiles[pid]){
+                    delete pjMeta.profiles[pid];
+                    savePjMeta();
+                }
+                invalidatePjCache();
+                if(selectedPersonId === pid) selectedPersonId = null;
+                if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
+                    renderPjDirectory();
+                }
+                if(document.getElementById('pjCenterOverlay')?.classList.contains('active')){
+                    renderPjCenter();
+                }
+                if(document.getElementById('pjProfileModal')?.classList.contains('active')){
+                    closePjProfile();
+                }
+                renderCalendar();
+                showToast(`✓ Deleted "${name}" from contacts`);
+                return { success: true };
             }
 
             function deleteAllPjContacts(options){
@@ -5088,6 +5158,12 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     map.set(c.personId, {
                         personId: c.personId,
                         name: c.name || c.personId,
+                        nickname: c.nickname || '',
+                        relation: c.relation || '',
+                        birthday: c.birthday || '',
+                        notes: c.notes || '',
+                        organization: c.organization || '',
+                        role: c.role || '',
                         phones: Array.isArray(c.phones) ? c.phones.slice() : (c.phone ? [c.phone] : []),
                         emails: Array.isArray(c.emails) ? c.emails.slice() : (c.email ? [c.email] : []),
                         tags: Array.isArray(c.tags) ? c.tags.slice() : [],
@@ -5484,12 +5560,17 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                     const m = pjTagMeta(t);
                     const checked = selectedTags.has(t);
                     return `
-                        <label class="pj-tag-check ${checked?'checked':''}" data-tag="${t}">
-                            <input type="checkbox" value="${t}" ${checked?'checked':''}>
-                            <span>${m.icon} ${m.label}</span>
+                        <label class="pj-tag-check ${checked?'checked':''}" data-tag="${escapeAttr(t)}">
+                            <input type="checkbox" value="${escapeAttr(t)}" ${checked?'checked':''}>
+                            <span>${m.icon} ${escapeHtml(m.label)}</span>
                         </label>
                     `;
-                }).join('');
+                }).join('') + `
+                    <div class="pj-tag-add-inline">
+                        <input type="text" id="pjNewCustomTagInput" placeholder="+ Custom tag" maxlength="24">
+                        <button type="button" id="btnAddNewCustomTag" title="Add tag">+</button>
+                    </div>
+                `;
 
                 const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
                 const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
@@ -5654,6 +5735,40 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         setTimeout(()=>{ tagCheck.classList.toggle('checked', !!cb.checked); }, 0);
                     }
                 });
+
+                const customTagInput = document.getElementById('pjNewCustomTagInput');
+                const btnAddCustomTag = document.getElementById('btnAddNewCustomTag');
+                function addInlineCustomTag(){
+                    if(!customTagInput) return;
+                    const raw = customTagInput.value.trim().toLowerCase().replace(/[^a-z0-9_\-\s]/g, '');
+                    if(!raw) return;
+                    const tagKey = raw.replace(/\s+/g, '-');
+                    if(!pjMeta.customTags) pjMeta.customTags = [];
+                    if(!pjMeta.customTags.includes(tagKey) && !PJ_TAGS.includes(tagKey)){
+                        pjMeta.customTags.push(tagKey);
+                        savePjMeta();
+                    }
+                    const picker = document.getElementById('pjTagPicker');
+                    const addWrap = picker ? picker.querySelector('.pj-tag-add-inline') : null;
+                    if(picker && addWrap){
+                        const label = document.createElement('label');
+                        label.className = 'pj-tag-check checked';
+                        label.dataset.tag = tagKey;
+                        const formattedLabel = raw.replace(/\b\w/g, c=>c.toUpperCase());
+                        label.innerHTML = `<input type="checkbox" value="${escapeAttr(tagKey)}" checked><span>🏷️ ${escapeHtml(formattedLabel)}</span>`;
+                        picker.insertBefore(label, addWrap);
+                    }
+                    customTagInput.value = '';
+                }
+                if(btnAddCustomTag) btnAddCustomTag.addEventListener('click', addInlineCustomTag);
+                if(customTagInput){
+                    customTagInput.addEventListener('keydown', ev => {
+                        if(ev.key === 'Enter'){
+                            ev.preventDefault();
+                            addInlineCustomTag();
+                        }
+                    });
+                }
 
                 const qName = document.getElementById('pjEncQuickName');
                 if(qName){
@@ -6536,7 +6651,10 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
                         <div style="flex:1;min-width:0;">
                             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                                 <div style="font-size:var(--fs-lg);font-weight:700;">${escapeHtml(p.name)}</div>
-                                <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeHtml(p.personId)}" title="Merge with another person">🔀 Merge Person</button>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    <button type="button" class="pj-toolbar-pill" id="btnManualMergePerson" data-pid="${escapeAttr(p.personId)}" title="Merge with another person">🔀 Merge</button>
+                                    <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDeleteCurrentContact" data-pid="${escapeAttr(p.personId)}" title="Delete this contact">🗑️ Delete</button>
+                                </div>
                             </div>
                             ${profile.relation ? `<div style="font-size:var(--fs-xs);color:var(--text-secondary);">${escapeHtml(profile.relation)}</div>` : ''}
                             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;">${contactsPills}</div>
@@ -6775,8 +6893,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         </div>
                     ` : ''}
 
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);">
-                        <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">📜 View History (${p.encounters.length})</button>
+                                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">📜 History (${p.encounters.length})</button>
+                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}">🗑️ Delete Contact</button>
+                        </div>
                         <div style="display:flex;gap:8px;">
                             <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
                             <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">💾 Save Profile</button>
@@ -6787,6 +6908,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 modal.classList.add('active');
 
                 document.getElementById('btnPjpCancel')?.addEventListener('click', closePjProfile);
+                document.getElementById('btnPjpDelete')?.addEventListener('click', () => { deletePjContact(p.personId); });
                 document.getElementById('btnPjpSave')?.addEventListener('click', () => {
                     const name = (document.getElementById('pjpName')?.value || '').trim();
                     if(!name){ alert('Name cannot be empty.'); return; }
@@ -7084,6 +7206,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                             <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
                                             <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
                                             <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">⏰ Follow-up</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">🗑️ Delete</button>
+
                                         </div>
                                     </div>
                                 `;
@@ -7731,15 +7855,16 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <button type="button" class="btn-primary" id="btnDataMergeDups" style="padding:8px 14px;justify-content:center;">🔀 Open Duplicate Merge Center</button>
                             </div>
 
-                            <!-- Card 4: Danger Zone -->
-                            <div class="pj-card" style="border-color:rgba(239,68,68,.35);">
-                                <div class="pj-card-head" style="color:var(--danger);">🗑️ Danger Zone</div>
+                                                        <!-- Card 4: Contact Management & Privacy -->
+                            <div class="pj-card">
+                                <div class="pj-card-head">🛡️ Contact Management & Privacy</div>
                                 <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-bottom:12px;">
-                                    Permanently delete all contacts from the directory. Your day notes and task calendar will remain intact.
+                                    Manage or delete individual contacts safely from the People directory or their Profile card. Calendar day notes and past interactions remain intact.
                                 </div>
-                                <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnDataDeleteAll" style="padding:8px 14px;justify-content:center;font-weight:700;">🗑️ Delete All Contacts</button>
+                                <button type="button" class="pj-toolbar-pill" id="btnDataGoToPeople" style="padding:8px 14px;justify-content:center;font-weight:600;">👥 Manage Individual Contacts</button>
                             </div>
                         </div>
+
 
                         <!-- Card 5: Settings & Snapshots -->
                         <div class="pj-card" style="margin-top:14px;">
@@ -7761,7 +7886,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     document.getElementById('btnDataImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
                     document.getElementById('btnDataImportJson')?.addEventListener('click', () => { document.getElementById('pjEnhancedBackupInput')?.click(); });
                     document.getElementById('btnDataMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
-                    document.getElementById('btnDataDeleteAll')?.addEventListener('click', () => { deleteAllPjContacts(); renderPjCenter(); });
+                    document.getElementById('btnDataGoToPeople')?.addEventListener('click', () => { pjActiveTab = 'people'; renderPjCenter(); });
                     document.getElementById('btnSaveStaleThreshold')?.addEventListener('click', () => {
                         const val = parseInt(document.getElementById('pjStaleThresholdInput')?.value, 10);
                         if(val && val > 0){
@@ -7784,43 +7909,333 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             function closePjSearch(){
                 document.getElementById('pjGlobalSearchOverlay').classList.remove('active');
             }
+            let pjGlobalSearchFilter = 'all';
+
             function searchPjJournal(q){
                 const query = String(q||'').trim().toLowerCase();
                 const resEl = document.getElementById('pjGlobalSearchResults');
                 const metaEl = document.getElementById('pjGlobalSearchMeta');
+                if(!resEl || !metaEl) return;
+
                 if(!query){
-                    resEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">Type any name, place, topic, phone, or memory to search.</div>`;
-                    metaEl.textContent = 'Type anything to search.';
+                    resEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">
+                        Type any name, phone number, email, relation, place, topic, tag, or note to search across all contacts, interactions, and day texts.
+                    </div>`;
+                    metaEl.textContent = 'Type anything to search all contacts, interactions & notes.';
                     return;
                 }
-                const matches = [];
-                listAllPjDays().forEach(ds => {
-                    const data = getPjDayData(ds);
-                    if(!data) return;
-                    (data.encounters||[]).forEach(e => {
-                        const hay = [e.name, e.nickname, e.relation, e.venue, e.city, e.context, e.topics, e.summary, e.notes, (e.phones||[]).join(' '), (e.emails||[]).join(' ')].join(' ').toLowerCase();
-                        if(hay.includes(query)){
-                            matches.push({ e, ds });
+
+                const tokens = query.split(/\s+/).filter(Boolean);
+                const queryDigits = query.replace(/\D/g, '');
+
+                function matchesTokens(text){
+                    if(!text) return false;
+                    const lower = String(text).toLowerCase();
+                    return tokens.every(tok => lower.includes(tok));
+                }
+
+                function matchesAnyToken(text){
+                    if(!text) return false;
+                    const lower = String(text).toLowerCase();
+                    return tokens.some(tok => lower.includes(tok));
+                }
+
+                function matchesDigits(phones){
+                    if(!queryDigits || queryDigits.length < 3) return false;
+                    for(const ph of (phones || [])){
+                        const d = String(ph).replace(/\D/g, '');
+                        if(d && (d.includes(queryDigits) || queryDigits.includes(d))) return true;
+                    }
+                    return false;
+                }
+
+                function highlightText(text, maxLen){
+                    if(!text) return '';
+                    let str = String(text);
+                    if(maxLen && str.length > maxLen){
+                        let firstIdx = -1;
+                        for(const tok of tokens){
+                            const idx = str.toLowerCase().indexOf(tok);
+                            if(idx !== -1 && (firstIdx === -1 || idx < firstIdx)) firstIdx = idx;
+                        }
+                        if(firstIdx > 40){
+                            str = '...' + str.slice(firstIdx - 20, firstIdx + maxLen - 20) + '...';
+                        } else {
+                            str = str.slice(0, maxLen) + '...';
+                        }
+                    }
+                    let safe = escapeHtml(str);
+                    tokens.forEach(tok => {
+                        if(tok.length >= 2){
+                            const re = new RegExp('(' + tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                            safe = safe.replace(re, '<mark>$1</mark>');
                         }
                     });
+                    return safe;
+                }
+
+                // 1. SEARCH CONTACTS & PEOPLE REGISTRY
+                const contactMatches = [];
+                const registry = getPjPeopleRegistry();
+                const seenPids = new Set();
+
+                registry.forEach(p => {
+                    if(seenPids.has(p.personId)) return;
+                    seenPids.add(p.personId);
+
+                    const pr = p.profile || pjProfile(p.personId) || {};
+                    const phones = Array.isArray(p.phones) ? p.phones : (p.phone ? [p.phone] : []);
+                    const emails = Array.isArray(p.emails) ? p.emails : (p.email ? [p.email] : []);
+                    const tags = (Array.isArray(p.tags) ? p.tags : []).concat(pr.customTags || []);
+
+                    const hayParts = [
+                        p.name,
+                        p.nickname,
+                        pr.nickname,
+                        p.relation,
+                        pr.relation,
+                        phones.join(' '),
+                        emails.join(' '),
+                        pr.birthday,
+                        p.birthday,
+                        pr.nextAction,
+                        pr.nextActionDue,
+                        pr.notes,
+                        p.notes,
+                        p.organization,
+                        p.role,
+                        tags.join(' '),
+                        p.source || ''
+                    ];
+                    const fullHay = hayParts.filter(Boolean).join(' ').toLowerCase();
+
+                    const isMatch = matchesTokens(fullHay) || matchesDigits(phones);
+                    if(!isMatch) return;
+
+                    // Filter check
+                    if(pjGlobalSearchFilter === 'person' && !matchesAnyToken(p.name + ' ' + (p.nickname||'') + ' ' + (pr.nickname||''))) return;
+                    if(pjGlobalSearchFilter === 'contact' && !matchesAnyToken(phones.join(' ') + ' ' + emails.join(' ')) && !matchesDigits(phones)) return;
+                    if(pjGlobalSearchFilter === 'followup' && (!pr.nextAction || !matchesAnyToken(pr.nextAction + ' ' + (pr.nextActionDue||'')))) return;
+                    if(pjGlobalSearchFilter === 'notes' && !matchesAnyToken(pr.notes)) return;
+                    if(pjGlobalSearchFilter === 'place') return;
+
+                    contactMatches.push({ p, pr, phones, emails, tags });
                 });
-                metaEl.textContent = `${matches.length} matching interaction(s) found`;
-                if(!matches.length){
-                    resEl.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);">No matching encounters found.</div>`;
+
+                // 2. SEARCH DAILY ENCOUNTERS / INTERACTIONS
+                const encounterMatches = [];
+                listAllPjDays().forEach(ds => {
+                    const data = getPjDayData(ds);
+                    if(!data || !Array.isArray(data.encounters)) return;
+                    data.encounters.forEach(e => {
+                        const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                        const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
+                        const tags = Array.isArray(e.tags) ? e.tags : [];
+
+                        const hayParts = [
+                            e.name,
+                            e.nickname,
+                            e.relation,
+                            e.venue,
+                            e.city,
+                            e.context,
+                            e.topics,
+                            e.summary,
+                            e.notes,
+                            e.gifts,
+                            e.demeanor,
+                            e.timeOfDay,
+                            e.nativePlace,
+                            e.homeAddress,
+                            e.followUp,
+                            e.followUpAction,
+                            phones.join(' '),
+                            emails.join(' '),
+                            tags.join(' '),
+                            ds
+                        ];
+                        const fullHay = hayParts.filter(Boolean).join(' ').toLowerCase();
+
+                        const isMatch = matchesTokens(fullHay) || matchesDigits(phones);
+                        if(!isMatch) return;
+
+                        // Filter check
+                        if(pjGlobalSearchFilter === 'person' && !matchesAnyToken(e.name + ' ' + (e.nickname||''))) return;
+                        if(pjGlobalSearchFilter === 'place' && !matchesAnyToken((e.venue||'') + ' ' + (e.city||'') + ' ' + (e.nativePlace||'') + ' ' + (e.homeAddress||''))) return;
+                        if(pjGlobalSearchFilter === 'notes' && !matchesAnyToken((e.notes||'') + ' ' + (e.summary||'') + ' ' + (e.topics||'') + ' ' + (e.gifts||''))) return;
+                        if(pjGlobalSearchFilter === 'followup' && (!e.followUp || !matchesAnyToken((e.followUp||'') + ' ' + (e.followUpAction||'')))) return;
+                        if(pjGlobalSearchFilter === 'contact' && !matchesAnyToken(phones.join(' ') + ' ' + emails.join(' ')) && !matchesDigits(phones)) return;
+
+                        encounterMatches.push({ e, ds, phones, emails, tags });
+                    });
+                });
+
+                // 3. SEARCH DAY TEXT NOTES
+                const dayNoteMatches = [];
+                if(pjGlobalSearchFilter === 'all' || pjGlobalSearchFilter === 'notes'){
+                    const searchedDates = new Set();
+                    listAllPjDays().forEach(ds => {
+                        searchedDates.add(ds);
+                        const pjData = getPjDayData(ds);
+                        const stdData = (typeof getData === 'function') ? getData(ds) : null;
+                        const texts = [];
+                        if(pjData && (pjData.dayNotes || pjData.dayText || pjData.notes)) texts.push(pjData.dayNotes || pjData.dayText || pjData.notes);
+                        if(stdData){
+                            if(Array.isArray(stdData.textCalendar)) texts.push(...stdData.textCalendar);
+                            if(stdData.notes) texts.push(stdData.notes);
+                        }
+                        const combined = texts.filter(Boolean).join(' ');
+                        if(combined && matchesTokens(combined)){
+                            dayNoteMatches.push({ ds, txt: combined });
+                        }
+                    });
+                    for(let i=0; i<appStorage.length; i++){
+                        const k = appStorage.key(i);
+                        if(k && k.startsWith('td_') && !k.startsWith(PJ_DAYS_PREFIX) && !k.includes('_')){
+                            const ds = k.slice(3);
+                            if(/^\d{4}-\d{2}-\d{2}$/.test(ds) && !searchedDates.has(ds)){
+                                searchedDates.add(ds);
+                                const stdData = (typeof getData === 'function') ? getData(ds) : null;
+                                const texts = [];
+                                if(stdData){
+                                    if(Array.isArray(stdData.textCalendar)) texts.push(...stdData.textCalendar);
+                                    if(stdData.notes) texts.push(stdData.notes);
+                                }
+                                const combined = texts.filter(Boolean).join(' ');
+                                if(combined && matchesTokens(combined)){
+                                    dayNoteMatches.push({ ds, txt: combined });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const totalCount = contactMatches.length + encounterMatches.length + dayNoteMatches.length;
+                metaEl.textContent = `Found ${totalCount} result(s): ${contactMatches.length} contact(s), ${encounterMatches.length} interaction(s), ${dayNoteMatches.length} day note(s) for "${query}"`;
+
+                if(!totalCount){
+                    resEl.innerHTML = `
+                        <div class="pj-empty-card" style="margin:20px 0;">
+                            <div style="font-size:2rem;opacity:.5;">🔍</div>
+                            <div style="font-size:var(--fs-sm);font-weight:700;">No matching results found</div>
+                            <div style="font-size:var(--fs-xs);color:var(--text-secondary);max-width:320px;">
+                                We checked contact names, phones, emails, relations, interaction topics, notes, places, and day texts. Try fewer words or a different term.
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
-                resEl.innerHTML = matches.map(m => `
-                    <div class="pj-search-result" data-search-date="${escapeHtml(m.ds)}" data-search-id="${escapeHtml(m.e.id)}">
-                        <div class="pj-encounter-avatar" style="width:34px;height:34px;font-size:0.75rem;">${escapeHtml(initialsOfPj(m.e.name))}</div>
-                        <div>
-                            <div style="font-weight:700;font-size:var(--fs-sm);">${escapeHtml(m.e.name)} <span style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;">${getShortDate(m.ds)}</span></div>
-                            <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;">${escapeHtml(m.e.venue||m.e.city||m.e.context||'')}</div>
-                            <div style="font-size:var(--fs-xs);margin-top:4px;">${escapeHtml(m.e.summary||m.e.notes||'')}</div>
+
+                let html = '';
+
+                // Contacts Section
+                if(contactMatches.length > 0){
+                    html += `
+                        <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
+                            <span>👥 Contacts (${contactMatches.length})</span>
                         </div>
-                        <div style="font-size:0.8rem;color:var(--text-secondary);">↗</div>
-                    </div>
-                `).join('');
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                            ${contactMatches.map(m => {
+                                const p = m.p;
+                                const pr = m.pr;
+                                const firstPhone = m.phones[0] || '';
+                                const firstEmail = m.emails[0] || '';
+                                return `
+                                    <div class="pj-search-result pj-card-interactive" data-search-contact="${escapeAttr(p.personId)}">
+                                        <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:38px;height:38px;font-size:0.85rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                <strong style="font-size:var(--fs-sm);">${highlightText(p.name)}</strong>
+                                                ${(pr.relation||p.relation)?`<span class="pj-badge">${highlightText(pr.relation||p.relation)}</span>`:''}
+                                                ${pr.favorite?'<span class="pj-fav" title="Starred">★</span>':''}
+                                            </div>
+                                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                ${firstPhone?`<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">📞 ${highlightText(firstPhone)}</span>`:''}
+                                                ${firstEmail?`<span>✉️ ${highlightText(firstEmail)}</span>`:''}
+                                                ${(pr.birthday||p.birthday)?`<span style="color:var(--accent);">🎂 ${highlightText(pr.birthday||p.birthday)}</span>`:''}
+                                                <span>${p.lastSeen?`Last met: ${getShortDate(p.lastSeen)}`:'Not met yet'}</span>
+                                                ${pr.nextAction?`<span class="pj-badge warn">⏰ ${highlightText(pr.nextAction, 40)}</span>`:''}
+                                            </div>
+                                            ${(pr.notes||p.notes)?`<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:4px;">${highlightText(pr.notes||p.notes, 100)}</div>`:''}
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">👤 Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}">+ Meet</button>
+                                            <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-person="${escapeAttr(p.personId)}" title="Delete contact">🗑️</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                // Encounters Section
+                if(encounterMatches.length > 0){
+                    html += `
+                        <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
+                            <span>🤝 Interactions & Encounters (${encounterMatches.length})</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+                            ${encounterMatches.map(m => {
+                                const e = m.e;
+                                const ds = m.ds;
+                                const tagsHtml = m.tags.map(t => {
+                                    const meta = pjTagMeta(t);
+                                    return `<span class="pj-tag ${escapeAttr(t)}" style="font-size:0.6rem;padding:1px 6px;">${meta.icon} ${meta.label}</span>`;
+                                }).join(' ');
+                                return `
+                                    <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(ds)}" data-search-enc-id="${escapeAttr(e.id)}">
+                                        <div class="pj-encounter-avatar" style="width:38px;height:38px;font-size:0.85rem;">${escapeHtml(initialsOfPj(e.name))}</div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                                <div>
+                                                    <strong style="font-size:var(--fs-sm);">${highlightText(e.name)}</strong>
+                                                    <span style="font-size:var(--fs-2xs);color:var(--accent);font-weight:700;margin-left:6px;">📅 ${getShortDate(ds)}</span>
+                                                    ${(e.relation)?`<span style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-left:4px;">(${highlightText(e.relation)})</span>`:''}
+                                                </div>
+                                                <div style="display:flex;gap:4px;">${tagsHtml}</div>
+                                            </div>
+                                            ${(e.venue||e.city)?`<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">📍 ${highlightText([e.venue, e.city].filter(Boolean).join(', '))}</div>`:''}
+                                            ${e.topics ? `<div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;margin-top:2px;">💬 ${highlightText(e.topics, 120)}</div>` : ''}
+                                            ${(e.summary || e.notes) ? `<div style="font-size:var(--fs-xs);margin-top:3px;line-height:1.4;">${highlightText(e.summary || e.notes, 140)}</div>` : ''}
+                                            ${(e.followUp)?`<div style="font-size:var(--fs-2xs);color:var(--warning);font-weight:600;margin-top:3px;">⏰ Follow-up: ${e.followUp} ${e.followUpAction?`(${highlightText(e.followUpAction)})`:''}</div>`:''}
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(ds)}" title="Go to this day">📅 Day ↗</button>
+                                            <button type="button" class="pj-toolbar-pill" data-search-edit-enc="${escapeAttr(e.id)}" data-search-enc-day="${escapeAttr(ds)}" title="Edit encounter">✏️</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+
+                // Day Notes Section
+                if(dayNoteMatches.length > 0){
+                    html += `
+                        <div style="font-size:var(--fs-2xs);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin:8px 0 4px;display:flex;align-items:center;gap:6px;">
+                            <span>📝 Day Notes (${dayNoteMatches.length})</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${dayNoteMatches.map(m => `
+                                <div class="pj-search-result pj-card-interactive" data-search-date="${escapeAttr(m.ds)}">
+                                    <div style="font-size:1.4rem;">📝</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-weight:700;font-size:var(--fs-sm);color:var(--accent);">Day Note · ${getShortDate(m.ds)}</div>
+                                        <div style="font-size:var(--fs-xs);margin-top:3px;line-height:1.4;">${highlightText(m.txt, 160)}</div>
+                                    </div>
+                                    <button type="button" class="pj-toolbar-pill" data-search-jump="${escapeAttr(m.ds)}">📅 Day ↗</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                resEl.innerHTML = html;
             }
+
 
             // RFC-4180 CSV Parser & Google Contacts Engine
             function parseCSV(text){
@@ -10726,8 +11141,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(btnPjFindDuplicates)btnPjFindDuplicates.addEventListener('click',()=>openPjMergeModal());
                 const btnExportPjPeopleCsv=document.getElementById('btnExportPjPeopleCsv');
                 if(btnExportPjPeopleCsv)btnExportPjPeopleCsv.addEventListener('click',exportPjPeopleCSV);
-                const btnDeleteAllPjContacts=document.getElementById('btnDeleteAllPjContacts');
-                if(btnDeleteAllPjContacts)btnDeleteAllPjContacts.addEventListener('click',()=>deleteAllPjContacts());
                 const pjPeopleList=document.getElementById('pjPeopleList');
                 if(pjPeopleList)pjPeopleList.addEventListener('click',e=>{const it=e.target.closest('.pj-dir-item');if(it){selectedPersonId=it.dataset.pid;renderPjPersonDetail();pjPeopleList.querySelectorAll('.pj-dir-item').forEach(x=>x.classList.toggle('active',x===it));}});
                 const pjPeopleMain=document.getElementById('pjPeopleMain');
@@ -10738,6 +11151,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(qMerge){openPjMergeModal(qMerge.dataset.p1,qMerge.dataset.p2);return;}
                     const mMerge=e.target.closest('#btnManualMergePerson');
                     if(mMerge){openPjMergeModal(mMerge.dataset.pid);return;}
+                    const delBtn=e.target.closest('#btnDeleteCurrentContact')||e.target.closest('[data-delete-person]');
+                    if(delBtn){
+                        const pid=delBtn.dataset.deletePerson||selectedPersonId;
+                        if(pid)deletePjContact(pid);
+                        return;
+                    }
                 });
                 const btnPjMergeClose=document.getElementById('pjMergeModalClose');
                 if(btnPjMergeClose)btnPjMergeClose.addEventListener('click',closePjMergeModal);
@@ -10803,6 +11222,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(pBtn){e.stopPropagation();openPjProfile(pBtn.dataset.openProfile);return;}
                     const encBtn=e.target.closest('[data-open-encounter]');
                     if(encBtn){e.stopPropagation();closePjCenter();openAddPjEncounter(null, encBtn.dataset.openEncounter);return;}
+                    const delPerson=e.target.closest('[data-delete-person]');
+                    if(delPerson){e.stopPropagation();deletePjContact(delPerson.dataset.deletePerson);return;}
                     const fuBtn=e.target.closest('[data-open-fu-modal]');
                     if(fuBtn){e.stopPropagation();pjPrefillFuPersonId=fuBtn.dataset.openFuModal;pjShowFuForm=true;pjActiveTab='followups';renderPjCenter();return;}
                     const bBtn=e.target.closest('[data-open-bday-edit]');
@@ -10848,8 +11269,38 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 if(pjGlobalSearchInput)pjGlobalSearchInput.addEventListener('input',()=>searchPjJournal(pjGlobalSearchInput.value));
                 const pjGlobalSearchClear=document.getElementById('pjGlobalSearchClear');
                 if(pjGlobalSearchClear)pjGlobalSearchClear.addEventListener('click',()=>{if(pjGlobalSearchInput){pjGlobalSearchInput.value='';searchPjJournal('');pjGlobalSearchInput.focus();}});
+                const pjGlobalSearchFilters=document.getElementById('pjGlobalSearchFilters');
+                if(pjGlobalSearchFilters){
+                    pjGlobalSearchFilters.addEventListener('click',e=>{
+                        const pill=e.target.closest('.pj-filter-pill') || e.target.closest('.pj-toolbar-pill');
+                        if(pill && pill.dataset.filter){
+                            pjGlobalSearchFilters.querySelectorAll('button').forEach(p=>p.classList.remove('active'));
+                            pill.classList.add('active');
+                            pjGlobalSearchFilter = pill.dataset.filter;
+                            searchPjJournal(document.getElementById('pjGlobalSearchInput')?.value||'');
+                        }
+                    });
+                }
                 const pjGlobalSearchResults=document.getElementById('pjGlobalSearchResults');
                 if(pjGlobalSearchResults)pjGlobalSearchResults.addEventListener('click',e=>{
+                    const pBtn=e.target.closest('[data-open-profile]');
+                    if(pBtn){
+                        closePjSearch();
+                        openPjProfile(pBtn.dataset.openProfile);
+                        return;
+                    }
+                    const encEdit=e.target.closest('[data-search-edit-enc]');
+                    if(encEdit){
+                        closePjSearch();
+                        openAddPjEncounter(encEdit.dataset.date, encEdit.dataset.searchEditEnc);
+                        return;
+                    }
+                    const delBtn=e.target.closest('[data-delete-person]');
+                    if(delBtn){
+                        deletePjContact(delBtn.dataset.deletePerson);
+                        searchPjJournal(document.getElementById('pjGlobalSearchInput')?.value||'');
+                        return;
+                    }
                     const r=e.target.closest('.pj-search-result');
                     if(r&&r.dataset.searchDate){
                         const dt=r.dataset.searchDate;
@@ -10859,6 +11310,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         selectDate(dt);
                     }
                 });
+
                 btnExport.addEventListener('click',exportJSON);
                 btnExportPdf.addEventListener('click',exportPDF);
                 btnImport.addEventListener('click',()=>importFileInput.click());
@@ -11393,6 +11845,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         if((e.key==='n'||e.key==='N')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openAddPjEncounter();return}
                     }
                     if(e.key==='Escape'&&eisenItemPopupOverlay&&eisenItemPopupOverlay.classList.contains('active')){
+
                         e.preventDefault();
                         closeEisenItemPopup();
                         return;
@@ -11432,7 +11885,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 findPjDuplicatesForPerson,
                 mergePjPeople,
                 mergeAllPjDuplicates,
+                deletePjContact,
                 deleteAllPjContacts,
+                loadPjContacts,
+                savePjContacts,
+                searchPjJournal,
                 setPjDupCriteria,
                 getPjDupCriteria: () => pjDupCriteria,
                 openPjMergeModal,
