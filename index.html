@@ -2409,13 +2409,40 @@ body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap
 .pj-followup-badge-btn.overdue{background:rgba(217,45,45,.1);color:var(--danger);border-color:rgba(217,45,45,.28)}
 
 /* Calendar cell items in text-calendar mode */
-.cell-person-name{font-size:.52rem;line-height:1.2;font-weight:600;color:var(--text);padding:1px 4px;border-left:2px solid var(--accent);background:var(--card-bg);border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;margin-top:2px}
+.cell-person-name{font-size:.52rem;line-height:1.2;font-weight:600;color:var(--text);padding:1px 4px;border-left:2px solid var(--accent);background:var(--card-bg);border-radius:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;margin-top:2px;cursor:pointer;transition:transform .12s,background .12s,color .12s}
+.cell-person-name:hover{background:var(--surface-2);transform:scale(1.02);color:var(--accent)}
 .cell-person-name[data-tag="family"]{border-left-color:#ec4899}
 .cell-person-name[data-tag="friend"]{border-left-color:#22c55e}
 .cell-person-name[data-tag="work"]{border-left-color:#3d6bf5}
 .cell-person-name[data-tag="service"]{border-left-color:#f59e0b}
 .cell-person-name[data-tag="other"]{border-left-color:#94a3b8}
-.cell-followup-badge{position:absolute;top:2px;right:2px;font-size:.52rem;line-height:1;width:13px;height:13px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--warning);color:#fff;z-index:2}
+.cell-followup-name{border-left-color:#f59e0b !important;background:rgba(245,158,11,0.08) !important;color:#d97706 !important}
+.cell-followup-name:hover{background:rgba(245,158,11,0.2) !important;color:#b45309 !important}
+.cell-followup-badge{position:absolute;top:2px;right:2px;font-size:.52rem;line-height:1;min-width:13px;height:13px;padding:0 3px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:var(--warning);color:#fff;z-index:2;cursor:pointer}
+.cell-followup-badge.overdue{background:var(--danger,#ef4444)}
+.cell-followup-indicator{position:absolute;top:2px;right:2px;font-size:.62rem;line-height:1;width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--warning,#f59e0b);color:#fff;z-index:2;cursor:pointer}
+.cell-followup-indicator.overdue{background:var(--danger,#ef4444)}
+
+/* Person links and avatars */
+.pj-encounter-name-link{cursor:pointer;color:var(--text);font-weight:750;background:none;border:none;padding:0;font-size:inherit;text-align:left;display:inline-flex;align-items:center;gap:4px;transition:color .15s}
+.pj-encounter-name-link:hover{color:var(--accent,#3d6bf5);text-decoration:underline}
+.pj-avatar-clickable{cursor:pointer;transition:transform .15s,box-shadow .15s}
+.pj-avatar-clickable:hover{transform:scale(1.08);box-shadow:0 0 0 2px var(--accent,#3d6bf5)}
+.pj-person-name-btn{cursor:pointer;color:var(--text);font-weight:750;background:none;border:none;padding:0;font-size:var(--fs-sm);text-align:left;transition:color .15s}
+.pj-person-name-btn:hover{color:var(--accent,#3d6bf5);text-decoration:underline}
+
+/* Follow-ups card in Daily Section */
+.pj-day-followups-card{background:var(--card-bg);border:1px solid rgba(245,158,11,0.35);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:14px;background:linear-gradient(to bottom,rgba(245,158,11,0.05),transparent)}
+.pj-day-followups-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.pj-day-followups-title{font-size:var(--fs-xs);font-weight:750;color:var(--warning,#f59e0b);text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;gap:6px}
+.pj-day-followups-list{display:flex;flex-direction:column;gap:8px}
+.pj-day-followup-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);transition:border-color .15s}
+.pj-day-followup-row.overdue{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.04)}
+.pj-day-followup-row.done{opacity:0.6;border-style:dashed}
+.pj-day-followup-info{flex:1;min-width:0}
+.pj-day-followup-name-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pj-day-followup-text{font-size:var(--fs-xs);color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pj-day-followup-actions{display:flex;align-items:center;gap:6px}
 
 /* Overlay and Modals */
 .pj-overlay{position:fixed;inset:0;z-index:11000;display:none;align-items:center;justify-content:center;background:var(--modal-overlay);opacity:0;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:opacity var(--dur-base) var(--ease-in-out)}
@@ -4787,7 +4814,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             function buildCellHTML(ds,day,monthData,todayStr,learningDueMap,eisenCountsMap){
                 const isToday=ds===todayStr;
                 const isSelected=selectionMode==='daily'&&ds===selectedDateStr;
-                const data=monthData[ds];
+                const data=monthData[ds]||{tasks:[],notes:'',dayTitle:'',textCalendar:[]};
                 const stats=getTaskStats(data);
                 let classes=['calendar-cell'];
                 if(textCalendarMode)classes.push('text-calendar-cell');
@@ -4798,18 +4825,29 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     if(textCalendarMode){
                         const texts=Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>String(x||'').trim()):[];
                         let pjHtml='';
+                        let fuHtml='';
                         const pjDay=typeof getPjDayData==='function'?getPjDayData(ds):null;
                         if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.length>0){
                             pjHtml=buildCellPeopleHTML(pjDay.encounters);
                         }
-                        if(texts.length||pjHtml){
-                            const visible=texts.slice(0,3);
-                            taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>3?`<div class="text-calendar-cell-more">+ ${texts.length-3} more</div>`:''}${pjHtml}</div>`;
+                        const dayFus=typeof getPjFollowUpsForDate==='function'?getPjFollowUpsForDate(ds):[];
+                        if(dayFus.length>0){
+                            fuHtml=buildCellFollowUpHTML(dayFus);
                         }
-                        if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.some(e=>e.followUp)){
-                            taskHTML+=`<div class="cell-followup-badge" title="Has follow-up">&#9200;</div>`;
+                        if(texts.length||pjHtml||fuHtml){
+                            const visible=texts.slice(0,2);
+                            taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>2?`<div class="text-calendar-cell-more">+ ${texts.length-2} more</div>`:''}${pjHtml}${fuHtml}</div>`;
+                        }
+                        if(dayFus.length>0){
+                            const isOverdue=ds<todayStr;
+                            taskHTML+=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
                         }
                     }else{
+                        const dayFus=typeof getPjFollowUpsForDate==='function'?getPjFollowUpsForDate(ds):[];
+                        if(dayFus.length>0){
+                            const isOverdue=ds<todayStr;
+                            taskHTML+=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" style="right:22px;" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
+                        }
                         if(data.dayTitle&&String(data.dayTitle).trim()){
                             titleHTML=`<div class="cell-day-title" title="${escapeHtml(data.dayTitle)}">${escapeHtml(data.dayTitle)}</div>`;
                         }
@@ -4884,7 +4922,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     }
                 }
                 calendarGrid.innerHTML=html;
-                calendarGrid.onclick=e=>{const c=e.target.closest('.calendar-cell:not(.empty)');if(!c)return;const ds=c.getAttribute('data-date');if(ds)selectDate(ds)};
+                calendarGrid.onclick=e=>{const c=e.target.closest('.calendar-cell:not(.empty)');if(!c)return;const ds=c.getAttribute('data-date');if(ds)selectDate(ds);const pTarget=e.target.closest('[data-pid]');if(pTarget&&pTarget.dataset.pid){if(typeof openPjProfile==='function')openPjProfile(pTarget.dataset.pid);}};
                 calendarGrid.ondblclick=e=>{if(textCalendarMode)return;const c=e.target.closest('.calendar-cell:not(.empty)');if(!c)return;const ds=c.getAttribute('data-date');if(ds)openEisenModal(ds)};
                 if(typeof syncMagnifierClone === 'function') syncMagnifierClone();
                 renderWeekColumn(md);renderStats(md);renderHabitMiniCalendar();
@@ -5717,14 +5755,81 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     if(!pid || seen.has(pid)) return;
                     seen.add(pid);
                     const tags = (Array.isArray(e.tags)?e.tags:[]).filter(t=>PJ_TAGS.indexOf(t)!==-1);
-                    people.push({ name: e.name || '?', tag: tags[0] || '' });
+                    people.push({ name: e.name || '?', tag: tags[0] || '', personId: pid });
                 });
                 const visible = people.slice(0, 2);
-                let html = visible.map(p => `<div class="cell-person-name" data-tag="${escapeHtml(p.tag)}" title="${escapeHtml(p.name)}">&#128101; ${escapeHtml(p.name)}</div>`).join('');
+                let html = visible.map(p => `<div class="cell-person-name" data-pid="${escapeAttr(p.personId)}" data-tag="${escapeHtml(p.tag)}" title="${escapeHtml(p.name)}">&#128101; ${escapeHtml(p.name)}</div>`).join('');
                 if(people.length > 2){
                     html += `<div style="font-size:0.5rem;color:var(--text-secondary);padding-left:3px;">+ ${people.length - 2} more</div>`;
                 }
                 return html;
+            }
+
+            function buildCellFollowUpHTML(followUps){
+                if(!followUps || !followUps.length) return '';
+                const seen = new Set();
+                const items = [];
+                followUps.forEach(fu => {
+                    const pid = fu.personId;
+                    if(!pid || seen.has(pid)) return;
+                    seen.add(pid);
+                    items.push(fu);
+                });
+                const visible = items.slice(0, 2);
+                let html = visible.map(f => `<div class="cell-person-name cell-followup-name" data-pid="${escapeAttr(f.personId)}" title="Follow-up: ${escapeAttr(f.name)}${f.action ? ' - ' + escapeAttr(f.action) : ''}">&#9200; ${escapeHtml(f.name)}</div>`).join('');
+                if(items.length > 2){
+                    html += `<div style="font-size:0.5rem;color:var(--warning);padding-left:3px;">+ ${items.length - 2} more follow-up(s)</div>`;
+                }
+                return html;
+            }
+
+            function getPjFollowUpsForDate(ds){
+                if(!ds || typeof pjAllPeople !== 'function') return [];
+                const list = [];
+                const people = pjAllPeople();
+                const seen = new Set();
+                people.forEach(p => {
+                    const pr = (typeof pjProfile === 'function') ? pjProfile(p.personId) : {};
+                    // 1. Follow-up from profile
+                    if(pr && pr.nextActionDue === ds && pr.nextActionStatus !== 'done'){
+                        const key = 'prof_' + p.personId + '_' + ds;
+                        if(!seen.has(key)){
+                            seen.add(key);
+                            list.push({
+                                source: 'profile',
+                                personId: p.personId,
+                                name: pjCanonicalName(p, p.personId),
+                                action: pr.nextAction || 'Follow-up',
+                                due: ds,
+                                status: 'open',
+                                priority: pr.priority || 'normal',
+                                person: p
+                            });
+                        }
+                    }
+                    // 2. Follow-ups from encounters
+                    (p.encounters || []).forEach(e => {
+                        if(e.followUp === ds && !e.followUpDone){
+                            const key = 'enc_' + (e.id || (p.personId + '_' + e._date));
+                            if(!seen.has(key)){
+                                seen.add(key);
+                                list.push({
+                                    source: 'encounter',
+                                    personId: p.personId,
+                                    name: pjCanonicalName(p, p.personId),
+                                    action: e.followUpAction || 'Follow-up',
+                                    due: ds,
+                                    status: 'open',
+                                    priority: 'normal',
+                                    encounterId: e.id,
+                                    encounterDate: e._date,
+                                    person: p
+                                });
+                            }
+                        }
+                    });
+                });
+                return list;
             }
 
             function renderPjDailySection(ds){
@@ -5743,7 +5848,45 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 }).length;
                 const savedContacts = encs.filter(e => (Array.isArray(e.phones)&&e.phones.length) || (Array.isArray(e.emails)&&e.emails.length)).length;
                 const todayStr = getTodayStr();
-                const followUpsDue = encs.filter(e => e.followUp && e.followUp <= todayStr).length;
+                const dayFollowUps = getPjFollowUpsForDate(ds);
+                const followUpsDue = dayFollowUps.filter(f => f.status !== 'done').length;
+
+                let followUpsCardHtml = '';
+                if(dayFollowUps.length > 0){
+                    followUpsCardHtml = `
+                        <div class="pj-day-followups-card">
+                            <div class="pj-day-followups-header">
+                                <span class="pj-day-followups-title">&#9200; Follow-ups Scheduled for this Date (${dayFollowUps.length})</span>
+                            </div>
+                            <div class="pj-day-followups-list">
+                                ${dayFollowUps.map(fu => {
+                                    const isOverdue = ds < todayStr && fu.status !== 'done';
+                                    const initials = initialsOfPj(fu.name);
+                                    return `
+                                        <div class="pj-day-followup-row ${isOverdue ? 'overdue' : ''} ${fu.status === 'done' ? 'done' : ''}">
+                                            <div class="pj-encounter-avatar pj-avatar-clickable" data-pid="${escapeAttr(fu.personId)}" title="Open ${escapeAttr(fu.name)}'s profile">${escapeHtml(initials)}</div>
+                                            <div class="pj-day-followup-info">
+                                                <div class="pj-day-followup-name-line">
+                                                    <button type="button" class="pj-person-name-btn" data-pid="${escapeAttr(fu.personId)}" title="Open profile">${escapeHtml(fu.name)}</button>
+                                                    <span class="pj-badge ${fu.source === 'profile' ? 'purple' : 'accent'}">${fu.source === 'profile' ? 'Profile action' : 'Encounter'}</span>
+                                                    ${isOverdue ? '<span class="pj-badge danger">Overdue</span>' : ''}
+                                                    ${fu.status === 'done' ? '<span class="pj-badge success">Done</span>' : ''}
+                                                </div>
+                                                <div class="pj-day-followup-text">&#128172; ${escapeHtml(fu.action)}</div>
+                                            </div>
+                                            <div class="pj-day-followup-actions">
+                                                ${fu.status !== 'done' ? `
+                                                    <button type="button" class="pj-btn-done" data-action="complete-followup" data-source="${escapeAttr(fu.source)}" data-pid="${escapeAttr(fu.personId)}" ${fu.encounterId ? `data-enc-id="${escapeAttr(fu.encounterId)}" data-enc-date="${escapeAttr(fu.encounterDate)}"` : ''} title="Mark follow-up done">&#10003; Done</button>
+                                                ` : ''}
+                                                <button type="button" class="pj-action-btn" data-pid="${escapeAttr(fu.personId)}" title="Open Profile">&#128100;</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
 
                 let html = `
                     <div class="pj-day-summary">
@@ -5752,16 +5895,22 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#128199; Contacts saved</span><span class="pj-day-summary-value">${savedContacts}</span></div>
                         <div class="pj-day-summary-row"><span class="pj-day-summary-label">&#9200; Follow-ups due</span><span class="pj-day-summary-value warning">${followUpsDue}</span></div>
                     </div>
+                    ${followUpsCardHtml}
                     <div class="pj-encounter-list">
                 `;
 
                 if(!encs.length){
-                    html += `<div class="pj-encounter-empty">No people recorded for this date.<br>Click "Add Person Met" above to log who you interacted with.</div>`;
+                    if(!dayFollowUps.length){
+                        html += `<div class="pj-encounter-empty">No people recorded for this date.<br>Click "Add Person Met" above to log who you interacted with.</div>`;
+                    } else {
+                        html += `<div style="font-size:var(--fs-xs);color:var(--text-secondary);padding:6px 4px;">No interactions logged on this date yet.</div>`;
+                    }
                 } else {
                     html += encs.map(e => {
                         const initials = initialsOfPj(e.name);
                         const known = findKnownPerson(e.name);
                         const isContact = known && known.isContact;
+                        const pid = e.personId || (known ? known.personId : normalizePjName(e.name));
                         const tags = (Array.isArray(e.tags)?e.tags:[]).filter(t=>PJ_TAGS.indexOf(t)!==-1);
                         const tagsHtml = tags.map(t => {
                             const m = PJ_TAG_META[t];
@@ -5799,16 +5948,17 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         return `
                             <div class="pj-encounter-card ${isCollapsed?'collapsed':''}" data-encounter-id="${escapeHtml(e.id)}">
                                 <div class="pj-encounter-header">
-                                    <div class="pj-encounter-avatar ${isContact?'contact-marker':''}">${escapeHtml(initials)}</div>
+                                    <div class="pj-encounter-avatar ${isContact?'contact-marker':''} pj-avatar-clickable" data-pid="${escapeAttr(pid)}" title="Open profile for ${escapeAttr(e.name)}">${escapeHtml(initials)}</div>
                                     <div class="pj-encounter-info">
                                         <div class="pj-encounter-name-row">
-                                            <span>${escapeHtml(e.name||'(No name)')}</span>
+                                            <button type="button" class="pj-encounter-name-link" data-pid="${escapeAttr(pid)}" title="Open profile for ${escapeAttr(e.name)}">${escapeHtml(e.name||'(No name)')}</button>
                                             ${e.relation?`<span class="pj-encounter-relation">${escapeHtml(e.relation)}</span>`:''}
                                         </div>
                                         ${contactPills ? `<div class="pj-contact-pills">${contactPills}</div>` : ''}
                                         ${tagsHtml ? `<div class="pj-tags-row">${tagsHtml}</div>` : ''}
                                     </div>
                                     <div class="pj-encounter-actions">
+                                        <button type="button" class="pj-action-btn" data-pid="${escapeAttr(pid)}" title="Open Profile">&#128100;</button>
                                         <button type="button" class="pj-action-btn pj-collapse-btn" data-action="toggle" title="Expand/Collapse">&#9662;</button>
                                         <button type="button" class="pj-action-btn" data-action="edit" title="Edit">&#9998;</button>
                                         <button type="button" class="pj-action-btn delete" data-action="delete" title="Delete">&times;</button>
@@ -5852,6 +6002,38 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     }
                     return;
                 }
+                const doneBtn = e.target.closest('[data-action="complete-followup"]');
+                if(doneBtn){
+                    e.preventDefault();
+                    const src = doneBtn.dataset.source;
+                    const pid = doneBtn.dataset.pid;
+                    if(src === 'profile' && pid){
+                        const pr = pjProfile(pid);
+                        pr.nextActionStatus = 'done';
+                        savePjMeta();
+                        invalidatePjCache();
+                        if(typeof renderCalendar === 'function') renderCalendar();
+                        if(selectedDateStr) renderPjDailySection(selectedDateStr);
+                        showToast('Follow-up marked completed');
+                        return;
+                    } else if(src === 'encounter'){
+                        const encId = doneBtn.dataset.encId;
+                        const encDate = doneBtn.dataset.encDate;
+                        if(encId && encDate){
+                            const dData = getPjDayData(encDate);
+                            const enc = (dData?.encounters||[]).find(x => x.id === encId);
+                            if(enc){
+                                enc.followUpDone = true;
+                                savePjDayData(encDate, dData);
+                                invalidatePjCache();
+                                if(typeof renderCalendar === 'function') renderCalendar();
+                                if(selectedDateStr) renderPjDailySection(selectedDateStr);
+                                showToast('Follow-up marked completed');
+                                return;
+                            }
+                        }
+                    }
+                }
                 const collapseBtn = e.target.closest('.pj-collapse-btn');
                 if(collapseBtn){
                     const card = collapseBtn.closest('.pj-encounter-card');
@@ -5866,10 +6048,16 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 const actionBtn = e.target.closest('.pj-action-btn');
                 if(actionBtn){
                     const card = actionBtn.closest('.pj-encounter-card');
-                    if(!card) return;
-                    const id = card.dataset.encounterId;
-                    if(actionBtn.dataset.action === 'edit') openEditPjEncounter(id);
-                    else if(actionBtn.dataset.action === 'delete') deletePjEncounter(id);
+                    if(actionBtn.dataset.action === 'edit' && card) openEditPjEncounter(card.dataset.encounterId);
+                    else if(actionBtn.dataset.action === 'delete' && card) deletePjEncounter(card.dataset.encounterId);
+                    else if(actionBtn.dataset.pid) openPjProfile(actionBtn.dataset.pid);
+                    return;
+                }
+                const personClick = e.target.closest('[data-pid]');
+                if(personClick && personClick.dataset.pid && !e.target.closest('.pj-action-btn[data-action]') && !e.target.closest('.pj-collapse-btn')){
+                    e.preventDefault();
+                    openPjProfile(personClick.dataset.pid);
+                    return;
                 }
             }
 
@@ -7302,12 +7490,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 const people = pjAllPeople();
                 people.forEach(p => {
                     const pr = pjProfile(p.personId);
-                    if(pr.nextAction){
+                    if(pr.nextAction || pr.nextActionDue){
                         list.push({
                             source: 'profile',
                             personId: p.personId,
                             p,
-                            text: pr.nextAction,
+                            text: pr.nextAction || 'Follow-up',
                             due: pr.nextActionDue || '',
                             priority: pr.priority || 'normal',
                             status: pr.nextActionStatus || 'open'
@@ -7421,7 +7609,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
             // Person Profile Modal Open / Close
             function openPjProfile(pid){
-                const p = pjAllPeople().find(x => x.personId === pid);
+                if(!pid) return;
+                let p = pjAllPeople().find(x => x.personId === pid);
+                if(!p){
+                    p = pjAllPeople().find(x => normalizePjName(x.name) === normalizePjName(pid) || x.name === pid);
+                }
                 if(!p) return;
                 const modal = document.getElementById('pjProfileModal');
                 const body = document.getElementById('pjProfileBody');
@@ -7637,6 +7829,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     renderPjCenter();
                     if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
                     if(selectedDateStr) renderPjDailySection(selectedDateStr);
+                    if(typeof renderCalendar === 'function') renderCalendar();
                     showToast('Profile saved');
                 });
                 document.getElementById('btnPjpTimeline')?.addEventListener('click', () => {
@@ -11941,6 +12134,20 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 }
                 const pjDailySec=document.getElementById('pjDailySection');
                 if(pjDailySec)pjDailySec.addEventListener('click',handlePjDailySectionClick);
+                const calGridEl=document.getElementById('calendarGrid');
+                if(calGridEl){
+                    calGridEl.addEventListener('click', e => {
+                        const pTarget=e.target.closest('[data-pid]');
+                        if(pTarget && pTarget.dataset.pid){
+                            const cell=pTarget.closest('.calendar-cell:not(.empty)');
+                            if(cell){
+                                const ds=cell.getAttribute('data-date');
+                                if(ds && typeof selectDate === 'function') selectDate(ds);
+                            }
+                            if(typeof openPjProfile === 'function') openPjProfile(pTarget.dataset.pid);
+                        }
+                    });
+                }
                 const btnPjModalClose=document.getElementById('pjEncounterModalClose');
                 if(btnPjModalClose)btnPjModalClose.addEventListener('click',closePjEncounterModal);
                 const pjEncounterModalOverlay=document.getElementById('pjEncounterModalOverlay');
@@ -12115,11 +12322,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const dv=e.target.closest('[data-delete-saved-view]');
                     if(dv){const idx=Number(dv.dataset.deleteSavedView);if(confirm('Delete this saved view?')){pjMeta.savedViews.splice(idx,1);savePjMeta();renderPjCenter();showToast('Saved view removed');}return;}
                     const md=e.target.closest('[data-mark-fu-done]');
-                    if(md){const pid=md.dataset.markFuDone;const pr=pjProfile(pid);pr.nextActionStatus='done';if(md.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(md.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===md.dataset.encId);if(enc)enc.followUpDone=true;savePjDayData(md.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up marked completed');return;}
+                    if(md){const pid=md.dataset.markFuDone;const pr=pjProfile(pid);pr.nextActionStatus='done';if(md.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(md.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===md.dataset.encId);if(enc)enc.followUpDone=true;savePjDayData(md.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();if(typeof renderCalendar==='function')renderCalendar();showToast('Follow-up marked completed');return;}
                     const ro=e.target.closest('[data-reopen-fu]');
-                    if(ro){const pid=ro.dataset.reopenFu;const pr=pjProfile(pid);pr.nextActionStatus='open';if(ro.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(ro.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===ro.dataset.encId);if(enc)enc.followUpDone=false;savePjDayData(ro.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up reopened');return;}
+                    if(ro){const pid=ro.dataset.reopenFu;const pr=pjProfile(pid);pr.nextActionStatus='open';if(ro.dataset.source==='encounter'&&md.dataset.encDate){const d=getPjDayData(ro.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===ro.dataset.encId);if(enc)enc.followUpDone=false;savePjDayData(ro.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();if(typeof renderCalendar==='function')renderCalendar();showToast('Follow-up reopened');return;}
                     const cl=e.target.closest('[data-clear-fu]');
-                    if(cl){const pid=cl.dataset.clearFu;const pr=pjProfile(pid);pr.nextAction='';pr.nextActionDue='';pr.nextActionStatus='open';if(cl.dataset.source==='encounter'&&cl.dataset.encDate){const d=getPjDayData(cl.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===cl.dataset.encId);if(enc)enc.followUp='';savePjDayData(cl.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();showToast('Follow-up cleared');return;}
+                    if(cl){const pid=cl.dataset.clearFu;const pr=pjProfile(pid);pr.nextAction='';pr.nextActionDue='';pr.nextActionStatus='open';if(cl.dataset.source==='encounter'&&cl.dataset.encDate){const d=getPjDayData(cl.dataset.encDate);if(d&&d.encounters){const enc=d.encounters.find(x=>x.id===cl.dataset.encId);if(enc)enc.followUp='';savePjDayData(cl.dataset.encDate,d);}}savePjMeta();invalidatePjCache();renderPjCenter();if(typeof renderCalendar==='function')renderCalendar();showToast('Follow-up cleared');return;}
                     const jd=e.target.closest('[data-jump-date]');
                     if(jd&&jd.dataset.jumpDate){const dt=jd.dataset.jumpDate;closePjCenter();const pts=dt.split('-').map(Number);if(pts[0]!==currentYear||pts[1]!==currentMonth){currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});}selectDate(dt);return;}
                     const row=e.target.closest('.pj-center-row');
@@ -12817,6 +13024,17 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 getPjDupCriteria: () => pjDupCriteria,
                 openPjMergeModal,
                 closePjMergeModal,
+                pjProfile,
+                savePjMeta,
+                loadPjMeta,
+                getPjFollowUpsForDate,
+                invalidatePjCache,
+                getTodayStr,
+                getTextCalendarMode: () => textCalendarMode,
+                getCurrentYear: () => currentYear,
+                getCurrentMonth: () => currentMonth,
+                setCurrentYear: y => { currentYear = y; },
+                setCurrentMonth: m => { currentMonth = m; },
                 renderCalendar,
                 renderLearningsSection,
                 renderHabits,
