@@ -2357,9 +2357,8 @@ body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center
 @media(max-width:900px){body.text-calendar-mode #pjTopToolbar{padding:8px 12px;gap:6px}.pj-top-toolbar-divider{display:none}}
 
 /* Hide redundant detail panel actions when in People & Text mode */
-body.text-calendar-mode .text-calendar-actions{display:none !important}
-body:not(.text-calendar-mode) .pj-daily-section{display:none !important}
-body.text-calendar-mode .pj-daily-section{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--border);padding-top:var(--sp-3)}
+.pj-daily-section{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--border);padding-top:var(--sp-3)}
+.pj-daily-section:empty{display:none !important;padding:0 !important;margin:0 !important;border:none !important}
 
 .pj-day-summary{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);display:flex;flex-direction:column;gap:4px}
 .pj-day-summary-row{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);font-size:var(--fs-xs)}
@@ -2942,25 +2941,22 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     </div>
 
     <!-- Login Page / Full Overlay -->
-    <div class="auth-overlay active" id="appAuthOverlay" role="dialog" aria-modal="true" aria-label="Sign In">
+    <div class="auth-overlay" id="appAuthOverlay" role="dialog" aria-modal="true" aria-label="Sign In">
         <div class="auth-card">
             <div class="auth-header">
                 <div class="auth-brand-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="3" ry="3"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                        <path d="m9 16 2 2 4-4"/>
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                     </svg>
                 </div>
                 <h1 class="auth-title">Task Planner</h1>
-                <p class="auth-sub">Enter credentials to unlock your planner</p>
+                <p class="auth-sub">Enter credentials to unlock screen</p>
             </div>
             <form class="auth-form" id="authLoginForm" autocomplete="on">
                 <div class="auth-field">
                     <label class="auth-label" for="authUsernameInput">Username</label>
-                    <input type="text" class="auth-input" id="authUsernameInput" autocomplete="username" placeholder="admin" required />
+                    <input type="text" class="auth-input" id="authUsernameInput" autocomplete="username" placeholder="Username" required />
                 </div>
                 <div class="auth-field">
                     <label class="auth-label" for="authPasswordInput">Password</label>
@@ -2975,7 +2971,6 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     <span>Unlock Planner</span>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>
                 </button>
-                <div class="auth-hint">Default username: <b>admin</b> &nbsp;|&nbsp; password: <b>admin123</b></div>
             </form>
         </div>
     </div>
@@ -2985,12 +2980,15 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         <div class="account-modal">
             <div class="account-modal-header">
                 <h2 class="account-modal-title" id="accountModalTitle">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    <span>Account Settings</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>Device Screen Lock</span>
                 </h2>
                 <button type="button" class="account-modal-close" id="btnAccountModalClose" aria-label="Close">&#10005;</button>
             </div>
             <form class="account-modal-body" id="accountForm">
+                <div class="auth-security-notice" style="font-size:0.75rem;color:var(--text-secondary);background:var(--bg-secondary);padding:8px 12px;border-radius:6px;margin-bottom:12px;line-height:1.4;">
+                    <strong>Local Screen Lock Notice:</strong> This passcode acts as a convenience screen lock on this browser/device to prevent casual viewing. Sensitive data stored client-side in local browser storage is not an encrypted security boundary.
+                </div>
                 <div class="auth-field">
                     <label class="auth-label" for="accUsernameInput">Username</label>
                     <input type="text" class="auth-input" id="accUsernameInput" required />
@@ -3009,9 +3007,10 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 </div>
                 <div class="auth-error" id="accountErrorMsg"></div>
                 <div class="auth-success" id="accountSuccessMsg"></div>
-                <div class="account-modal-actions">
+                <div class="account-modal-actions" style="display:flex;align-items:center;gap:8px;">
+                    <button type="button" class="btn-secondary" id="btnAccountDisableLock" style="display:none;margin-right:auto;color:var(--danger,#ef4444);">Disable Lock</button>
                     <button type="button" class="btn-secondary" id="btnAccountCancel">Cancel</button>
-                    <button type="submit" class="btn-primary" id="btnAccountSave">Save Credentials</button>
+                    <button type="submit" class="btn-primary" id="btnAccountSave">Save Passcode</button>
                 </div>
             </form>
         </div>
@@ -4820,8 +4819,16 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 if(textCalendarMode)classes.push('text-calendar-cell');
                 if(isToday)classes.push('today');
                 if(isSelected)classes.push('selected');
-                let taskHTML='',titleHTML='',ti='',li='';
+                let taskHTML='',titleHTML='',ti='',li='',fuBadgeHTML='';
                 if(data){
+                    fuBadgeHTML='';
+                    const dayFus=typeof getPjFollowUpsForDate==='function'?getPjFollowUpsForDate(ds):[];
+                    if(dayFus.length>0){
+                        const isOverdue=ds<todayStr;
+                        const firstPid=dayFus[0]?.personId||'';
+                        const badgeStyle=(!textCalendarMode&&(stats.total>0||((data.tasks&&Array.isArray(data.tasks))?data.tasks.filter(t=>t.status!=='done').length:0)>0))?'style="right:22px;" ':'';
+                        fuBadgeHTML=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" ${badgeStyle}data-pid="${escapeAttr(firstPid)}" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
+                    }
                     if(textCalendarMode){
                         const texts=Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>String(x||'').trim()):[];
                         let pjHtml='';
@@ -4830,7 +4837,6 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         if(pjDay&&Array.isArray(pjDay.encounters)&&pjDay.encounters.length>0){
                             pjHtml=buildCellPeopleHTML(pjDay.encounters);
                         }
-                        const dayFus=typeof getPjFollowUpsForDate==='function'?getPjFollowUpsForDate(ds):[];
                         if(dayFus.length>0){
                             fuHtml=buildCellFollowUpHTML(dayFus);
                         }
@@ -4838,16 +4844,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                             const visible=texts.slice(0,2);
                             taskHTML=`<div class="text-calendar-cell-list">${visible.map(x=>`<div class="text-calendar-cell-item">${escapeHtml(String(x).trim())}</div>`).join('')}${texts.length>2?`<div class="text-calendar-cell-more">+ ${texts.length-2} more</div>`:''}${pjHtml}${fuHtml}</div>`;
                         }
-                        if(dayFus.length>0){
-                            const isOverdue=ds<todayStr;
-                            taskHTML+=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
-                        }
                     }else{
-                        const dayFus=typeof getPjFollowUpsForDate==='function'?getPjFollowUpsForDate(ds):[];
-                        if(dayFus.length>0){
-                            const isOverdue=ds<todayStr;
-                            taskHTML+=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" style="right:22px;" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
-                        }
                         if(data.dayTitle&&String(data.dayTitle).trim()){
                             titleHTML=`<div class="cell-day-title" title="${escapeHtml(data.dayTitle)}">${escapeHtml(data.dayTitle)}</div>`;
                         }
@@ -4870,7 +4867,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 let mg='';
                 const counts=eisenCountsMap&&eisenCountsMap[ds];
                 if(!textCalendarMode&&counts){mg=`<div class="cell-eisen-mini"><div class="cell-eisen-mini-cell q-do_now">${counts[0]||''}</div><div class="cell-eisen-mini-cell q-do_later">${counts[1]||''}</div><div class="cell-eisen-mini-cell q-delegate">${counts[2]||''}</div><div class="cell-eisen-mini-cell q-delete">${counts[3]||''}</div></div>`}
-                const inner=`${titleHTML}<span class="cell-date">${day}</span>${taskHTML}${ti}${li}${mg}`;
+                const inner=`${titleHTML}<span class="cell-date">${day}</span>${taskHTML}${ti}${li}${mg}${fuBadgeHTML}`;
                 return{classes,inner};
             }
             function computeWeeksForMonth(y,m){const off=getFirstDayOffset(y,m);const dim=getDaysInMonth(y,m);const ts=Math.ceil((off+dim)/7)*7;const nr=ts/7;const weeks=[];for(let r=0;r<nr;r++){const days=[];for(let c=0;c<7;c++){const si=r*7+c;const day=si-off+1;if(day>=1&&day<=dim)days.push(formatDateStr(y,m,day))}if(days.length>0){const wid=`${y}-${String(m).padStart(2,'0')}-W${weeks.length+1}`;weeks.push({id:wid,index:weeks.length+1,days})}}return weeks}
@@ -5835,12 +5832,13 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             function renderPjDailySection(ds){
                 const container = document.getElementById('pjDailySection');
                 if(!container) return;
-                if(!textCalendarMode){
+                const dayData = getPjDayData(ds) || { encounters: [] };
+                const encs = dayData.encounters || [];
+                const dayFollowUps = getPjFollowUpsForDate(ds);
+                if(!textCalendarMode && dayFollowUps.length === 0 && encs.length === 0){
                     container.innerHTML = '';
                     return;
                 }
-                const dayData = getPjDayData(ds) || { encounters: [] };
-                const encs = dayData.encounters || [];
                 const firstSeenMap = buildPjFirstSeenMap();
                 const newFaces = encs.filter(e => {
                     const pid = e.personId || normalizePjName(e.name);
@@ -5848,7 +5846,6 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 }).length;
                 const savedContacts = encs.filter(e => (Array.isArray(e.phones)&&e.phones.length) || (Array.isArray(e.emails)&&e.emails.length)).length;
                 const todayStr = getTodayStr();
-                const dayFollowUps = getPjFollowUpsForDate(ds);
                 const followUpsDue = dayFollowUps.filter(f => f.status !== 'done').length;
 
                 let followUpsCardHtml = '';
@@ -9623,8 +9620,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 inputNotes.placeholder='Write your notes, reflections, or ideas for this day...';
                 const d=data||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
                 currentDataCache=JSON.parse(JSON.stringify(d));
-                if(textCalendarMode){renderTextCalendarList(d.textCalendar||[]);if(typeof renderPjDailySection==='function')renderPjDailySection(ds);}
-                else renderTaskList(d.tasks);
+                if(textCalendarMode){renderTextCalendarList(d.textCalendar||[]);}else{renderTaskList(d.tasks);}if(typeof renderPjDailySection==='function')renderPjDailySection(ds);
                 inputNotes.value=d.notes||'';
                 inputDayTitle.value=d.dayTitle||'';
                 updateProgressViz(d);
@@ -12139,6 +12135,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     calGridEl.addEventListener('click', e => {
                         const pTarget=e.target.closest('[data-pid]');
                         if(pTarget && pTarget.dataset.pid){
+                            if(e._pjHandled) return;
+                            e._pjHandled = true;
                             const cell=pTarget.closest('.calendar-cell:not(.empty)');
                             if(cell){
                                 const ds=cell.getAttribute('data-date');
@@ -15206,19 +15204,19 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 }
                 if(raw) {
                     const parsed = JSON.parse(raw);
-                    if(Array.isArray(parsed) && parsed.length){
-                        try { localStorage.setItem(AUTH_STORAGE_KEY, raw); } catch(e){}
-                        try { const st = getAppStorage(); if(st && st !== localStorage) st.setItem(AUTH_STORAGE_KEY, raw); } catch(e){}
-                        return parsed;
+                    if(Array.isArray(parsed)){
+                        const validUsers = parsed.filter(u => !u.isDefault && u.username && u.passwordHash);
+                        if(validUsers.length > 0){
+                            return validUsers;
+                        } else {
+                            try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch(e){}
+                            try { const st = getAppStorage(); if(st && st !== localStorage) st.removeItem(AUTH_STORAGE_KEY); } catch(e){}
+                            return [];
+                        }
                     }
                 }
             } catch(e){}
-            const defaultHash = await sha256('admin123');
-            const initial = [{ username: 'admin', passwordHash: defaultHash, isDefault: true }];
-            const initialStr = JSON.stringify(initial);
-            try { localStorage.setItem(AUTH_STORAGE_KEY, initialStr); } catch(e){}
-            try { const st = getAppStorage(); if(st && st !== localStorage) st.setItem(AUTH_STORAGE_KEY, initialStr); } catch(e){}
-            return initial;
+            return [];
         }
 
         function getActiveUser(){
@@ -15259,6 +15257,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
         const accConfirmPwInput = document.getElementById('accConfirmPwInput');
         const accountErrorMsg = document.getElementById('accountErrorMsg');
         const accountSuccessMsg = document.getElementById('accountSuccessMsg');
+        const btnAccountDisableLock = document.getElementById('btnAccountDisableLock');
 
         let isForcedPasswordChange = false;
 
@@ -15279,9 +15278,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             }
         }
 
-        function openAccountModal(forced){
+        async function openAccountModal(forced){
             isForcedPasswordChange = !!forced;
-            const currentUser = getActiveUser() || 'admin';
+            const users = await getStoredUsers();
+            const hasExisting = users.length > 0;
+            const currentUser = getActiveUser() || (hasExisting ? users[0].username : '');
             if(accUsernameInput) accUsernameInput.value = currentUser;
             if(accCurrentPwInput) accCurrentPwInput.value = '';
             if(accNewPwInput) accNewPwInput.value = '';
@@ -15289,21 +15290,25 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             if(accountErrorMsg){ accountErrorMsg.textContent = ''; accountErrorMsg.classList.remove('visible'); }
             if(accountSuccessMsg){ accountSuccessMsg.textContent = ''; accountSuccessMsg.classList.remove('visible'); }
 
-            if(isForcedPasswordChange){
-                if(accCurrentPwField) accCurrentPwField.style.display = 'none';
-                if(btnAccountClose) btnAccountClose.style.display = 'none';
-                if(btnAccountCancel) btnAccountCancel.style.display = 'none';
-                if(accountModalTitle) accountModalTitle.innerHTML = "<span>&#128274; Set New Credentials</span>";
-            } else {
+            if(btnAccountDisableLock){
+                btnAccountDisableLock.style.display = hasExisting && !isForcedPasswordChange ? 'inline-flex' : 'none';
+            }
+
+            if(hasExisting && !isForcedPasswordChange){
                 if(accCurrentPwField) accCurrentPwField.style.display = 'flex';
                 if(btnAccountClose) btnAccountClose.style.display = 'flex';
                 if(btnAccountCancel) btnAccountCancel.style.display = 'inline-flex';
-                if(accountModalTitle) accountModalTitle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Account Settings</span>';
+                if(accountModalTitle) accountModalTitle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Change Screen Lock Passcode</span>';
+            } else {
+                if(accCurrentPwField) accCurrentPwField.style.display = 'none';
+                if(btnAccountClose) btnAccountClose.style.display = 'flex';
+                if(btnAccountCancel) btnAccountCancel.style.display = 'inline-flex';
+                if(accountModalTitle) accountModalTitle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Set Device Screen Lock Passcode</span>';
             }
 
             if(accountModalOverlay){
                 accountModalOverlay.classList.add('active');
-                setTimeout(() => { if(accNewPwInput) accNewPwInput.focus(); }, 120);
+                setTimeout(() => { if(hasExisting && accCurrentPwInput) accCurrentPwInput.focus(); else if(accUsernameInput) accUsernameInput.focus(); }, 120);
             }
         }
 
@@ -15312,6 +15317,37 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             if(accountModalOverlay){
                 accountModalOverlay.classList.remove('active');
             }
+        }
+
+        if(btnAccountDisableLock){
+            btnAccountDisableLock.addEventListener('click', async function(){
+                const curPw = accCurrentPwInput ? accCurrentPwInput.value : '';
+                if(!curPw){
+                    if(accountErrorMsg){
+                        accountErrorMsg.textContent = 'Please enter current password to disable screen lock.';
+                        accountErrorMsg.classList.add('visible');
+                    }
+                    if(accCurrentPwInput) accCurrentPwInput.focus();
+                    return;
+                }
+                const users = await getStoredUsers();
+                if(!users.length) return;
+                const curHash = await sha256(curPw);
+                if(users[0].passwordHash !== curHash){
+                    if(accountErrorMsg){
+                        accountErrorMsg.textContent = 'Current password is incorrect.';
+                        accountErrorMsg.classList.add('visible');
+                    }
+                    return;
+                }
+                if(confirm('Disable screen lock on this device? The planner will open without requiring credentials.')){
+                    try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch(e){}
+                    try { const st = getAppStorage(); if(st && st !== localStorage) st.removeItem(AUTH_STORAGE_KEY); } catch(e){}
+                    clearActiveUser();
+                    closeAccountModal();
+                    hideLogin();
+                }
+            });
         }
 
         if(loginForm){
@@ -15324,12 +15360,16 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     return;
                 }
                 const users = await getStoredUsers();
+                if(users.length === 0){
+                    hideLogin();
+                    return;
+                }
                 const pwdHash = await sha256(pwd);
                 const matched = users.find(u => u.username.toLowerCase() === uname.toLowerCase() && u.passwordHash === pwdHash);
 
                 if(!matched){
                     if(errorMsgEl){
-                        errorMsgEl.textContent = 'Invalid username or password. Default is admin / admin123';
+                        errorMsgEl.textContent = 'Incorrect username or password.';
                         errorMsgEl.classList.add('visible');
                     }
                     return;
@@ -15338,10 +15378,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 const remember = rememberMeInput ? rememberMeInput.checked : true;
                 setActiveUser(matched.username, remember);
                 hideLogin();
-
-                if(matched.isDefault){
-                    setTimeout(() => { openAccountModal(true); }, 300);
-                }
             });
         }
 
@@ -15358,49 +15394,36 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     return;
                 }
                 if(newPw.length < 4){
-                    if(accountErrorMsg){ accountErrorMsg.textContent = 'New password must be at least 4 characters.'; accountErrorMsg.classList.add('visible'); }
+                    if(accountErrorMsg){ accountErrorMsg.textContent = 'New passcode must be at least 4 characters.'; accountErrorMsg.classList.add('visible'); }
                     return;
                 }
                 if(newPw !== confirmPw){
-                    if(accountErrorMsg){ accountErrorMsg.textContent = 'New passwords do not match.'; accountErrorMsg.classList.add('visible'); }
+                    if(accountErrorMsg){ accountErrorMsg.textContent = 'New passcodes do not match.'; accountErrorMsg.classList.add('visible'); }
                     return;
                 }
 
                 const users = await getStoredUsers();
-                const active = getActiveUser() || 'admin';
-                const userIdx = users.findIndex(u => u.username.toLowerCase() === active.toLowerCase());
+                const hasExisting = users.length > 0;
 
-                if(userIdx === -1){
-                    if(accountErrorMsg){ accountErrorMsg.textContent = 'User account not found.'; accountErrorMsg.classList.add('visible'); }
-                    return;
-                }
-
-                if(!isForcedPasswordChange){
+                if(hasExisting && !isForcedPasswordChange){
                     const curHash = await sha256(currentPw);
-                    if(users[userIdx].passwordHash !== curHash){
+                    if(users[0].passwordHash !== curHash){
                         if(accountErrorMsg){ accountErrorMsg.textContent = 'Current password is incorrect.'; accountErrorMsg.classList.add('visible'); }
                         return;
                     }
                 }
 
                 const newHash = await sha256(newPw);
-                users[userIdx].username = newUname;
-                users[userIdx].passwordHash = newHash;
-                users[userIdx].isDefault = false;
-
-                const usersStr = JSON.stringify(users);
+                const updatedUsers = [{ username: newUname, passwordHash: newHash, isDefault: false }];
+                const usersStr = JSON.stringify(updatedUsers);
                 try { localStorage.setItem(AUTH_STORAGE_KEY, usersStr); } catch(e){}
                 try { const st = getAppStorage(); if(st && st !== localStorage) st.setItem(AUTH_STORAGE_KEY, usersStr); } catch(e){}
-                setLocalKeyTimestamp(AUTH_STORAGE_KEY, Date.now());
-                clearLocalDeletedKey(AUTH_STORAGE_KEY);
-                hasPendingLocalEdits = true;
-                const remember = !sessionStorage.getItem(SESSION_STORAGE_KEY);
-                setActiveUser(newUname, remember);
-                if(typeof scheduleCloudPush === 'function') scheduleCloudPush(50);
+
+                setActiveUser(newUname, true);
 
                 if(accountErrorMsg) accountErrorMsg.classList.remove('visible');
                 if(accountSuccessMsg){
-                    accountSuccessMsg.textContent = 'Credentials updated successfully!';
+                    accountSuccessMsg.textContent = 'Screen lock passcode updated successfully!';
                     accountSuccessMsg.classList.add('visible');
                 }
 
@@ -15416,16 +15439,25 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
         const btnAuthLogout = document.getElementById('btnAuthLogout');
         if(btnAuthLogout){
-            btnAuthLogout.addEventListener('click', function(){
-                if(confirm('Are you sure you want to log out?')){
-                    clearActiveUser();
-                    showLogin();
+            btnAuthLogout.addEventListener('click', async function(){
+                const users = await getStoredUsers();
+                if(users.length > 0){
+                    if(confirm('Lock screen on this device?')){
+                        clearActiveUser();
+                        showLogin();
+                    }
+                } else {
+                    openAccountModal(false);
                 }
             });
         }
 
         (async function checkInitialAuth(){
-            await getStoredUsers();
+            const users = await getStoredUsers();
+            if(users.length === 0){
+                hideLogin();
+                return;
+            }
             const active = getActiveUser();
             if(!active){
                 showLogin();
@@ -15529,15 +15561,24 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             } catch(e){}
         }
 
+        function isSyncableKey(k){
+            if(!k || typeof k !== 'string') return false;
+            if(k.startsWith('_')) return false;
+            if(k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === AUTH_STORAGE_KEY || k === SESSION_STORAGE_KEY) return false;
+            if(k === KEY_TIMESTAMPS_KEY || k === KEY_DELETED_KEY) return false;
+            if(k.startsWith('td_') || k.startsWith('tdw_')) return true;
+            if(k.startsWith('tp_contacts') || k.startsWith('tp_people_meta')) return true;
+            if(k.startsWith('tp_eisen_presets') || k.startsWith('tp_habits_list')) return true;
+            return false;
+        }
+
         function collectSyncPayload(){
             const items = {};
             const storage = getAppStorage();
             const len = storage ? storage.length : 0;
             for(let i = 0; i < len; i++){
                 const k = storage.key(i);
-                if(!k) continue;
-                if(k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY){
-                    if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY) continue;
+                if(isSyncableKey(k)){
                     const val = storage.getItem(k);
                     if(val !== null && val !== undefined){
                         items[k] = val;
@@ -15547,8 +15588,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             if(window.localStorage && window.localStorage !== storage){
                 for(let i = 0; i < window.localStorage.length; i++){
                     const k = window.localStorage.key(i);
-                    if(k && (k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY) && items[k] === undefined){
-                        if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY) continue;
+                    if(isSyncableKey(k) && items[k] === undefined){
                         items[k] = window.localStorage.getItem(k);
                     }
                 }
@@ -15558,68 +15598,230 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             return items;
         }
 
+        function notifyAppBridgeOfExternalChanges(){
+            const bridge = window.__taskPlannerAppBridge;
+            if(bridge){
+                bridge.clearDataCache();
+                bridge.renderCalendar();
+                bridge.renderLearningsSection();
+                bridge.renderHabits();
+                if(bridge.renderDestinationTimes) bridge.renderDestinationTimes();
+
+                const mode = bridge.getSelectionMode ? bridge.getSelectionMode() : 'daily';
+                const sDate = bridge.getSelectedDateStr ? bridge.getSelectedDateStr() : null;
+                const sWeek = bridge.getSelectedWeekId ? bridge.getSelectedWeekId() : null;
+
+                if(mode === 'daily' && sDate && bridge.selectDate){
+                    bridge.selectDate(sDate);
+                } else if(mode === 'weekly' && sWeek && bridge.selectWeek){
+                    bridge.selectWeek(sWeek);
+                }
+
+                const em = document.getElementById('eisenOverlay');
+                if(em && em.classList.contains('active') && bridge.renderEisen){
+                    bridge.renderEisen();
+                }
+            }
+
+            if(typeof window.__taskPlannerReloadPert === 'function'){
+                window.__taskPlannerReloadPert();
+            }
+            window.dispatchEvent(new CustomEvent('td-pert-cloud-reload'));
+
+            if(typeof renderEisenPresetList === 'function'){
+                renderEisenPresetList();
+            }
+        }
+
+        function mergePayloads(localPayload, remotePayload, remoteUpdatedAt){
+            const storage = getAppStorage();
+            const localTimestamps = (localPayload && localPayload._meta_timestamps && typeof localPayload._meta_timestamps === 'object') ? { ...localPayload._meta_timestamps } : getLocalTimestamps();
+            const localDeleted = (localPayload && localPayload._meta_deleted && typeof localPayload._meta_deleted === 'object') ? { ...localPayload._meta_deleted } : getLocalDeletedKeys();
+            const remoteTimestamps = (remotePayload && remotePayload._meta_timestamps && typeof remotePayload._meta_timestamps === 'object') ? remotePayload._meta_timestamps : {};
+            const remoteDeleted = (remotePayload && remotePayload._meta_deleted && typeof remotePayload._meta_deleted === 'object') ? remotePayload._meta_deleted : {};
+            const remoteDefaultTs = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
+
+            const mergedItems = {};
+            const mergedTimestamps = { ...localTimestamps };
+            const mergedDeleted = { ...localDeleted };
+            let hasLocalNewerChanges = false;
+            let localAppliedRemoteChanges = false;
+
+            const allKeys = new Set([
+                ...Object.keys(localPayload || {}).filter(isSyncableKey),
+                ...Object.keys(remotePayload || {}).filter(isSyncableKey),
+                ...Object.keys(localDeleted || {}).filter(isSyncableKey),
+                ...Object.keys(remoteDeleted || {}).filter(isSyncableKey)
+            ]);
+
+            for(const k of allKeys){
+                const curLocalVal = (localPayload && localPayload[k] !== undefined && localPayload[k] !== null) ? ((typeof localPayload[k] === 'object') ? JSON.stringify(localPayload[k]) : String(localPayload[k])) : (storage ? storage.getItem(k) : null);
+                const remoteVal = (remotePayload && remotePayload[k] !== undefined) ? remotePayload[k] : undefined;
+                const remoteStrVal = (remoteVal !== undefined && remoteVal !== null) ? ((typeof remoteVal === 'object') ? JSON.stringify(remoteVal) : String(remoteVal)) : null;
+
+                const localTs = localTimestamps[k] || 0;
+                const remoteTs = remoteTimestamps[k] || (remoteVal !== undefined ? remoteDefaultTs : 0);
+                const localDelTs = localDeleted[k] || 0;
+                const remoteDelTs = remoteDeleted[k] || 0;
+
+                // Protect PERT network data from being overwritten by empty remote activities
+                if(k.startsWith('td_pert_')){
+                    try {
+                        const lp = JSON.parse(curLocalVal || '{}');
+                        const rp = JSON.parse(remoteStrVal || '{}');
+                        if((lp.activities?.length || 0) > 0 && (rp.activities?.length || 0) === 0){
+                            mergedItems[k] = curLocalVal;
+                            mergedTimestamps[k] = Math.max(localTs, Date.now());
+                            hasLocalNewerChanges = true;
+                            continue;
+                        }
+                    } catch(e){}
+                }
+
+                // Check deletions
+                const effectiveDelTs = Math.max(localDelTs, remoteDelTs);
+                const effectiveEditTs = Math.max(localTs, remoteTs);
+
+                if(effectiveDelTs > 0 && effectiveDelTs >= effectiveEditTs){
+                    mergedDeleted[k] = effectiveDelTs;
+                    delete mergedTimestamps[k];
+                    if(curLocalVal !== null && curLocalVal !== undefined){
+                        storage.removeItem(k);
+                        localAppliedRemoteChanges = true;
+                    }
+                    continue;
+                }
+
+                if(remoteStrVal !== null && curLocalVal !== null && curLocalVal !== undefined){
+                    if(remoteTs > localTs + 500){
+                        if(curLocalVal !== remoteStrVal){
+                            if(storage) storage.setItem(k, remoteStrVal);
+                            localAppliedRemoteChanges = true;
+                        }
+                        mergedItems[k] = remoteStrVal;
+                        mergedTimestamps[k] = remoteTs;
+                    } else if(localTs > remoteTs + 500){
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = localTs;
+                        hasLocalNewerChanges = true;
+                    } else {
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = Math.max(localTs, remoteTs);
+                    }
+                } else if(remoteStrVal !== null){
+                    storage.setItem(k, remoteStrVal);
+                    localAppliedRemoteChanges = true;
+                    mergedItems[k] = remoteStrVal;
+                    mergedTimestamps[k] = remoteTs;
+                } else if(curLocalVal !== null && curLocalVal !== undefined){
+                    mergedItems[k] = curLocalVal;
+                    mergedTimestamps[k] = localTs || Date.now();
+                    hasLocalNewerChanges = true;
+                }
+            }
+
+            try {
+                window.localStorage.setItem(KEY_TIMESTAMPS_KEY, JSON.stringify(mergedTimestamps));
+                window.localStorage.setItem(KEY_DELETED_KEY, JSON.stringify(mergedDeleted));
+            } catch(e){}
+
+            mergedItems._meta_timestamps = mergedTimestamps;
+            mergedItems._meta_deleted = mergedDeleted;
+
+            return {
+                mergedPayload: mergedItems,
+                hasLocalNewerChanges,
+                localAppliedRemoteChanges
+            };
+        }
+
         async function pushToCloud(){
             if(!supabaseClient || isApplyingRemoteUpdate || isTabResuming) return;
             if(!hasPendingLocalEdits && lastAppliedRemoteUpdatedAt) return;
 
-            // Optimistic concurrency freshness check before overwriting remote row
-            try {
-                const { data: remoteMeta, error: checkErr } = await supabaseClient
-                    .from('app_sync')
-                    .select('updated_at')
-                    .eq('id', 'primary')
-                    .maybeSingle();
+            setSyncStatus('syncing', 'Syncing to cloud...', 'Merging and uploading updates to Supabase');
 
-                if(!checkErr && remoteMeta && remoteMeta.updated_at){
-                    const remoteTime = new Date(remoteMeta.updated_at).getTime();
-                    const localAppliedTime = lastAppliedRemoteUpdatedAt ? new Date(lastAppliedRemoteUpdatedAt).getTime() : 0;
-                    if(remoteTime > localAppliedTime + 500){
-                        // Remote in cloud has been updated by another client since our last sync!
-                        // Pull remote changes first to prevent overwriting newer changes!
-                        const { data: fullRemote } = await supabaseClient
-                            .from('app_sync')
-                            .select('data, updated_at')
-                            .eq('id', 'primary')
-                            .maybeSingle();
-                        if(fullRemote && fullRemote.data){
-                            applyIncomingPayload(fullRemote.data, fullRemote.updated_at, false);
-                        }
-                        if(hasPendingLocalEdits){
-                            scheduleCloudPush(300);
-                        }
+            const MAX_RETRIES = 3;
+            let attempt = 0;
+
+            while(attempt < MAX_RETRIES){
+                attempt++;
+
+                let remoteRow = null;
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('app_sync')
+                        .select('data, updated_at')
+                        .eq('id', 'primary')
+                        .maybeSingle();
+                    if(!error) remoteRow = data;
+                } catch(e){}
+
+                const remoteUpdatedAt = remoteRow ? remoteRow.updated_at : null;
+                const remoteData = (remoteRow && remoteRow.data) ? remoteRow.data : {};
+
+                const localPayload = collectSyncPayload();
+                const { mergedPayload, localAppliedRemoteChanges } = mergePayloads(localPayload, remoteData, remoteUpdatedAt);
+
+                if(localAppliedRemoteChanges){
+                    notifyAppBridgeOfExternalChanges();
+                }
+
+                mergedPayload._senderId = CLIENT_SESSION_ID;
+                const nowIso = new Date().toISOString();
+
+                // Optimistic Concurrency Control (OCC) conditional update
+                if(remoteUpdatedAt){
+                    const { data: updateRes, error: updateErr } = await supabaseClient
+                        .from('app_sync')
+                        .update({ data: mergedPayload, updated_at: nowIso })
+                        .eq('id', 'primary')
+                        .eq('updated_at', remoteUpdatedAt)
+                        .select('updated_at');
+
+                    if(updateErr){
+                        console.warn('OCC update attempt error:', updateErr);
+                        setSyncStatus('error', 'Sync Error', updateErr.message);
                         return;
                     }
-                }
-            } catch(e){}
 
-            setSyncStatus('syncing', 'Syncing to cloud...', 'Uploading local updates to Supabase');
-            const payload = collectSyncPayload();
-            payload._senderId = CLIENT_SESSION_ID;
-            const now = new Date();
-            const nowIso = now.toISOString();
+                    if(!updateRes || updateRes.length === 0){
+                        console.warn('OCC Conflict detected! Another device committed an edit. Retrying merge...');
+                        await new Promise(r => setTimeout(r, 100 + Math.random() * 200));
+                        continue;
+                    }
 
-            try {
-                const { data: upsertData, error } = await supabaseClient
-                    .from('app_sync')
-                    .upsert({ id: 'primary', data: payload, updated_at: nowIso })
-                    .select('updated_at')
-                    .maybeSingle();
-
-                if(error){
-                    console.warn('Cloud sync error:', error);
-                    setSyncStatus('error', 'Sync Failed', error.message || 'Error pushing to cloud');
-                } else {
-                    const actualUpdatedAt = (upsertData && upsertData.updated_at) ? upsertData.updated_at : nowIso;
-                    lastPushedUpdatedAt = actualUpdatedAt;
-                    lastAppliedRemoteUpdatedAt = actualUpdatedAt;
+                    const finalUpdated = updateRes[0]?.updated_at || nowIso;
+                    lastPushedUpdatedAt = finalUpdated;
+                    lastAppliedRemoteUpdatedAt = finalUpdated;
                     hasPendingLocalEdits = false;
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
-                    if(syncLastTime) syncLastTime.textContent = now.toLocaleTimeString();
+                    if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
+                    return;
+                } else {
+                    const { data: insertRes, error: insertErr } = await supabaseClient
+                        .from('app_sync')
+                        .insert({ id: 'primary', data: mergedPayload, updated_at: nowIso })
+                        .select('updated_at');
+
+                    if(insertErr){
+                        console.warn('Initial insert collision, retrying with update...', insertErr);
+                        await new Promise(r => setTimeout(r, 150));
+                        continue;
+                    }
+
+                    const finalUpdated = insertRes[0]?.updated_at || nowIso;
+                    lastPushedUpdatedAt = finalUpdated;
+                    lastAppliedRemoteUpdatedAt = finalUpdated;
+                    hasPendingLocalEdits = false;
+                    setSyncStatus('connected', 'Live Sync Active', 'Connected & synced in real-time');
+                    if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
+                    return;
                 }
-            } catch(e){
-                console.warn('Network sync error:', e);
-                setSyncStatus('error', 'Network Error', e.message || 'Offline or server unreachable');
             }
+
+            setSyncStatus('syncing', 'Sync Retrying...', 'High concurrency detected, will re-sync shortly');
+            scheduleCloudPush(1500);
         }
 
         function pushToCloudKeepalive(){
@@ -15667,141 +15869,20 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
             isApplyingRemoteUpdate = true;
             window.__isApplyingRemoteUpdate = true;
-            let changesMade = false;
-            let hasLocalNewer = false;
-            const storage = getAppStorage();
-            const localTimestamps = getLocalTimestamps();
-            const localDeleted = getLocalDeletedKeys();
-            const remoteTimestamps = (remotePayload._meta_timestamps && typeof remotePayload._meta_timestamps === 'object') ? remotePayload._meta_timestamps : {};
-            const remoteDeleted = (remotePayload._meta_deleted && typeof remotePayload._meta_deleted === 'object') ? remotePayload._meta_deleted : {};
-            const remoteDefaultTs = remoteUpdatedAt ? new Date(remoteUpdatedAt).getTime() : 0;
 
             try {
-                for(const [k, v] of Object.entries(remotePayload)){
-                    if(!k || k.startsWith('_')) continue;
-                    if(!k.startsWith('td_') && !k.startsWith('tdw_') && k !== AUTH_STORAGE_KEY) continue;
-                    if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY) continue;
+                const localPayload = collectSyncPayload();
+                const { hasLocalNewerChanges, localAppliedRemoteChanges } = mergePayloads(localPayload, remotePayload, remoteUpdatedAt);
 
-                    const cur = storage.getItem(k);
-                    const strVal = (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v);
-
-                    const localTs = localTimestamps[k] || 0;
-                    const remoteTs = remoteTimestamps[k] || remoteDefaultTs;
-
-                    // Protect PERT network data from being overwritten by empty remote activities
-                    if(k.startsWith('td_pert_')){
-                        try {
-                            const lp = JSON.parse(cur || '{}');
-                            const rp = JSON.parse(strVal || '{}');
-                            if((lp.activities?.length || 0) > 0 && (rp.activities?.length || 0) === 0 && !force){
-                                hasLocalNewer = true;
-                                continue;
-                            }
-                        } catch(e){}
-                    }
-
-                    // If key was deleted locally more recently than remote edit, NEVER RESURRECT IT!
-                    const localDelTs = localDeleted[k] || 0;
-                    if(!force && localDelTs > 0 && localDelTs > remoteTs + 500){
-                        hasLocalNewer = true;
-                        continue;
-                    }
-
-                    // If local key exists and was edited more recently than remote, NEVER OVERWRITE LOCAL WORK!
-                    if(!force && cur !== null && cur !== undefined && localTs > remoteTs + 500){
-                        hasLocalNewer = true;
-                        continue;
-                    }
-
-                    if(cur === strVal) continue;
-
-                    // Remote is newer: apply remote value!
-                    storage.setItem(k, strVal);
-                    if(k === AUTH_STORAGE_KEY){ try { window.localStorage.setItem(AUTH_STORAGE_KEY, strVal); } catch(e){} }
-                    clearLocalDeletedKey(k);
-                    localTimestamps[k] = remoteTs || Date.now();
-                    changesMade = true;
-                }
-
-                // Check for keys that local has but remote lacks or remote deleted:
-                const localLen = storage ? storage.length : 0;
-                for(let i = 0; i < localLen; i++){
-                    const lk = storage.key(i);
-                    if(!lk) continue;
-                    if(lk.startsWith('td_') || lk.startsWith('tdw_') || lk === AUTH_STORAGE_KEY){
-                        if((lk.startsWith('tp_auth_') || lk.startsWith('td_auth_') || lk === 'td_auth_session') && lk !== AUTH_STORAGE_KEY) continue;
-
-                        const localTs = localTimestamps[lk] || 0;
-                        const remoteDelTs = remoteDeleted[lk] || 0;
-
-                        if(!force && remoteDelTs > 0 && remoteDelTs > localTs + 500){
-                            // Remote explicitly deleted this key more recently! Remove it locally!
-                            storage.removeItem(lk);
-                            recordLocalDeletedKey(lk, remoteDelTs);
-                            localTimestamps[lk] = remoteDelTs;
-                            changesMade = true;
-                        } else if(remotePayload[lk] === undefined && !remoteDeleted[lk]){
-                            if(lk.startsWith('td_pert_')){
-                                try {
-                                    const curL = storage.getItem(lk);
-                                    const parsed = JSON.parse(curL || '{}');
-                                    if((parsed.activities?.length || 0) > 0 && !force) continue;
-                                } catch(e){}
-                            }
-                            if(hasPendingLocalEdits){
-                                hasLocalNewer = true;
-                            }
-                        }
-                    }
-                }
-
-                try {
-                    window.localStorage.setItem(KEY_TIMESTAMPS_KEY, JSON.stringify(localTimestamps));
-                } catch(e){}
-
-                if(changesMade){
-                    const bridge = window.__taskPlannerAppBridge;
-                    if(bridge){
-                        bridge.clearDataCache();
-                        bridge.renderCalendar();
-                        bridge.renderLearningsSection();
-                        bridge.renderHabits();
-                        if(bridge.renderDestinationTimes) bridge.renderDestinationTimes();
-
-                        const mode = bridge.getSelectionMode ? bridge.getSelectionMode() : 'daily';
-                        const sDate = bridge.getSelectedDateStr ? bridge.getSelectedDateStr() : null;
-                        const sWeek = bridge.getSelectedWeekId ? bridge.getSelectedWeekId() : null;
-
-                        if(mode === 'daily' && sDate && bridge.selectDate){
-                            bridge.selectDate(sDate);
-                        } else if(mode === 'weekly' && sWeek && bridge.selectWeek){
-                            bridge.selectWeek(sWeek);
-                        }
-
-                        const em = document.getElementById('eisenOverlay');
-                        if(em && em.classList.contains('active') && bridge.renderEisen){
-                            bridge.renderEisen();
-                        }
-                    }
-
-                    // Reload PERT diagram & table for active date
-                    if(typeof window.__taskPlannerReloadPert === 'function'){
-                        window.__taskPlannerReloadPert();
-                    }
-                    window.dispatchEvent(new CustomEvent('td-pert-cloud-reload'));
-
-                    // Re-render presets list if updated
-                    if(typeof renderEisenPresetList === 'function'){
-                        renderEisenPresetList();
-                    }
+                if(localAppliedRemoteChanges){
+                    notifyAppBridgeOfExternalChanges();
                 }
 
                 lastAppliedRemoteUpdatedAt = remoteUpdatedAt;
-                setSyncStatus('connected', 'Live Sync Active', changesMade ? 'Applied remote updates' : 'Synced with cloud');
+                setSyncStatus('connected', 'Live Sync Active', localAppliedRemoteChanges ? 'Applied remote updates' : 'Synced with cloud');
                 if(syncLastTime) syncLastTime.textContent = new Date().toLocaleTimeString();
 
-                // If local has newer keys from pending edits, push them to cloud!
-                if(hasLocalNewer && hasPendingLocalEdits){
+                if(hasLocalNewerChanges && hasPendingLocalEdits){
                     scheduleCloudPush(300);
                 }
             } finally {
@@ -15894,12 +15975,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 return;
             }
 
-            // 1. Wait for IndexedDB initialization
             if(window.__taskPlannerIDBReady){
                 try { await window.__taskPlannerIDBReady; } catch(e){}
             }
 
-            // 2. Intercept mutations on window.appStorage and window.localStorage
             function hookStorage(){
                 const storage = window.appStorage;
                 if(storage && storage.setItem && !storage.__syncHooked){
@@ -15907,29 +15986,21 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const origRem = storage.removeItem.bind(storage);
                     storage.setItem = function(k, v){
                         origSet(k, v);
-                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY)){
-                            if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY){
-                                // skip session tokens
-                            } else {
-                                clearLocalDeletedKey(k);
-                                setLocalKeyTimestamp(k, Date.now());
-                                hasPendingLocalEdits = true;
-                                scheduleCloudPush();
-                            }
+                        if(!isApplyingRemoteUpdate && isSyncableKey(k)){
+                            clearLocalDeletedKey(k);
+                            setLocalKeyTimestamp(k, Date.now());
+                            hasPendingLocalEdits = true;
+                            scheduleCloudPush();
                         }
                     };
                     storage.removeItem = function(k){
                         origRem(k);
-                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY)){
-                            if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY){
-                                // skip session tokens
-                            } else {
-                                const delTs = Date.now();
-                                recordLocalDeletedKey(k, delTs);
-                                setLocalKeyTimestamp(k, delTs);
-                                hasPendingLocalEdits = true;
-                                scheduleCloudPush(50);
-                            }
+                        if(!isApplyingRemoteUpdate && isSyncableKey(k)){
+                            const delTs = Date.now();
+                            recordLocalDeletedKey(k, delTs);
+                            setLocalKeyTimestamp(k, delTs);
+                            hasPendingLocalEdits = true;
+                            scheduleCloudPush(50);
                         }
                     };
                     storage.__syncHooked = true;
@@ -15940,29 +16011,21 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     const origLsRem = window.localStorage.removeItem.bind(window.localStorage);
                     window.localStorage.setItem = function(k, v){
                         origLsSet(k, v);
-                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY)){
-                            if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY){
-                                // skip session tokens
-                            } else {
-                                clearLocalDeletedKey(k);
-                                setLocalKeyTimestamp(k, Date.now());
-                                hasPendingLocalEdits = true;
-                                scheduleCloudPush();
-                            }
+                        if(!isApplyingRemoteUpdate && isSyncableKey(k)){
+                            clearLocalDeletedKey(k);
+                            setLocalKeyTimestamp(k, Date.now());
+                            hasPendingLocalEdits = true;
+                            scheduleCloudPush();
                         }
                     };
                     window.localStorage.removeItem = function(k){
                         origLsRem(k);
-                        if(!isApplyingRemoteUpdate && (k.startsWith('td_') || k.startsWith('tdw_') || k === AUTH_STORAGE_KEY)){
-                            if((k.startsWith('tp_auth_') || k.startsWith('td_auth_') || k === 'td_auth_session') && k !== AUTH_STORAGE_KEY){
-                                // skip session tokens
-                            } else {
-                                const delTs = Date.now();
-                                recordLocalDeletedKey(k, delTs);
-                                setLocalKeyTimestamp(k, delTs);
-                                hasPendingLocalEdits = true;
-                                scheduleCloudPush(50);
-                            }
+                        if(!isApplyingRemoteUpdate && isSyncableKey(k)){
+                            const delTs = Date.now();
+                            recordLocalDeletedKey(k, delTs);
+                            setLocalKeyTimestamp(k, delTs);
+                            hasPendingLocalEdits = true;
+                            scheduleCloudPush(50);
                         }
                     };
                     window.localStorage.__syncHooked = true;
@@ -15970,7 +16033,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             }
             hookStorage();
 
-            // Wire up modal & account UI buttons immediately so they are 100% responsive offline & online
             if(btnCloudSync && cloudSyncModalOverlay){
                 btnCloudSync.addEventListener('click', () => {
                     cloudSyncModalOverlay.classList.add('visible');
@@ -16005,7 +16067,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 });
             }
 
-            // 3. Connect to Supabase
             try {
                 supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
                 setSyncStatus('syncing', 'Connecting to Cloud...', 'Checking database for sync data');
@@ -16017,9 +16078,9 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     .maybeSingle();
 
                 const localPayload = collectSyncPayload();
-                const localKeys = Object.keys(localPayload);
+                const localKeys = Object.keys(localPayload).filter(isSyncableKey);
                 const remotePayload = (data && data.data) ? data.data : {};
-                const remoteKeys = Object.keys(remotePayload);
+                const remoteKeys = Object.keys(remotePayload).filter(isSyncableKey);
 
                 if(error){
                     console.warn('Cloud sync error on init:', error);
@@ -16032,10 +16093,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     setSyncStatus('connected', 'Live Sync Active', 'Connected & ready to sync');
                 }
 
-                // 4. Start Realtime subscription
                 subscribeRealtime();
 
-                // 5. Lifecycle event listeners for robust desktop & mobile sync
                 function flushBeforeExit(){
                     try {
                         if(window.__taskPlannerAppBridge && typeof window.__taskPlannerAppBridge.flushDebounced === 'function'){
@@ -16102,7 +16161,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     }
                 }, 25000);
 
-                } catch(e){
+            } catch(e){
                 console.warn('Supabase init error:', e);
                 setSyncStatus('error', 'Init Error', e.message);
             }
@@ -16110,7 +16169,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
 
         initCloudSync();
 
-
+        if(window.__taskPlannerAppBridge){
+            window.__taskPlannerAppBridge.collectSyncPayload = collectSyncPayload;
+            window.__taskPlannerAppBridge.mergePayloads = mergePayloads;
+            window.__taskPlannerAppBridge.pushToCloud = pushToCloud;
+            window.__taskPlannerAppBridge.pullFromCloud = pullFromCloud;
+        }
         if('serviceWorker' in navigator){
             window.addEventListener('load', function(){
                 navigator.serviceWorker.register('sw.js').then(function(reg){
