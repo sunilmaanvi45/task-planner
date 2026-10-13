@@ -3201,6 +3201,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 <button type="button" class="pj-center-tab" data-tab="analytics">Analytics</button>
                 <button type="button" class="pj-center-tab" data-tab="search">Advanced Search</button>
                 <button type="button" class="pj-center-tab" data-tab="saved">Saved Views</button>
+                <button type="button" class="pj-center-tab" data-tab="tags">Tags</button>
                 <button type="button" class="pj-center-tab" data-tab="data">Data & Backup</button>
             </div>
             <div class="pj-center-body" id="pjCenterBody"></div>
@@ -5068,6 +5069,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             let pjMeta = {profiles:{},customTags:[],savedViews:[],history:[],backups:[],notContactedDays:60};
             let pjDupCriteria = {phone:true,email:true,nameExact:true,nameNoPhone:true,similarNoPhone:true,nameSimilar:false,matchMode:'any'};
             let pjActiveTab = 'dashboard', pjSort = 'recent', pjSelectedPid = null, pjSearch = '';
+            let pjCenterTagFilter = 'all', pjCenterTagSearch = '', pjCenterTagScope = 'contacts';
             let selectedPersonId = null, peopleFilter = '', peopleViewMode = 'all';
             let editingEncounterId = null, editingEncounterDay = null;
             let expandedEncounters = new Set();
@@ -8787,7 +8789,200 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         savePjMeta();
                         pjShowSavedViewForm = false;
                         renderPjCenter();
-                        showToast('Custom view created');
+                    });
+                } else if(pjActiveTab === 'tags'){
+                    // Determine scope: 'contacts' (default) vs 'all'
+                    const sourceList = (pjCenterTagScope === 'all') ? people : people.filter(p => p.isContact);
+                    const allTagsList = pjAllTags();
+
+                    // Calculate tag frequencies in current scope
+                    const tagCounts = new Map();
+                    allTagsList.forEach(t => tagCounts.set(t, 0));
+                    let untaggedCount = 0;
+                    sourceList.forEach(p => {
+                        const tags = Array.isArray(p.tags) ? p.tags : [];
+                        if(!tags.length){
+                            untaggedCount++;
+                        } else {
+                            tags.forEach(t => {
+                                tagCounts.set(t, (tagCounts.get(t) || 0) + 1);
+                            });
+                        }
+                    });
+
+                    // Filter list by selected tag
+                    let filtered = sourceList;
+                    if(pjCenterTagFilter === 'untagged'){
+                        filtered = sourceList.filter(p => !Array.isArray(p.tags) || p.tags.length === 0);
+                    } else if(pjCenterTagFilter !== 'all'){
+                        filtered = sourceList.filter(p => Array.isArray(p.tags) && p.tags.includes(pjCenterTagFilter));
+                    }
+
+                    // Optional search filter within results
+                    if(pjCenterTagSearch.trim()){
+                        const q = pjCenterTagSearch.trim().toLowerCase();
+                        filtered = filtered.filter(p => [
+                            p.name,
+                            p.nickname,
+                            p.profile?.relation,
+                            p._profile?.relation,
+                            (p.phones||[]).join(' '),
+                            (p.emails||[]).join(' '),
+                            (p.tags||[]).join(' ')
+                        ].join(' ').toLowerCase().includes(q));
+                    }
+
+                    // Sort filtered list alphabetically by name
+                    filtered = filtered.slice().sort((a,b) => String(a.name||'').localeCompare(String(b.name||'')));
+
+                    const activeTagMeta = (pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged') ? pjTagMeta(pjCenterTagFilter) : null;
+                    const activeTagTitle = pjCenterTagFilter === 'all' 
+                        ? 'All Tags' 
+                        : (pjCenterTagFilter === 'untagged' ? 'Untagged Contacts' : `${activeTagMeta.icon} ${activeTagMeta.label}`);
+
+                    body.innerHTML = `
+                        <!-- Toolbar with Dropdown & Search -->
+                        <div class="pj-toolbar-row" style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--r-lg);padding:10px 14px;margin-bottom:12px;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                                <label for="pjCenterTagSelect" style="font-size:var(--fs-xs);font-weight:750;color:var(--text);display:flex;align-items:center;gap:5px;">
+                                    <span>&#127991; Filter by Tag:</span>
+                                </label>
+                                <select id="pjCenterTagSelect" class="pj-select" style="font-size:var(--fs-xs);padding:6px 12px;border-radius:var(--r-md);border:1.5px solid var(--border-strong);background:var(--input-bg);color:var(--text);font-weight:600;min-width:210px;">
+                                    <option value="all" ${pjCenterTagFilter==='all'?'selected':''}>&#127991; All Tags (${sourceList.length})</option>
+                                    ${allTagsList.map(t => {
+                                        const m = pjTagMeta(t);
+                                        const c = tagCounts.get(t) || 0;
+                                        return `<option value="${escapeAttr(t)}" ${pjCenterTagFilter===t?'selected':''}>${m.icon} ${escapeHtml(m.label)} (${c})</option>`;
+                                    }).join('')}
+                                    <option value="untagged" ${pjCenterTagFilter==='untagged'?'selected':''}>&#9898; Untagged (${untaggedCount})</option>
+                                </select>
+                                <input type="text" id="pjCenterTagSearchInput" placeholder="Filter by name / phone..." value="${escapeAttr(pjCenterTagSearch)}" style="font-size:var(--fs-xs);padding:6px 10px;border-radius:var(--r-md);border:1px solid var(--border);width:170px;">
+                            </div>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <div style="display:flex;align-items:center;gap:4px;font-size:var(--fs-xs);">
+                                    <span style="color:var(--text-secondary);font-weight:600;">Scope:</span>
+                                    <select id="pjCenterTagScopeSelect" class="pj-select" style="font-size:var(--fs-2xs);padding:4px 8px;border-radius:var(--r-sm);border:1px solid var(--border);">
+                                        <option value="contacts" ${pjCenterTagScope==='contacts'?'selected':''}>Contacts only</option>
+                                        <option value="all" ${pjCenterTagScope==='all'?'selected':''}>All people</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn-primary" id="btnTagsAddContact" style="font-size:var(--fs-xs);padding:5px 12px;">+ Add Contact</button>
+                            </div>
+                        </div>
+
+                        <!-- Tag Pills Quick Bar -->
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">
+                            <span style="font-size:var(--fs-2xs);font-weight:700;color:var(--text-secondary);text-transform:uppercase;margin-right:2px;">Tags:</span>
+                            <button type="button" class="pj-toolbar-pill ${pjCenterTagFilter==='all'?'active':''}" data-tag-filter="all">&#127991; All (${sourceList.length})</button>
+                            ${allTagsList.map(t => {
+                                const m = pjTagMeta(t);
+                                const c = tagCounts.get(t) || 0;
+                                const isActive = (pjCenterTagFilter === t);
+                                return `
+                                    <button type="button" class="pj-toolbar-pill ${isActive?'active':''}" data-tag-filter="${escapeAttr(t)}" style="${isActive?'font-weight:750;':''}">
+                                        ${m.icon} ${escapeHtml(m.label)} (${c})
+                                    </button>
+                                `;
+                            }).join('')}
+                            <button type="button" class="pj-toolbar-pill ${pjCenterTagFilter==='untagged'?'active':''}" data-tag-filter="untagged">&#9898; Untagged (${untaggedCount})</button>
+                        </div>
+
+                        <!-- Header Summary Banner -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);margin-bottom:12px;">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-size:var(--fs-sm);font-weight:750;color:var(--text);">${activeTagTitle}</span>
+                                <span class="pj-badge accent">${filtered.length} contact${filtered.length === 1 ? '' : 's'}</span>
+                            </div>
+                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">
+                                Click any contact to open their profile & manage tags
+                            </div>
+                        </div>
+
+                        <!-- Tagged Contacts List -->
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            ${filtered.map(p => {
+                                const pr = p._profile || {};
+                                const firstPhone = (p.phones && p.phones.length) ? p.phones[0] : '';
+                                const firstEmail = (p.emails && p.emails.length) ? p.emails[0] : '';
+                                const tags = Array.isArray(p.tags) ? p.tags : [];
+                                return `
+                                    <div class="pj-center-row pj-card-interactive" data-open-profile="${escapeAttr(p.personId)}">
+                                        <div style="display:flex;align-items:center;gap:8px;">
+                                            <button type="button" class="pj-star-btn ${pr.favorite?'active':''}" data-toggle-fav="${escapeAttr(p.personId)}" title="Toggle Favorite">&#9733;</button>
+                                            <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:36px;height:36px;font-size:0.8rem;">${escapeHtml(initialsOfPj(p.name))}</div>
+                                        </div>
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                                                <strong style="font-size:var(--fs-sm);">${escapeHtml(p.name)}</strong>
+                                                <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
+                                                ${(p.profile?.relation||pr.relation) ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">(${escapeHtml(p.profile?.relation||pr.relation)})</span>` : ''}
+                                                ${p.organization ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">&middot; ${escapeHtml(p.organization)}</span>` : ''}
+                                            </div>
+                                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                                ${firstPhone ? `<span style="font-family:var(--font-mono);color:var(--accent);font-weight:600;">&#128222; ${escapeHtml(firstPhone)}</span>` : ''}
+                                                ${firstEmail ? `<span>&#9993; ${escapeHtml(firstEmail)}</span>` : ''}
+                                                <span>${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)}` : 'Not met yet'}</span>
+                                                <span>&middot; ${p.encounters.length} interaction(s)</span>
+                                            </div>
+                                            <div class="pj-tags-row" style="margin-top:4px;">
+                                                ${tags.map(t => {
+                                                    const m = pjTagMeta(t);
+                                                    const isFiltered = (pjCenterTagFilter === t);
+                                                    return `<span class="pj-tag ${escapeAttr(t)}" style="${isFiltered ? 'font-weight:800;box-shadow:0 0 0 1.5px var(--accent);' : ''}">${m.icon} ${escapeHtml(m.label)}</span>`;
+                                                }).join('') || '<span style="font-size:var(--fs-2xs);color:var(--text-secondary);font-style:italic;">No tags</span>'}
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
+                                            <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">&#9200; Follow-up</button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('') || `
+                                <div class="pj-empty-card" style="padding:40px 20px;text-align:center;">
+                                    <div style="font-size:2.2rem;opacity:.5;">&#127991;</div>
+                                    <div style="font-size:var(--fs-sm);font-weight:700;margin-top:6px;">No contacts found with ${pjCenterTagFilter === 'all' ? 'tags' : (pjCenterTagFilter === 'untagged' ? 'no tags' : 'the tag "' + escapeHtml(pjCenterTagFilter) + '"')}.</div>
+                                    <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin-top:4px;">Assign tags when creating contacts or from any contact\'s profile view.</div>
+                                    <div style="display:flex;gap:8px;margin-top:14px;justify-content:center;">
+                                        <button type="button" class="btn-primary" id="btnTagsAddContactEmpty" style="padding:6px 16px;">+ Add Contact</button>
+                                        <button type="button" class="pj-toolbar-pill" id="btnTagsShowAll">Show All Tags</button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    `;
+
+                    // Bind Tags Tab events
+                    document.getElementById('pjCenterTagSelect')?.addEventListener('change', e => {
+                        pjCenterTagFilter = e.target.value;
+                        renderPjCenter();
+                    });
+                    document.getElementById('pjCenterTagSearchInput')?.addEventListener('input', e => {
+                        pjCenterTagSearch = e.target.value;
+                        renderPjCenter();
+                    });
+                    document.getElementById('pjCenterTagScopeSelect')?.addEventListener('change', e => {
+                        pjCenterTagScope = e.target.value;
+                        renderPjCenter();
+                    });
+                    document.getElementById('btnTagsAddContact')?.addEventListener('click', () => {
+                        closePjCenter();
+                        openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null);
+                    });
+                    document.getElementById('btnTagsAddContactEmpty')?.addEventListener('click', () => {
+                        closePjCenter();
+                        openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null);
+                    });
+                    document.getElementById('btnTagsShowAll')?.addEventListener('click', () => {
+                        pjCenterTagFilter = 'all';
+                        renderPjCenter();
+                    });
+                    document.querySelectorAll('[data-tag-filter]').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            pjCenterTagFilter = btn.dataset.tagFilter;
+                            renderPjCenter();
+                        });
                     });
 
                 } else if(pjActiveTab === 'data'){
