@@ -2357,6 +2357,7 @@ body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center
 @media(max-width:900px){body.text-calendar-mode #pjTopToolbar{padding:8px 12px;gap:6px}.pj-top-toolbar-divider{display:none}}
 
 /* Hide redundant detail panel actions when in People & Text mode */
+body.text-calendar-mode .text-calendar-actions{display:none !important}
 .pj-daily-section{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--border);padding-top:var(--sp-3)}
 .pj-daily-section:empty{display:none !important;padding:0 !important;margin:0 !important;border:none !important}
 
@@ -2479,10 +2480,10 @@ body.text-calendar-mode #pjTopToolbar{display:flex !important;align-items:center
 .pj-multi-add:hover{color:var(--accent);border-color:var(--accent-border);background:var(--accent-light)}
 
 .pj-tag-picker{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.pj-tag-check{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;border:1.5px solid var(--border-strong);background:var(--card-bg);font-size:var(--fs-xs);font-weight:600;color:var(--text);cursor:pointer;user-select:none;transition:all var(--dur-fast)}
-.pj-tag-check:hover{border-color:var(--accent);transform:translateY(-1px)}
+.pj-tag-check{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1.5px solid var(--border-strong);background:var(--surface-2);font-size:var(--fs-xs);font-weight:600;color:var(--text);cursor:pointer;user-select:none;transition:all var(--dur-fast)}
+.pj-tag-check:hover{border-color:var(--accent);background:var(--card-bg);transform:translateY(-1px)}
 .pj-tag-check input{display:none}
-.pj-tag-check.checked{color:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
+.pj-tag-check.checked{color:#fff !important;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
 .pj-tag-check[data-tag="family"].checked{background:#ec4899;border-color:#ec4899}
 .pj-tag-check[data-tag="friend"].checked{background:#10b981;border-color:#10b981}
 .pj-tag-check[data-tag="work"].checked{background:#3b82f6;border-color:#3b82f6}
@@ -5221,11 +5222,13 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 document.getElementById('pjContactModalTitle').innerHTML = '&#128100; Add Contact';
 
                 const relationsList = `<datalist id="pjcRelationsList">${PJ_RELATION_OPTIONS.map(r=>`<option value="${escapeHtml(r)}"></option>`).join('')}</datalist>`;
+                const selectedTags = new Set(Array.isArray(pf.tags) ? pf.tags : []);
                 const tagsHtml = pjAllTags().map(t => {
                     const m = pjTagMeta(t);
+                    const isChecked = selectedTags.has(t);
                     return `
-                        <label class="pj-tag-check" data-tag="${escapeAttr(t)}">
-                            <input type="checkbox" value="${escapeAttr(t)}">
+                        <label class="pj-tag-check ${isChecked ? 'checked' : ''}" data-tag="${escapeAttr(t)}">
+                            <input type="checkbox" value="${escapeAttr(t)}" ${isChecked ? 'checked' : ''}>
                             <span>${m.icon} ${escapeHtml(m.label)}</span>
                         </label>
                     `;
@@ -5250,6 +5253,10 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         <div class="pj-form-field">
                             <label>Relationship / Category</label>
                             <input type="text" id="pjcRelation" list="pjcRelationsList" placeholder="e.g. Friend, Colleague..." value="${escapeAttr(pf.relation||'')}">
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Tags / Categories</label>
+                            <div class="pj-tag-picker" id="pjcTagPicker">${tagsHtml}</div>
                         </div>
                         <div class="pj-form-field">
                             <label>Birthday</label>
@@ -5286,11 +5293,6 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                                 </div>
                             </div>
                             <button type="button" class="pj-multi-add" id="btnAddPjcEmail" style="align-self:flex-start;margin-top:4px;">+ Add Email</button>
-                        </div>
-                        <div class="pj-form-field full">
-                            <label>Tags</label>
-                            <div class="pj-tag-picker" id="pjcTagPicker">${tagsHtml}</div>
-                        </div>
                         <div class="pj-form-field">
                             <label>Priority</label>
                             <select id="pjcPriority">
@@ -5358,6 +5360,12 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         picker.insertBefore(label, picker.querySelector('.pj-tag-add-inline'));
                     }
                 });
+                body.addEventListener('change', e => {
+                    const chk = e.target.closest('.pj-tag-check input');
+                    if(chk){
+                        chk.closest('.pj-tag-check')?.classList.toggle('checked', !!chk.checked);
+                    }
+                });
                 body.addEventListener('click', e => {
                     const rm = e.target.closest('.pj-multi-remove');
                     if(rm){
@@ -5365,9 +5373,11 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                         if(item) item.remove();
                     }
                     const tag = e.target.closest('.pj-tag-check');
-                    if(tag && e.target.tagName !== 'INPUT'){
+                    if(tag){
                         const chk = tag.querySelector('input');
-                        if(chk){ chk.checked = !chk.checked; tag.classList.toggle('checked', chk.checked); }
+                        if(chk){
+                            setTimeout(()=>{ tag.classList.toggle('checked', !!chk.checked); }, 0);
+                        }
                     }
                 });
                 setTimeout(() => { document.getElementById('pjcName')?.focus(); }, 60);
@@ -5434,6 +5444,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 pr.priority = priority;
                 pr.favorite = favorite;
                 pr.notes = notes;
+                pr.tags = tags;
                 savePjMeta();
 
                 invalidatePjCache();
@@ -5599,6 +5610,10 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 map.forEach(p => {
                     p.name = pjCanonicalName(p, p.personId);
                     p.profile = mergePjProfile(p.encounters);
+                    const pr = pjMeta.profiles[p.personId];
+                    if(pr && Array.isArray(pr.tags)){
+                        p.tags = pr.tags.slice();
+                    }
                 });
                 return Array.from(map.values());
             }
@@ -7636,6 +7651,24 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     </div>
                 `).join('');
 
+                const curTags = Array.isArray(pr.tags) ? pr.tags : (Array.isArray(p.tags) ? p.tags : []);
+                const selectedPjpTags = new Set(curTags);
+                const pjpTagsHtml = pjAllTags().map(t => {
+                    const m = pjTagMeta(t);
+                    const isChecked = selectedPjpTags.has(t);
+                    return `
+                        <label class="pj-tag-check ${isChecked ? 'checked' : ''}" data-tag="${escapeAttr(t)}">
+                            <input type="checkbox" value="${escapeAttr(t)}" ${isChecked ? 'checked' : ''}>
+                            <span>${m.icon} ${escapeHtml(m.label)}</span>
+                        </label>
+                    `;
+                }).join('') + `
+                    <div class="pj-tag-add-inline">
+                        <input type="text" id="pjpNewCustomTagInput" placeholder="+ Custom tag" maxlength="24">
+                        <button type="button" id="btnAddNewCustomTagPjp" title="Add tag">+</button>
+                    </div>
+                `;
+
                 body.innerHTML = `
                     <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;">
                         <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:44px;height:44px;font-size:1rem;">${escapeHtml(initialsOfPj(cName))}</div>
@@ -7680,6 +7713,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 <option value="normal" ${pr.priority==='normal'||!pr.priority?'selected':''}>Normal</option>
                                 <option value="high" ${pr.priority==='high'?'selected':''}>High</option>
                             </select>
+                        </div>
+                        <div class="pj-form-field full">
+                            <label>Tags / Categories</label>
+                            <div class="pj-tag-picker" id="pjpTagPicker">${pjpTagsHtml}</div>
                         </div>
                         <div class="pj-form-field full">
                             <label>Phone Numbers</label>
@@ -7764,11 +7801,44 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     row.querySelector('input')?.focus();
                 });
 
+                document.getElementById('btnAddNewCustomTagPjp')?.addEventListener('click', () => {
+                    const inp = document.getElementById('pjpNewCustomTagInput');
+                    const val = (inp?.value || '').trim().toLowerCase().replace(/\s+/g, '-');
+                    if(!val) return;
+                    if(!pjMeta.customTags.includes(val)){
+                        pjMeta.customTags.push(val);
+                        savePjMeta();
+                    }
+                    inp.value = '';
+                    const picker = document.getElementById('pjpTagPicker');
+                    if(picker){
+                        const meta = pjTagMeta(val);
+                        const label = document.createElement('label');
+                        label.className = 'pj-tag-check checked';
+                        label.dataset.tag = val;
+                        label.innerHTML = `<input type="checkbox" value="${escapeAttr(val)}" checked><span>${meta.icon} ${escapeHtml(meta.label)}</span>`;
+                        picker.insertBefore(label, picker.querySelector('.pj-tag-add-inline'));
+                    }
+                });
+
+                body.addEventListener('change', (ev)=>{
+                    const chk = ev.target.closest('.pj-tag-check input');
+                    if(chk){
+                        chk.closest('.pj-tag-check')?.classList.toggle('checked', !!chk.checked);
+                    }
+                });
                 body.addEventListener('click', (ev)=>{
                     const rm = ev.target.closest('.pj-multi-remove');
                     if(rm){
                         const item = rm.closest('.pj-multi-item');
                         if(item) item.remove();
+                    }
+                    const tag = ev.target.closest('.pj-tag-check');
+                    if(tag){
+                        const chk = tag.querySelector('input');
+                        if(chk){
+                            setTimeout(()=>{ tag.classList.toggle('checked', !!chk.checked); }, 0);
+                        }
                     }
                 });
 
@@ -7777,6 +7847,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     if(!name){ alert('Name cannot be empty.'); return; }
                     const newPhones = Array.from(document.querySelectorAll('#pjpPhonesList .pjp-phone-input')).map(i=>i.value.trim()).filter(Boolean);
                     const newEmails = Array.from(document.querySelectorAll('#pjpEmailsList .pjp-email-input')).map(i=>i.value.trim()).filter(Boolean);
+                    const newTags = Array.from(document.querySelectorAll('#pjpTagPicker input:checked')).map(i=>i.value);
 
                     pushUndo(`Edit profile ${name}`);
 
@@ -7787,6 +7858,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         c.name = name;
                         c.phones = newPhones;
                         c.emails = newEmails;
+                        c.tags = newTags;
                         savePjContacts(contacts);
                     }
 
@@ -7814,12 +7886,15 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     prObj.birthday = document.getElementById('pjpBirthday')?.value || '';
                     prObj.contactFrequencyDays = Math.max(0, parseInt(document.getElementById('pjpFreq')?.value, 10) || 0);
                     prObj.priority = document.getElementById('pjpPriority')?.value || 'normal';
+                    prObj.tags = newTags;
                     prObj.nextAction = (document.getElementById('pjpNextAction')?.value || '').trim();
                     prObj.nextActionDue = document.getElementById('pjpNextDue')?.value || '';
                     prObj.nextActionStatus = document.getElementById('pjpNextStatus')?.value || 'open';
                     prObj.favorite = !!document.getElementById('pjpFavorite')?.checked;
                     prObj.notes = (document.getElementById('pjpNotes')?.value || '').trim();
                     savePjMeta();
+
+                    p.tags = newTags;
 
                     invalidatePjCache();
                     closePjProfile();
