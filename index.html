@@ -2767,6 +2767,30 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   border-color: var(--border-strong, #666);
 }
 
+/* Drag and Drop Enhancements */
+.task-drag-handle {
+  cursor: grab !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-user-drag: element !important;
+}
+.task-drag-handle:active {
+  cursor: grabbing !important;
+}
+.task-item.task-dragging {
+  opacity: 0.45 !important;
+}
+.task-item.task-drop-before {
+  border-top-color: var(--accent, #3b82f6) !important;
+  border-top-width: 3px !important;
+  box-shadow: 0 -2px 8px rgba(59, 130, 246, 0.4) !important;
+}
+.task-item.task-drop-after {
+  border-bottom-color: var(--accent, #3b82f6) !important;
+  border-bottom-width: 3px !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
+}
+
 </style>
 </head>
 <body>
@@ -10080,16 +10104,37 @@ function applyTaskTimeblock(text, blockId) {
     return [firstLine, ...rest].join('\n');
 }
 
-function setTaskTimeblock(taskId, blockId) {
+function moveTaskToPosition(taskId, targetBlockId, targetTaskId, dropPosition) {
     const data = getCurrentData();
-    const task = (data.tasks || []).find(t => t.id === taskId);
-    if (!task) return;
-    pushUndo('Change task timeblock');
-    task.text = applyTaskTimeblock(task.text, blockId);
+    data.tasks = data.tasks || [];
+    const draggedIndex = data.tasks.findIndex(t => t.id === taskId);
+    if (draggedIndex === -1) return;
+    const task = data.tasks[draggedIndex];
+
+    pushUndo('Move task');
+    if (targetBlockId !== undefined && targetBlockId !== null) {
+        task.text = applyTaskTimeblock(task.text, targetBlockId);
+    }
+
+    if (targetTaskId && targetTaskId !== taskId) {
+        const [removed] = data.tasks.splice(draggedIndex, 1);
+        const targetIndex = data.tasks.findIndex(t => t.id === targetTaskId);
+        if (targetIndex !== -1) {
+            const insertIndex = dropPosition === 'before' ? targetIndex : targetIndex + 1;
+            data.tasks.splice(insertIndex, 0, removed);
+        } else {
+            data.tasks.push(removed);
+        }
+    }
+
     currentDataCache = JSON.parse(JSON.stringify(data));
     saveCurrentData(data);
     renderTaskList(data.tasks);
     renderTaskToolbar();
+}
+
+function setTaskTimeblock(taskId, blockId) {
+    moveTaskToPosition(taskId, blockId, null, null);
 }
 
 function addTaskInTimeblock(blockId) {
@@ -10158,19 +10203,80 @@ function addTaskInTimeblock(blockId) {
             }
 
             function buildTaskMetaHTML(task){
-                const em=(task.estimatedMinutes===null||task.estimatedMinutes===undefined||task.estimatedMinutes==='')?'':task.estimatedMinutes;
-                const fc=(task.attachments||[]).length;
-                let meta='';
-                const tbId = parseTaskTimeblock(task.text);
-                if (tbId && tbId !== 'unscheduled') {
-                    const tbDef = TIMEBLOCK_DEFS.find(d => d.id === tbId);
-                    const tbLabel = tbDef ? tbDef.shortLabel : `${tbId}-${Number(tbId)+3}`;
-                    meta += `<span class="task-meta-pill task-tb-pill" title="Timeblock: ${tbDef ? tbDef.label : ''}">⏱ ${escapeHtml(tbLabel)}</span>`;
-                }
-                if(em!=='')meta+=`<span class="task-meta-pill" title="Estimated minutes">${em}m</span>`;
-                if(fc>0)meta+=`<span class="task-meta-pill" title="Attachments">📎 ${fc}</span>`;
-                return meta;
+    const em=(task.estimatedMinutes===null||task.estimatedMinutes===undefined||task.estimatedMinutes==='')?'':task.estimatedMinutes;
+    const fc=(task.attachments||[]).length;
+    let meta='';
+    const tbId = parseTaskTimeblock(task.text);
+    if (tbId && tbId !== 'unscheduled') {
+        const tbDef = TIMEBLOCK_DEFS.find(d => d.id === tbId);
+        const tbLabel = tbDef ? tbDef.shortLabel : `${tbId}-${Number(tbId)+3}`;
+        meta += `<span class="task-meta-pill task-tb-pill" title="Timeblock: ${tbDef ? tbDef.label : ''}">⏱ ${escapeHtml(tbLabel)}</span>`;
+    }
+    if(em!=='')meta+=`<span class="task-meta-pill" title="Estimated minutes">${em}m</span>`;
+    if(fc>0)meta+=`<span class="task-meta-pill" title="Attachments">📎 ${fc}</span>`;
+    return meta;
+}
+
+function startTaskDrag(e, task, item) {
+    if (!task) return;
+    const taskId = task.id;
+    window.__currentDraggingTaskId = taskId;
+    window.__currentDraggingTaskSourceBlock = parseTaskTimeblock(task.text);
+
+    const datePayload = { taskId: taskId, sourceDate: (typeof selectedDateStr !== 'undefined' ? selectedDateStr : null) };
+    const firstLine = typeof firstLineOf === 'function' ? firstLineOf(task.text) : String(task.text || '').split('\n')[0];
+    const eisenPayload = {
+        item: {
+            id: 'task_' + taskId,
+            kind: 'task',
+            sourceId: taskId,
+            title: firstLine.slice(0, 90) || '(untitled task)',
+            detail: task.text || '',
+            priority: task.priority || 'medium'
+        },
+        origin: 'external',
+        quadKey: null,
+        cellIdx: null
+    };
+    if (typeof eisenDragPayload !== 'undefined') {
+        eisenDragPayload = eisenPayload;
+    }
+
+    try {
+        if (e.dataTransfer) {
+            e.dataTransfer.setData('application/x-task-id', taskId);
+            e.dataTransfer.setData(TASK_MIME, JSON.stringify(datePayload));
+            e.dataTransfer.setData(EISEN_MIME, JSON.stringify(eisenPayload));
+            e.dataTransfer.setData('text/plain', task.text || '');
+            e.dataTransfer.effectAllowed = 'copyMove';
+            if (item && e.dataTransfer.setDragImage) {
+                try { e.dataTransfer.setDragImage(item, 12, 12); } catch (imgErr) {}
             }
+        }
+    } catch(err) {}
+
+    if (item) {
+        item.classList.add('task-dragging');
+    }
+}
+
+function endTaskDrag(item) {
+    window.__currentDraggingTaskId = null;
+    window.__currentDraggingTaskSourceBlock = null;
+    if (typeof eisenDragPayload !== 'undefined') {
+        eisenDragPayload = null;
+    }
+    if (item) {
+        item.classList.remove('task-dragging');
+    }
+    document.querySelectorAll('.task-item.task-dragging').forEach(it => it.classList.remove('task-dragging'));
+    document.querySelectorAll('.task-item.task-drop-before').forEach(it => it.classList.remove('task-drop-before'));
+    document.querySelectorAll('.task-item.task-drop-after').forEach(it => it.classList.remove('task-drop-after'));
+    if (typeof calendarGrid !== 'undefined' && calendarGrid) {
+        calendarGrid.querySelectorAll('.calendar-cell.task-drop-target').forEach(c => c.classList.remove('task-drop-target'));
+    }
+    document.querySelectorAll('.timeblock-drop-active').forEach(c => c.classList.remove('timeblock-drop-active'));
+}
             function refreshTaskRowMeta(id){
                 const item=taskList.querySelector(`.task-item[data-id="${id}"]`);
                 if(!item)return;
@@ -10183,158 +10289,197 @@ function addTaskInTimeblock(blockId) {
             }
 
             function renderTaskList(tasks){
-                if(textCalendarMode){renderTextCalendarList((getCurrentData().textCalendar)||[]);return}
-                const sc=document.getElementById('detailPanel');
-                const ps=sc.scrollTop;
-                taskList.innerHTML='';
-                const allTasks=tasks||[];
-                const draft=allTasks.find(t=>t.draft===true||(!String(t.text||'').trim()&&t.id===activeTaskId));
-                const ordered=allTasks.filter(t=>!draft||t.id!==draft.id);
+    if(textCalendarMode){renderTextCalendarList((getCurrentData().textCalendar)||[]);return}
+    const sc=document.getElementById('detailPanel');
+    const ps=sc.scrollTop;
+    taskList.innerHTML='';
+    const allTasks=tasks||[];
+    const draft=allTasks.find(t=>t.draft===true||(!String(t.text||'').trim()&&t.id===activeTaskId));
+    const ordered=allTasks.filter(t=>!draft||t.id!==draft.id);
 
-                // Group tasks into 3-hour timeblocks
-                const blockMap = {};
-                TIMEBLOCK_DEFS.forEach(def => { blockMap[def.id] = []; });
-                if (draft) {
-                    const dtb = parseTaskTimeblock(draft.text) || 'unscheduled';
-                    if (blockMap[dtb]) blockMap[dtb].push(draft);
-                    else blockMap['unscheduled'].push(draft);
+    // Group tasks into 3-hour timeblocks
+    const blockMap = {};
+    TIMEBLOCK_DEFS.forEach(def => { blockMap[def.id] = []; });
+    if (draft) {
+        const dtb = parseTaskTimeblock(draft.text) || 'unscheduled';
+        if (blockMap[dtb]) blockMap[dtb].push(draft);
+        else blockMap['unscheduled'].push(draft);
+    }
+    ordered.forEach(t => {
+        const tb = parseTaskTimeblock(t.text) || 'unscheduled';
+        if (blockMap[tb]) blockMap[tb].push(t);
+        else blockMap['unscheduled'].push(t);
+    });
+
+    TIMEBLOCK_DEFS.forEach(def => {
+        const blockTasks = sortTasksForDisplay(blockMap[def.id]);
+        const sec = document.createElement('div');
+        sec.className = 'task-timeblock-section';
+        sec.dataset.blockId = def.id;
+
+        const hdr = document.createElement('div');
+        hdr.className = 'task-timeblock-header';
+        hdr.innerHTML = `
+            <div class="task-timeblock-title">
+                <span class="task-timeblock-icon">⏱</span>
+                <span class="task-timeblock-name">${escapeHtml(def.label)}</span>
+                <span class="task-timeblock-count">(${blockTasks.length})</span>
+            </div>
+            <div class="task-timeblock-actions">
+                <button class="task-timeblock-add-btn" data-add-block="${def.id}" title="Add task in ${escapeHtml(def.shortLabel)}">+ Add</button>
+            </div>
+        `;
+        sec.appendChild(hdr);
+
+        const body = document.createElement('div');
+        body.className = 'task-timeblock-body';
+        body.dataset.blockId = def.id;
+
+        if (blockTasks.length === 0) {
+            const emp = document.createElement('div');
+            emp.className = 'task-timeblock-empty';
+            emp.textContent = def.id === 'unscheduled' ? 'No unscheduled tasks' : `Drop tasks here or click + Add for ${def.shortLabel}`;
+            body.appendChild(emp);
+        } else {
+            blockTasks.forEach(task => {
+                const item = document.createElement('div');
+                const isSel = selectedTaskIds.has(task.id);
+                const isActive = task.id === activeTaskId;
+                item.className = 'task-item' + (task.status === 'done' ? ' done' : '') + (task.draft === true ? ' task-draft' : '') + (isSel ? ' selected' : '') + (isActive ? ' active-task' : '');
+                item.dataset.id = task.id;
+                item.draggable = true;
+
+                const meta = buildTaskMetaHTML(task);
+                const raw = task.text || '';
+                const hasText = raw.trim() !== '';
+                const viewHTML = hasText ? renderMarkdown(raw) : escapeHtml('Click to add a task.');
+
+                item.innerHTML = `<div class="task-row-main">` +
+                    `<div class="task-select-box${isSel ? ' selected' : ''}" data-id="${task.id}"></div>` +
+                    `<div class="task-drag-handle" draggable="true" data-id="${task.id}" title="Drag to timeblock, calendar day, or Eisenhower Matrix">❖</div>` +
+                    `<div class="task-checkbox ${task.status === 'done' ? 'checked' : ''}" data-id="${task.id}"></div>` +
+                    `<div class="task-text-wrap">` +
+                      `<div class="task-text-view${hasText ? '' : ' empty'}" data-id="${task.id}">${viewHTML}</div>` +
+                      `<textarea class="task-text" rows="1" data-id="${task.id}">${escapeHtml(raw)}</textarea>` +
+                    `</div>` +
+                    `<div class="task-row-meta">${meta}</div>` +
+                `</div>`;
+
+                body.appendChild(item);
+
+                const ta = item.querySelector('.task-text');
+                if (ta) {
+                    ta.placeholder = TASK_PLACEHOLDER;
+                    autoResizeTextarea(ta);
                 }
-                ordered.forEach(t => {
-                    const tb = parseTaskTimeblock(t.text) || 'unscheduled';
-                    if (blockMap[tb]) blockMap[tb].push(t);
-                    else blockMap['unscheduled'].push(t);
-                });
 
-                TIMEBLOCK_DEFS.forEach(def => {
-                    const blockTasks = sortTasksForDisplay(blockMap[def.id]);
-                    const sec = document.createElement('div');
-                    sec.className = 'task-timeblock-section';
-                    sec.dataset.blockId = def.id;
+                const h = item.querySelector('.task-drag-handle');
+                if (h) {
+                    h.addEventListener('dragstart', e => {
+                        e.stopPropagation();
+                        startTaskDrag(e, task, item);
+                    });
+                    h.addEventListener('dragend', () => {
+                        endTaskDrag(item);
+                    });
+                }
 
-                    const hdr = document.createElement('div');
-                    hdr.className = 'task-timeblock-header';
-                    hdr.innerHTML = `
-                        <div class="task-timeblock-title">
-                            <span class="task-timeblock-icon">⏱</span>
-                            <span class="task-timeblock-name">${escapeHtml(def.label)}</span>
-                            <span class="task-timeblock-count">(${blockTasks.length})</span>
-                        </div>
-                        <div class="task-timeblock-actions">
-                            <button class="task-timeblock-add-btn" data-add-block="${def.id}" title="Add task in ${escapeHtml(def.shortLabel)}">+ Add</button>
-                        </div>
-                    `;
-                    sec.appendChild(hdr);
-
-                    const body = document.createElement('div');
-                    body.className = 'task-timeblock-body';
-                    body.dataset.blockId = def.id;
-
-                    if (blockTasks.length === 0) {
-                        const emp = document.createElement('div');
-                        emp.className = 'task-timeblock-empty';
-                        emp.textContent = def.id === 'unscheduled' ? 'No unscheduled tasks' : `Drop tasks here or click + Add for ${def.shortLabel}`;
-                        body.appendChild(emp);
-                    } else {
-                        blockTasks.forEach(task => {
-                            const item = document.createElement('div');
-                            const isSel = selectedTaskIds.has(task.id);
-                            const isActive = task.id === activeTaskId;
-                            item.className = 'task-item' + (task.status === 'done' ? ' done' : '') + (task.draft === true ? ' task-draft' : '') + (isSel ? ' selected' : '') + (isActive ? ' active-task' : '');
-                            item.dataset.id = task.id;
-                            item.draggable = true;
-
-                            const meta = buildTaskMetaHTML(task);
-                            const raw = task.text || '';
-                            const hasText = raw.trim() !== '';
-                            const viewHTML = hasText ? renderMarkdown(raw) : escapeHtml('Click to add a task.');
-
-                            item.innerHTML = `<div class="task-row-main">` +
-                                `<div class="task-select-box${isSel ? ' selected' : ''}" data-id="${task.id}"></div>` +
-                                `<div class="task-drag-handle" draggable="true" data-id="${task.id}" title="Drag into the Eisenhower Matrix">❖</div>` +
-                                `<div class="task-checkbox ${task.status === 'done' ? 'checked' : ''}" data-id="${task.id}"></div>` +
-                                `<div class="task-text-wrap">` +
-                                  `<div class="task-text-view${hasText ? '' : ' empty'}" data-id="${task.id}">${viewHTML}</div>` +
-                                  `<textarea class="task-text" rows="1" data-id="${task.id}">${escapeHtml(raw)}</textarea>` +
-                                `</div>` +
-                                `<div class="task-row-meta">${meta}</div>` +
-                            `</div>`;
-
-                            body.appendChild(item);
-
-                            const ta = item.querySelector('.task-text');
-                            if (ta) {
-                                ta.placeholder = TASK_PLACEHOLDER;
-                                autoResizeTextarea(ta);
-                            }
-                            const h = item.querySelector('.task-drag-handle');
-                            if (h) {
-                                h.addEventListener('dragstart', e => {
-                                    const payload = { item: { id: 'task_' + task.id, kind: 'task', sourceId: task.id, title: firstLineOf(task.text).slice(0, 90) || '(untitled task)', detail: task.text || '', priority: task.priority || 'medium' }, origin: 'external', quadKey: null, cellIdx: null };
-                                    eisenDragPayload = payload;
-                                    try {
-                                        e.dataTransfer.setData(EISEN_MIME, JSON.stringify(payload));
-                                        e.dataTransfer.setData('text/plain', task.text || '');
-                                    } catch (err) {}
-                                    e.dataTransfer.effectAllowed = 'copyMove';
-                                });
-                                h.addEventListener('dragend', () => { eisenDragPayload = null; });
-                            }
-
-                            item.addEventListener('dragstart', e => {
-                                if (e.target.closest('textarea,input,select,.task-drag-handle')) { return; }
-                                window.__currentDraggingTaskId = task.id;
-                                const datePayload = { taskId: task.id, sourceDate: selectedDateStr };
-                                try {
-                                    e.dataTransfer.setData(TASK_MIME, JSON.stringify(datePayload));
-                                    e.dataTransfer.setData('application/x-task-id', task.id);
-                                    if (!e.dataTransfer.getData('text/plain')) {
-                                        e.dataTransfer.setData('text/plain', task.text || '');
-                                    }
-                                } catch (err) {}
-                                e.dataTransfer.effectAllowed = 'copyMove';
-                                item.classList.add('task-dragging');
-                            });
-                            item.addEventListener('dragend', () => {
-                                window.__currentDraggingTaskId = null;
-                                item.classList.remove('task-dragging');
-                                calendarGrid.querySelectorAll('.calendar-cell.task-drop-target').forEach(c => c.classList.remove('task-drop-target'));
-                                document.querySelectorAll('.timeblock-drop-active').forEach(c => c.classList.remove('timeblock-drop-active'));
-                            });
-                        });
+                item.addEventListener('dragstart', e => {
+                    if (e.target.closest('textarea:focus, input:focus, select, button')) {
+                        return;
                     }
-
-                    sec.appendChild(body);
-
-                    sec.addEventListener('dragover', e => {
-                        if (window.__currentDraggingTaskId || (e.dataTransfer && e.dataTransfer.types && e.dataTransfer.types.includes('application/x-task-id'))) {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'move';
-                            sec.classList.add('timeblock-drop-active');
-                        }
-                    });
-                    sec.addEventListener('dragleave', e => {
-                        if (!sec.contains(e.relatedTarget)) {
-                            sec.classList.remove('timeblock-drop-active');
-                        }
-                    });
-                    sec.addEventListener('drop', e => {
-                        sec.classList.remove('timeblock-drop-active');
-                        const taskId = (e.dataTransfer && e.dataTransfer.getData('application/x-task-id')) || window.__currentDraggingTaskId;
-                        if (taskId) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            setTaskTimeblock(taskId, def.id);
-                        }
-                    });
-
-                    taskList.appendChild(sec);
+                    startTaskDrag(e, task, item);
+                });
+                item.addEventListener('dragend', () => {
+                    endTaskDrag(item);
                 });
 
-                requestAnimationFrame(() => { sc.scrollTop = ps; });
-                taskList.removeEventListener('click', handleTaskListClick);
-                taskList.addEventListener('click', handleTaskListClick);
-                renderTaskToolbar();
+                item.addEventListener('dragover', e => {
+                    const hasAppType = e.dataTransfer && e.dataTransfer.types && Array.prototype.indexOf.call(e.dataTransfer.types, 'application/x-task-id') !== -1;
+                    if (!window.__currentDraggingTaskId && !hasAppType) return;
+                    if (window.__currentDraggingTaskId === task.id) return;
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.dataTransfer.dropEffect = 'move';
+
+                    sec.classList.add('timeblock-drop-active');
+
+                    const rect = item.getBoundingClientRect();
+                    const isTopHalf = (e.clientY - rect.top) < (rect.height / 2);
+                    if (isTopHalf) {
+                        item.classList.add('task-drop-before');
+                        item.classList.remove('task-drop-after');
+                    } else {
+                        item.classList.add('task-drop-after');
+                        item.classList.remove('task-drop-before');
+                    }
+                });
+
+                item.addEventListener('dragleave', e => {
+                    if (!item.contains(e.relatedTarget)) {
+                        item.classList.remove('task-drop-before');
+                        item.classList.remove('task-drop-after');
+                    }
+                });
+
+                item.addEventListener('drop', e => {
+                    const draggedId = (e.dataTransfer && e.dataTransfer.getData('application/x-task-id')) || window.__currentDraggingTaskId;
+                    item.classList.remove('task-drop-before');
+                    item.classList.remove('task-drop-after');
+                    sec.classList.remove('timeblock-drop-active');
+
+                    if (!draggedId || draggedId === task.id) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const rect = item.getBoundingClientRect();
+                    const isTopHalf = (e.clientY - rect.top) < (rect.height / 2);
+                    const dropPosition = isTopHalf ? 'before' : 'after';
+
+                    moveTaskToPosition(draggedId, def.id, task.id, dropPosition);
+                });
+            });
+        }
+
+        sec.appendChild(body);
+
+        sec.addEventListener('dragover', e => {
+            const hasAppType = e.dataTransfer && e.dataTransfer.types && Array.prototype.indexOf.call(e.dataTransfer.types, 'application/x-task-id') !== -1;
+            if (window.__currentDraggingTaskId || hasAppType) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                sec.classList.add('timeblock-drop-active');
             }
+        });
+        sec.addEventListener('dragleave', e => {
+            if (!sec.contains(e.relatedTarget)) {
+                sec.classList.remove('timeblock-drop-active');
+            }
+        });
+        sec.addEventListener('drop', e => {
+            sec.classList.remove('timeblock-drop-active');
+            const taskId = (e.dataTransfer && e.dataTransfer.getData('application/x-task-id')) || window.__currentDraggingTaskId;
+            if (taskId) {
+                e.preventDefault();
+                e.stopPropagation();
+                moveTaskToPosition(taskId, def.id, null, null);
+            }
+        });
+
+        taskList.appendChild(sec);
+    });
+
+    if (!window.__taskDragEndInitialized) {
+        window.__taskDragEndInitialized = true;
+        window.addEventListener('dragend', () => endTaskDrag(null));
+    }
+
+    requestAnimationFrame(() => { sc.scrollTop = ps; });
+    taskList.removeEventListener('click', handleTaskListClick);
+    taskList.addEventListener('click', handleTaskListClick);
+    renderTaskToolbar();
+}
             function handleTaskListClick(e){
                 const addBlockBtn = e.target.closest('[data-add-block]');
                 if (addBlockBtn) {
@@ -13612,6 +13757,7 @@ function addTaskInTimeblock(blockId) {
                 parseTaskTimeblock,
                 applyTaskTimeblock,
                 setTaskTimeblock,
+                moveTaskToPosition,
                 addTaskInTimeblock,
                 TIMEBLOCK_DEFS,
                 selectDate: typeof selectDate === 'function' ? selectDate : undefined,
