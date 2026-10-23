@@ -7098,7 +7098,31 @@ function renderHabitMiniCalendar() {
                 if(!raw) return [];
                 try {
                     const arr = JSON.parse(raw);
-                    return Array.isArray(arr) ? arr : [];
+                    if(!Array.isArray(arr)) return [];
+                    const mergedMap = (pjMeta && pjMeta.mergedPersonIds) || {};
+                    const deletedMap = (pjMeta && pjMeta.deletedPersonIds) || {};
+                    if(Object.keys(mergedMap).length > 0 || Object.keys(deletedMap).length > 0){
+                        let changed = false;
+                        const filtered = [];
+                        arr.forEach(c => {
+                            if(!c || !c.personId) return;
+                            const norm = normalizePjName(c.name);
+                            if(deletedMap[c.personId] || (norm && deletedMap[norm])){
+                                changed = true;
+                                return;
+                            }
+                            if(mergedMap[c.personId] || (norm && mergedMap[norm])){
+                                changed = true;
+                                return;
+                            }
+                            filtered.push(c);
+                        });
+                        if(changed){
+                            appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(filtered));
+                            return filtered;
+                        }
+                    }
+                    return arr;
                 } catch(e){ return []; }
             }
             function savePjContacts(arr){
@@ -7172,8 +7196,14 @@ function renderHabitMiniCalendar() {
 
                     if(pjMeta.profiles && pjMeta.profiles[pid]){
                         delete pjMeta.profiles[pid];
-                        savePjMeta();
                     }
+                    pjMeta.deletedPersonIds = pjMeta.deletedPersonIds || {};
+                    pjMeta.deletedPersonIds[pid] = Date.now();
+                    if(name){
+                        const nNorm = normalizePjName(name);
+                        if(nNorm) pjMeta.deletedPersonIds[nNorm] = Date.now();
+                    }
+                    savePjMeta();
                 }
 
                 invalidatePjCache();
@@ -7527,9 +7557,41 @@ function renderHabitMiniCalendar() {
             function buildPjPeopleRegistry(){
                 const map = new Map();
                 const nameToPid = new Map();
+                const mergedMap = (pjMeta && pjMeta.mergedPersonIds) || {};
+                const deletedMap = (pjMeta && pjMeta.deletedPersonIds) || {};
+
+                const resolvePid = (pid, name) => {
+                    let cur = pid;
+                    if(!cur && name) cur = normalizePjName(name);
+                    if(!cur) return null;
+                    let hops = 0;
+                    while(mergedMap[cur] && mergedMap[cur].targetPid && hops < 10){
+                        cur = mergedMap[cur].targetPid;
+                        hops++;
+                    }
+                    return cur;
+                };
 
                 loadPjContacts().forEach(c=>{
                     if(!c || !c.personId) return;
+                    const finalPid = resolvePid(c.personId, c.name);
+                    if(deletedMap[c.personId] || deletedMap[finalPid]) return;
+
+                    // If merged into another contact that already exists in map, fold phones/emails/tags
+                    if(finalPid !== c.personId && map.has(finalPid)){
+                        const target = map.get(finalPid);
+                        (Array.isArray(c.phones) ? c.phones : (c.phone ? [c.phone] : [])).forEach(p => {
+                            if(!target.phones.includes(p)) target.phones.push(p);
+                        });
+                        (Array.isArray(c.emails) ? c.emails : (c.email ? [c.email] : [])).forEach(em => {
+                            if(!target.emails.includes(em)) target.emails.push(em);
+                        });
+                        (Array.isArray(c.tags) ? c.tags : []).forEach(t => {
+                            if(!target.tags.includes(t)) target.tags.push(t);
+                        });
+                        return;
+                    }
+
                     const canonical = pjCanonicalName(c, c.personId);
                     const pr = pjMeta.profiles[c.personId] || {};
                     map.set(c.personId, {
@@ -7555,11 +7617,13 @@ function renderHabitMiniCalendar() {
                     const data = getPjDayData(ds);
                     if(!data || !Array.isArray(data.encounters)) return;
                     data.encounters.forEach(e=>{
-                        let pid = e.personId;
-                        if(!pid && e.name){
-                            pid = nameToPid.get(normalizePjName(e.name)) || normalizePjName(e.name);
+                        let rawPid = e.personId;
+                        if(!rawPid && e.name){
+                            rawPid = nameToPid.get(normalizePjName(e.name)) || normalizePjName(e.name);
                         }
-                        if(!pid) return;
+                        if(!rawPid) return;
+                        const pid = resolvePid(rawPid, e.name);
+                        if(!pid || deletedMap[pid]) return;
 
                         const phones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
                         const emails = Array.isArray(e.emails) ? e.emails : (e.email ? [e.email] : []);
@@ -8784,59 +8848,69 @@ function renderHabitMiniCalendar() {
 
                 // 2. Update tp_contacts
                 const contacts = loadPjContacts();
-                let targetContact = contacts.find(c => c.personId === targetPid);
-                const sourceContactIdx = contacts.findIndex(c => c.personId === sourcePid);
-                if(sourceContactIdx !== -1){
-                    const sc = contacts[sourceContactIdx];
-                    contacts.splice(sourceContactIdx, 1);
-                    if(!targetContact && (p1.isContact || p2.isContact)){
-                        targetContact = {
-                            personId: targetPid,
-                            name: targetName,
-                            phones: combinedPhones,
-                            emails: combinedEmails,
-                            tags: combinedTags,
-                            source: sc.source || 'csv'
-                        };
-                        contacts.push(targetContact);
-                    }
-                }
-                if(targetContact){
+                const p2Norm = normalizePjName(p2.name);
+                const updatedContacts = contacts.filter(c => c.personId !== sourcePid && normalizePjName(c.name) !== p2Norm);
+                let targetContact = updatedContacts.find(c => c.personId === targetPid);
+                if(!targetContact && (p1.isContact || p2.isContact)){
+                    targetContact = {
+                        personId: targetPid,
+                        name: targetName,
+                        phones: combinedPhones,
+                        emails: combinedEmails,
+                        tags: combinedTags,
+                        isContact: true,
+                        source: p1.source || p2.source || 'csv'
+                    };
+                    updatedContacts.push(targetContact);
+                } else if(targetContact){
                     targetContact.name = targetName;
                     targetContact.phones = combinedPhones;
                     targetContact.emails = combinedEmails;
                     targetContact.tags = combinedTags;
+                    targetContact.isContact = true;
                 }
-                savePjContacts(contacts);
+                savePjContacts(updatedContacts);
 
-                // 3. Update encounters across all td_pj_* dates
+                // 3. Update encounters across all td_pj_* dates using stable list
                 let encountersUpdated = 0;
-                for(let i = 0; i < appStorage.length; i++){
-                    const k = appStorage.key(i);
-                    if(k && k.startsWith(PJ_DAYS_PREFIX)){
-                        const ds = k.slice(PJ_DAYS_PREFIX.length);
-                        const dayData = getPjDayData(ds);
-                        if(dayData && Array.isArray(dayData.encounters)){
-                            let modified = false;
-                            dayData.encounters.forEach(e => {
-                                const norm = normalizePjName(e.name);
-                                if(e.personId === sourcePid || norm === sourcePid || e.personId === targetPid){
-                                    e.personId = targetPid;
-                                    e.name = targetName;
-                                    if(!Array.isArray(e.phones) || !e.phones.length) e.phones = combinedPhones.slice();
-                                    if(!Array.isArray(e.emails) || !e.emails.length) e.emails = combinedEmails.slice();
-                                    modified = true;
-                                    encountersUpdated++;
-                                }
-                            });
-                            if(modified){
-                                savePjDayData(ds, dayData);
+                const allDays = listAllPjDays();
+                allDays.forEach(ds => {
+                    const dayData = getPjDayData(ds);
+                    if(dayData && Array.isArray(dayData.encounters)){
+                        let modified = false;
+                        dayData.encounters.forEach(e => {
+                            const norm = normalizePjName(e.name);
+                            if(e.personId === sourcePid || norm === sourcePid || norm === p2Norm || e.personId === targetPid){
+                                e.personId = targetPid;
+                                e.name = targetName;
+                                if(!Array.isArray(e.phones) || !e.phones.length) e.phones = combinedPhones.slice();
+                                if(!Array.isArray(e.emails) || !e.emails.length) e.emails = combinedEmails.slice();
+                                modified = true;
+                                encountersUpdated++;
                             }
+                        });
+                        if(modified){
+                            savePjDayData(ds, dayData);
                         }
                     }
-                }
+                });
 
-                // 4. Update profile in tp_people_meta
+                // 4. Update profile and record mergedPersonIds in tp_people_meta
+                pjMeta.mergedPersonIds = pjMeta.mergedPersonIds || {};
+                pjMeta.mergedPersonIds[sourcePid] = {
+                    targetPid: targetPid,
+                    mergedAt: Date.now(),
+                    sourceName: p2.name,
+                    targetName: targetName
+                };
+                if(p2Norm && p2Norm !== targetPid){
+                    pjMeta.mergedPersonIds[p2Norm] = {
+                        targetPid: targetPid,
+                        mergedAt: Date.now(),
+                        sourceName: p2.name,
+                        targetName: targetName
+                    };
+                }
                 if(pjMeta && pjMeta.profiles){
                     const pSource = pjMeta.profiles[sourcePid];
                     if(pSource){
@@ -8845,9 +8919,9 @@ function renderHabitMiniCalendar() {
                             if(pSource[k] && !pTarget[k]) pTarget[k] = pSource[k];
                         });
                         delete pjMeta.profiles[sourcePid];
-                        savePjMeta();
                     }
                 }
+                savePjMeta();
 
                 // 5. Invalidate caches & refresh
                 invalidatePjCache();
@@ -8967,7 +9041,7 @@ function renderHabitMiniCalendar() {
 
                 // 1. Update tp_contacts
                 const contacts = loadPjContacts();
-                const updatedContacts = contacts.filter(c => !pidToTargetMap.has(c.personId));
+                const updatedContacts = contacts.filter(c => !pidToTargetMap.has(c.personId) && !pidToTargetMap.has(normalizePjName(c.name)));
                 targetProfiles.forEach(tp => {
                     let existing = updatedContacts.find(c => c.personId === tp.targetPid);
                     if(!existing && tp.isContact){
@@ -8977,6 +9051,7 @@ function renderHabitMiniCalendar() {
                             phones: tp.combinedPhones,
                             emails: tp.combinedEmails,
                             tags: tp.combinedTags,
+                            isContact: true,
                             source: tp.source
                         };
                         updatedContacts.push(existing);
@@ -8985,61 +9060,65 @@ function renderHabitMiniCalendar() {
                         existing.phones = tp.combinedPhones;
                         existing.emails = tp.combinedEmails;
                         existing.tags = tp.combinedTags;
+                        existing.isContact = true;
                     }
                 });
                 savePjContacts(updatedContacts);
 
-                // 2. Update encounters across all td_pj_* dates
+                // 2. Update encounters across all td_pj_* dates using stable list
                 let totalEncountersUpdated = 0;
-                for(let i = 0; i < appStorage.length; i++){
-                    const k = appStorage.key(i);
-                    if(k && k.startsWith(PJ_DAYS_PREFIX)){
-                        const ds = k.slice(PJ_DAYS_PREFIX.length);
-                        const dayData = getPjDayData(ds);
-                        if(dayData && Array.isArray(dayData.encounters)){
-                            let modified = false;
-                            dayData.encounters.forEach(e => {
-                                const norm = normalizePjName(e.name);
-                                let targetPid = pidToTargetMap.get(e.personId) || pidToTargetMap.get(norm);
-                                if(targetPid){
-                                    const prof = targetProfiles.get(targetPid);
-                                    if(prof){
-                                        e.personId = targetPid;
-                                        e.name = prof.targetName;
-                                        if(!Array.isArray(e.phones) || !e.phones.length) e.phones = prof.combinedPhones.slice();
-                                        if(!Array.isArray(e.emails) || !e.emails.length) e.emails = prof.combinedEmails.slice();
-                                        modified = true;
-                                        totalEncountersUpdated++;
-                                    }
-                                } else if(targetProfiles.has(e.personId)){
-                                    const prof = targetProfiles.get(e.personId);
+                const allDays = listAllPjDays();
+                allDays.forEach(ds => {
+                    const dayData = getPjDayData(ds);
+                    if(dayData && Array.isArray(dayData.encounters)){
+                        let modified = false;
+                        dayData.encounters.forEach(e => {
+                            const norm = normalizePjName(e.name);
+                            let targetPid = pidToTargetMap.get(e.personId) || pidToTargetMap.get(norm);
+                            if(targetPid){
+                                const prof = targetProfiles.get(targetPid);
+                                if(prof){
+                                    e.personId = targetPid;
                                     e.name = prof.targetName;
                                     if(!Array.isArray(e.phones) || !e.phones.length) e.phones = prof.combinedPhones.slice();
                                     if(!Array.isArray(e.emails) || !e.emails.length) e.emails = prof.combinedEmails.slice();
                                     modified = true;
+                                    totalEncountersUpdated++;
                                 }
-                            });
-                            if(modified){
-                                savePjDayData(ds, dayData);
+                            } else if(targetProfiles.has(e.personId)){
+                                const prof = targetProfiles.get(e.personId);
+                                e.name = prof.targetName;
+                                if(!Array.isArray(e.phones) || !e.phones.length) e.phones = prof.combinedPhones.slice();
+                                if(!Array.isArray(e.emails) || !e.emails.length) e.emails = prof.combinedEmails.slice();
+                                modified = true;
                             }
+                        });
+                        if(modified){
+                            savePjDayData(ds, dayData);
                         }
                     }
-                }
+                });
 
-                // 3. Update tp_people_meta
-                if(pjMeta && pjMeta.profiles){
-                    pidToTargetMap.forEach((targetPid, sourcePid) => {
+                // 3. Update tp_people_meta and record mergedPersonIds
+                pjMeta.mergedPersonIds = pjMeta.mergedPersonIds || {};
+                pidToTargetMap.forEach((targetPid, sourcePid) => {
+                    const prof = targetProfiles.get(targetPid);
+                    const targetName = prof ? prof.targetName : '';
+                    pjMeta.mergedPersonIds[sourcePid] = {
+                        targetPid: targetPid,
+                        mergedAt: Date.now(),
+                        targetName: targetName
+                    };
+                    if(pjMeta.profiles && pjMeta.profiles[sourcePid]){
                         const pSource = pjMeta.profiles[sourcePid];
-                        if(pSource){
-                            const pTarget = pjProfile(targetPid);
-                            Object.keys(pSource).forEach(k => {
-                                if(pSource[k] && !pTarget[k]) pTarget[k] = pSource[k];
-                            });
-                            delete pjMeta.profiles[sourcePid];
-                        }
-                    });
-                    savePjMeta();
-                }
+                        const pTarget = pjProfile(targetPid);
+                        Object.keys(pSource).forEach(k => {
+                            if(pSource[k] && !pTarget[k]) pTarget[k] = pSource[k];
+                        });
+                        delete pjMeta.profiles[sourcePid];
+                    }
+                });
+                savePjMeta();
 
                 // 4. Invalidate caches and refresh UI
                 invalidatePjCache();
@@ -18461,7 +18540,7 @@ function endTaskDrag(item) {
                     } catch(e){}
                 }
 
-                // Protect contacts from being wiped out by remote pulls (Intelligent Union Merge)
+                // Protect contacts from being wiped out by remote pulls (Intelligent Union Merge & Anti-Resurrection Shield)
                 if(k === 'tp_contacts'){
                     try {
                         const localList = curLocalVal ? JSON.parse(curLocalVal) : [];
@@ -18477,14 +18556,29 @@ function endTaskDrag(item) {
                             continue;
                         }
 
+                        // Load mergedPersonIds and deletedPersonIds tombstones
+                        let localMetaObj = {};
+                        try {
+                            const rawMeta = (localPayload && localPayload['tp_people_meta']) || (storage ? storage.getItem('tp_people_meta') : null);
+                            if(rawMeta) localMetaObj = (typeof rawMeta === 'object') ? rawMeta : JSON.parse(rawMeta);
+                        } catch(e){}
+                        let remoteMetaObj = {};
+                        try {
+                            const rawRMeta = (remotePayload && remotePayload['tp_people_meta']);
+                            if(rawRMeta) remoteMetaObj = (typeof rawRMeta === 'object') ? rawRMeta : JSON.parse(rawRMeta);
+                        } catch(e){}
+
+                        const mergedPids = Object.assign({}, remoteMetaObj.mergedPersonIds || {}, localMetaObj.mergedPersonIds || {});
+                        const deletedPids = Object.assign({}, remoteMetaObj.deletedPersonIds || {}, localMetaObj.deletedPersonIds || {});
+
                         const mergedMap = new Map();
                         const keyForContact = (c) => {
                             if(c.personId) return 'id:' + c.personId;
                             const normName = (c.name || '').trim().toLowerCase();
                             if(normName) return 'name:' + normName;
-                            const phone = Array.isArray(c.phones) && c.phones[0] ? c.phones[0].trim() : '';
+                            const phone = Array.isArray(c.phones) && c.phones[0] ? String(c.phones[0]).replace(/\D+/g, '') : '';
                             if(phone) return 'phone:' + phone;
-                            const email = Array.isArray(c.emails) && c.emails[0] ? c.emails[0].trim().toLowerCase() : '';
+                            const email = Array.isArray(c.emails) && c.emails[0] ? String(c.emails[0]).trim().toLowerCase() : '';
                             if(email) return 'email:' + email;
                             return 'raw:' + Math.random();
                         };
@@ -18511,9 +18605,13 @@ function endTaskDrag(item) {
                             };
                         };
 
-                        // 1. Seed with all local contacts
+                        // 1. Seed with local contacts (skipping any that were deleted or merged)
                         localArr.forEach(c => {
                             if(c && typeof c === 'object'){
+                                const cPid = c.personId;
+                                const cNorm = (c.name || '').trim().toLowerCase();
+                                if((cPid && deletedPids[cPid]) || (cNorm && deletedPids[cNorm])) return;
+                                if((cPid && mergedPids[cPid]) || (cNorm && mergedPids[cNorm])) return;
                                 const key = keyForContact(c);
                                 mergedMap.set(key, c);
                             }
@@ -18522,43 +18620,90 @@ function endTaskDrag(item) {
                         let addedFromRemote = 0;
                         let updatedFromRemote = 0;
 
-                        // 2. Union merge remote contacts
+                        // 2. Union merge remote contacts with anti-resurrection & phone/email deduplication
                         remoteArr.forEach(rc => {
-                            if(rc && typeof rc === 'object'){
-                                const key = keyForContact(rc);
-                                if(mergedMap.has(key)){
-                                    const lc = mergedMap.get(key);
-                                    mergedMap.set(key, mergeTwoContacts(lc, rc));
-                                    updatedFromRemote++;
-                                } else {
-                                    let matchedKey = null;
-                                    const rNormName = (rc.name || '').trim().toLowerCase();
-                                    for(const [kKey, existing] of mergedMap.entries()){
-                                        if(rNormName && (existing.name || '').trim().toLowerCase() === rNormName){
-                                            matchedKey = kKey;
-                                            break;
-                                        }
-                                        if(rc.personId && existing.personId === rc.personId){
-                                            matchedKey = kKey;
-                                            break;
-                                        }
-                                    }
-                                    if(matchedKey){
-                                        const lc = mergedMap.get(matchedKey);
-                                        mergedMap.set(matchedKey, mergeTwoContacts(lc, rc));
-                                        updatedFromRemote++;
-                                    } else {
-                                        mergedMap.set(key, rc);
-                                        addedFromRemote++;
+                            if(!rc || typeof rc !== 'object') return;
+                            const rPid = rc.personId;
+                            const rNormName = (rc.name || '').trim().toLowerCase();
+
+                            // A. Deleted contact check
+                            if((rPid && deletedPids[rPid]) || (rNormName && deletedPids[rNormName])){
+                                hasLocalNewerChanges = true;
+                                return; // Never resurrect deleted contacts
+                            }
+
+                            // B. Merged contact check
+                            const mergeInfo = (rPid && mergedPids[rPid]) || (rNormName && mergedPids[rNormName]);
+                            if(mergeInfo && mergeInfo.targetPid){
+                                const targetPid = mergeInfo.targetPid;
+                                let targetEntryKey = null;
+                                for(const [kKey, existing] of mergedMap.entries()){
+                                    if(existing.personId === targetPid || ((existing.name||'').trim().toLowerCase() === (mergeInfo.targetName||'').trim().toLowerCase())){
+                                        targetEntryKey = kKey;
+                                        break;
                                     }
                                 }
+                                if(targetEntryKey){
+                                    const lc = mergedMap.get(targetEntryKey);
+                                    mergedMap.set(targetEntryKey, mergeTwoContacts(lc, rc));
+                                }
+                                hasLocalNewerChanges = true;
+                                return; // Merged secondary is folded into primary, NEVER added as duplicate
+                            }
+
+                            // C. Secondary Matcher: match by key, exact name, personId, phone, or email
+                            let matchedKey = null;
+                            const rKey = keyForContact(rc);
+                            if(mergedMap.has(rKey)){
+                                matchedKey = rKey;
+                            } else {
+                                const cleanRPhones = (rc.phones || []).map(p => String(p).replace(/\D+/g, '')).filter(p => p.length >= 7);
+                                const cleanREmails = (rc.emails || []).map(em => String(em).trim().toLowerCase()).filter(Boolean);
+
+                                for(const [kKey, existing] of mergedMap.entries()){
+                                    if(rNormName && (existing.name || '').trim().toLowerCase() === rNormName){
+                                        matchedKey = kKey;
+                                        break;
+                                    }
+                                    if(rc.personId && existing.personId === rc.personId){
+                                        matchedKey = kKey;
+                                        break;
+                                    }
+                                    // Match by phone number
+                                    if(cleanRPhones.length > 0 && Array.isArray(existing.phones)){
+                                        const cleanExPhones = existing.phones.map(p => String(p).replace(/\D+/g, '')).filter(p => p.length >= 7);
+                                        const phoneMatches = cleanRPhones.some(rp => cleanExPhones.some(ep => rp.endsWith(ep.slice(-10)) || ep.endsWith(rp.slice(-10))));
+                                        if(phoneMatches){
+                                            matchedKey = kKey;
+                                            break;
+                                        }
+                                    }
+                                    // Match by email
+                                    if(cleanREmails.length > 0 && Array.isArray(existing.emails)){
+                                        const cleanExEmails = existing.emails.map(em => String(em).trim().toLowerCase()).filter(Boolean);
+                                        const emailMatches = cleanREmails.some(re => cleanExEmails.includes(re));
+                                        if(emailMatches){
+                                            matchedKey = kKey;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(matchedKey){
+                                const lc = mergedMap.get(matchedKey);
+                                mergedMap.set(matchedKey, mergeTwoContacts(lc, rc));
+                                updatedFromRemote++;
+                            } else {
+                                mergedMap.set(rKey, rc);
+                                addedFromRemote++;
                             }
                         });
 
                         const mergedContacts = Array.from(mergedMap.values());
                         const mergedStrVal = JSON.stringify(mergedContacts);
 
-                        if(mergedContacts.length > remoteArr.length || localArr.length > remoteArr.length){
+                        if(mergedContacts.length !== remoteArr.length || curLocalVal !== mergedStrVal){
                             hasLocalNewerChanges = true;
                         }
                         if(addedFromRemote > 0 || updatedFromRemote > 0 || curLocalVal !== mergedStrVal){
@@ -18588,6 +18733,15 @@ function endTaskDrag(item) {
                         const localProfiles = (localMeta.profiles && typeof localMeta.profiles === 'object') ? localMeta.profiles : {};
                         const remoteProfiles = (remoteMeta.profiles && typeof remoteMeta.profiles === 'object') ? remoteMeta.profiles : {};
                         mergedMeta.profiles = { ...localProfiles, ...remoteProfiles };
+
+                        // Union-merge tombstones
+                        const localMerged = (localMeta.mergedPersonIds && typeof localMeta.mergedPersonIds === 'object') ? localMeta.mergedPersonIds : {};
+                        const remoteMerged = (remoteMeta.mergedPersonIds && typeof remoteMeta.mergedPersonIds === 'object') ? remoteMeta.mergedPersonIds : {};
+                        mergedMeta.mergedPersonIds = { ...remoteMerged, ...localMerged };
+
+                        const localDeleted = (localMeta.deletedPersonIds && typeof localMeta.deletedPersonIds === 'object') ? localMeta.deletedPersonIds : {};
+                        const remoteDeleted = (remoteMeta.deletedPersonIds && typeof remoteMeta.deletedPersonIds === 'object') ? remoteMeta.deletedPersonIds : {};
+                        mergedMeta.deletedPersonIds = { ...remoteDeleted, ...localDeleted };
 
                         const mergedStrVal = JSON.stringify(mergedMeta);
 
