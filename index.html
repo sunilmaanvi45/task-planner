@@ -2875,11 +2875,14 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   background: var(--modal-overlay, rgba(0, 0, 0, 0.65));
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   padding: 16px;
   animation: fadeIn 0.18s ease-out;
+}
+.eisen-move-modal-overlay.active {
+  display: flex !important;
 }
 .eisen-move-modal {
   background: var(--surface-1, #1e1e1e);
@@ -4062,39 +4065,6 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     </div>
                     <div class="eisen-item-popup-body" id="eisenItemPopupBody"></div>
                 </div>
-    <!-- Eisenhower Move to Date Modal -->
-    <div class="eisen-move-modal-overlay" id="eisenMoveDateOverlay" style="display:none;">
-        <div class="eisen-move-modal" id="eisenMoveDateModal" role="dialog" aria-modal="true">
-            <div class="eisen-move-header">
-                <div class="eisen-move-title">ðŸ“… Move to Date</div>
-                <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">âœ•</button>
-            </div>
-            <div class="eisen-move-body">
-                <div class="eisen-move-summary" id="eisenMoveSummary">Moving selected items</div>
-                <div class="eisen-move-field">
-                    <label for="eisenMoveDateInput" class="eisen-move-label">Target Date:</label>
-                    <input type="date" id="eisenMoveDateInput" class="eisen-move-input" />
-                </div>
-                <div class="eisen-move-presets">
-                    <button type="button" class="eisen-move-preset-btn" data-move-preset="today">Today</button>
-                    <button type="button" class="eisen-move-preset-btn" data-move-preset="tomorrow">Tomorrow</button>
-                    <button type="button" class="eisen-move-preset-btn" data-move-preset="+2d">+2 Days</button>
-                    <button type="button" class="eisen-move-preset-btn" data-move-preset="+7d">Next Week</button>
-                </div>
-                <div class="eisen-move-option">
-                    <label class="eisen-move-checkbox-label">
-                        <input type="checkbox" id="eisenMoveKeepQuadrant" checked />
-                        <span>Keep in same quadrant on target date</span>
-                    </label>
-                </div>
-            </div>
-            <div class="eisen-move-footer">
-                <button type="button" class="eisen-btn-secondary" id="btnEisenMoveCancel">Cancel</button>
-                <button type="button" class="eisen-btn-primary" id="btnEisenMoveConfirm">Move Items</button>
-            </div>
-        </div>
-    </div>
-
             </div>
         </div>
     </div>
@@ -5103,6 +5073,8 @@ function openEisenMoveDateModal() {
     const summary = document.getElementById('eisenMoveSummary');
     if (!overlay || !input) return;
 
+    initEisenMoveDateModal();
+
     const baseDate = eisenDateStr || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : getTodayStr());
     input.value = addDaysToDateStr(baseDate, 1);
 
@@ -5112,7 +5084,7 @@ function openEisenMoveDateModal() {
 
     overlay.style.display = 'flex';
     overlay.classList.add('active');
-    input.focus();
+    setTimeout(() => { try { input.focus(); } catch (e) {} }, 50);
 }
 
 function closeEisenMoveDateModal() {
@@ -5292,30 +5264,52 @@ function executeEisenMoveToDate(target, keepQuadrant) {
 
 function initEisenMoveDateModal() {
     const overlay = document.getElementById('eisenMoveDateOverlay');
+    if (!overlay) return;
+    if (overlay.dataset.wired === '1') return;
+    overlay.dataset.wired = '1';
+
     const input = document.getElementById('eisenMoveDateInput');
     const btnCancel = document.getElementById('btnEisenMoveCancel');
     const btnCancelTop = document.getElementById('btnEisenMoveCancelTop');
     const btnConfirm = document.getElementById('btnEisenMoveConfirm');
     const keepQuad = document.getElementById('eisenMoveKeepQuadrant');
 
-    if (btnCancel) btnCancel.onclick = closeEisenMoveDateModal;
-    if (btnCancelTop) btnCancelTop.onclick = closeEisenMoveDateModal;
+    if (btnCancel) btnCancel.onclick = (e) => { e.preventDefault(); e.stopPropagation(); closeEisenMoveDateModal(); };
+    if (btnCancelTop) btnCancelTop.onclick = (e) => { e.preventDefault(); e.stopPropagation(); closeEisenMoveDateModal(); };
 
-    if (overlay) {
-        overlay.onclick = e => {
-            if (e.target === overlay) closeEisenMoveDateModal();
-        };
-    }
+    overlay.onclick = e => {
+        if (e.target === overlay) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeEisenMoveDateModal();
+        }
+    };
 
     if (btnConfirm && input) {
-        btnConfirm.onclick = () => {
+        btnConfirm.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             executeEisenMoveToDate(input.value.trim(), keepQuad ? keepQuad.checked : true);
         };
     }
 
+    if (input) {
+        input.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                executeEisenMoveToDate(input.value.trim(), keepQuad ? keepQuad.checked : true);
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeEisenMoveDateModal();
+            }
+        };
+    }
+
     // Preset buttons
-    document.querySelectorAll('[data-move-preset]').forEach(btn => {
-        btn.onclick = () => {
+    overlay.querySelectorAll('[data-move-preset]').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             const preset = btn.dataset.movePreset;
             const base = eisenDateStr || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : getTodayStr());
             if (preset === 'today') input.value = getTodayStr();
@@ -13824,6 +13818,7 @@ function endTaskDrag(item) {
 
                 if(action==='select-all'){selectAllEisen();return}
                 if(action==='clear'){clearAllSelections();return}
+                if(action==='move-date'){openEisenMoveDateModal();return}
                 if(!eisenDateStr)return;
 
                 const entries=Array.from(selectedEisenIds).map(k=>{
@@ -13870,11 +13865,7 @@ function endTaskDrag(item) {
                     return;
                 }
 
-                if(action==='move-date'){
-                    openEisenMoveDateModal();
-                    return;
                 }
-            }
             function handleEisenSelectionBarChange(e){
                 const sel=e.target.closest('[data-esel-select]');
                 if(!sel)return;
@@ -17701,6 +17692,38 @@ function endTaskDrag(item) {
         })();
     </script>
 
+    <!-- Eisenhower Move to Date Modal -->
+    <div class="eisen-move-modal-overlay" id="eisenMoveDateOverlay" style="display:none;">
+        <div class="eisen-move-modal" id="eisenMoveDateModal" role="dialog" aria-modal="true">
+            <div class="eisen-move-header">
+                <div class="eisen-move-title">ðŸ“… Move to Date</div>
+                <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">âœ•</button>
+            </div>
+            <div class="eisen-move-body">
+                <div class="eisen-move-summary" id="eisenMoveSummary">Moving selected items</div>
+                <div class="eisen-move-field">
+                    <label for="eisenMoveDateInput" class="eisen-move-label">Target Date:</label>
+                    <input type="date" id="eisenMoveDateInput" class="eisen-move-input" />
+                </div>
+                <div class="eisen-move-presets">
+                    <button type="button" class="eisen-move-preset-btn" data-move-preset="today">Today</button>
+                    <button type="button" class="eisen-move-preset-btn" data-move-preset="tomorrow">Tomorrow</button>
+                    <button type="button" class="eisen-move-preset-btn" data-move-preset="+2d">+2 Days</button>
+                    <button type="button" class="eisen-move-preset-btn" data-move-preset="+7d">Next Week</button>
+                </div>
+                <div class="eisen-move-option">
+                    <label class="eisen-move-checkbox-label">
+                        <input type="checkbox" id="eisenMoveKeepQuadrant" checked />
+                        <span>Keep in same quadrant on target date</span>
+                    </label>
+                </div>
+            </div>
+            <div class="eisen-move-footer">
+                <button type="button" class="eisen-btn-secondary" id="btnEisenMoveCancel">Cancel</button>
+                <button type="button" class="eisen-btn-primary" id="btnEisenMoveConfirm">Move Items</button>
+            </div>
+        </div>
+    </div>
     <!-- Manage Habit & Streak Modal -->
     <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;">
         <div class="habit-manage-modal" id="habitManageModal" role="dialog" aria-modal="true">
