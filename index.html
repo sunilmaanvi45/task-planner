@@ -1126,6 +1126,15 @@ body{
   border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;user-select:none;
   transition:background var(--dur-fast),border-color var(--dur-fast);
 }
+.eisen-preset-item[draggable="true"]{cursor:grab}
+.eisen-preset-drag-handle{
+  cursor:grab;color:var(--text-secondary);font-size:12px;line-height:1;padding:2px 2px 2px 0;
+  user-select:none;opacity:0.6;transition:opacity var(--dur-fast),color var(--dur-fast);flex-shrink:0;
+}
+.eisen-preset-drag-handle:hover{opacity:1;color:var(--text);cursor:grab}
+.eisen-preset-drag-handle:active{cursor:grabbing}
+.eisen-preset-item.dragging{opacity:0.35;background:var(--surface-3);border:1px dashed var(--accent)}
+.eisen-preset-item.drag-over{border-top:2px solid var(--accent) !important;background:var(--surface-2)}
 .eisen-preset-item:hover{background:var(--surface-2);border-color:var(--border)}
 .eisen-preset-item.active{background:var(--accent-light);border-color:var(--accent-border);color:var(--accent)}
 .eisen-preset-left{display:flex;align-items:center;gap:6px;overflow:hidden;flex:1 1 auto}
@@ -2867,6 +2876,16 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
    STEP 6Q: EISENHOWER MOVE-TO-DATE MODAL & ADVANCED HABITS UI
    ============================================================ */
 
+:root {
+  --text-primary: var(--text, #14161b);
+}
+[data-theme="dark"] {
+  --text-primary: var(--text, #e7eaf0);
+}
+[data-theme="oled"] {
+  --text-primary: var(--text, #f2f2f2);
+}
+
 /* 1. Eisenhower Move to Date Modal */
 .eisen-move-modal-overlay {
   position: fixed;
@@ -3093,32 +3112,33 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
 /* Habit Card */
 .habit-card {
-  background: var(--surface-2, #232323);
-  border: 1px solid var(--border, #383838);
-  border-left: 3.5px solid var(--border-strong, #555);
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border, #e2e4e8);
+  border-left: 3.5px solid var(--border-strong, #94a3b8);
   border-radius: var(--r-md, 8px);
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   transition: all 0.18s ease;
+  color: var(--text, #14161b);
 }
 .habit-card:hover {
-  background: var(--surface-3, #282828);
-  border-color: var(--border-strong, #555);
+  background: var(--surface-2, #f8f9fb);
+  border-color: var(--border-strong, #cbd5e1);
   transform: translateY(-1px);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
 }
 .habit-card.is-due {
   border-left-color: var(--accent, #3b82f6);
 }
 .habit-card.is-completed {
   border-left-color: #10b981 !important;
-  background: rgba(16, 185, 129, 0.03);
+  background: rgba(16, 185, 129, 0.05);
 }
 .habit-card.is-rest {
   border-left-color: #64748b;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 .habit-card.is-rest:hover {
   opacity: 1;
@@ -3170,23 +3190,28 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   flex-direction: column;
   gap: 3px;
 }
-.habit-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-primary, #eee);
+.habit-name,
+.habit-card-name {
+  font-size: 0.9rem;
+  font-weight: 650;
+  color: var(--text, #14161b) !important;
   letter-spacing: -0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.35;
+  white-space: normal;
+  word-break: break-word;
   transition: color 0.15s ease;
 }
-.habit-card.is-completed .habit-name {
-  color: var(--text-secondary, #888);
+.habit-card.is-completed .habit-name,
+.habit-card.is-completed .habit-card-name {
+  color: var(--text-secondary, #6a7280) !important;
   text-decoration: line-through;
+  opacity: 0.75;
 }
-.habit-name.active {
-  color: var(--accent, #3b82f6);
-  font-weight: 700;
+.habit-name.active,
+.habit-card-name.active,
+.habit-card.active .habit-name {
+  color: var(--accent, #3b82f6) !important;
+  font-weight: 750;
 }
 
 .habit-badges {
@@ -6026,7 +6051,7 @@ function renderHabitMiniCalendar() {
     let html = `
         <div class="habit-calendar-section" style="margin-top:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;">
             <div class="habit-calendar-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <span style="font-weight:700;font-size:0.85rem;color:var(--text-primary);">📅 ${escapeHtml(selectedHabit)} <span style="font-size:0.7rem;font-weight:600;color:var(--accent);margin-left:6px;">(${escapeHtml(freqLbl)} • Streak: 🔥${stats.currentStreak} • Best: ⭐${stats.bestStreak})</span></span>
+                <span style="font-weight:700;font-size:0.85rem;color:var(--text, #14161b);">📅 ${escapeHtml(selectedHabit)} <span style="font-size:0.7rem;font-weight:600;color:var(--accent);margin-left:6px;">(${escapeHtml(freqLbl)} • Streak: 🔥${stats.currentStreak} • Best: ⭐${stats.bestStreak})</span></span>
                 <button class="habit-calendar-deselect" id="habitCalendarDeselect" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:0.7rem;padding:2px 6px;cursor:pointer;">✕ Close</button>
             </div>
             <div class="habit-mini-grid">
@@ -13060,8 +13085,7 @@ function endTaskDrag(item) {
                     statuses: ['0'],
                     completed: false,
                     justStart: true,
-                    isDefault: true,
-                    isBuiltin: true
+                    isDefault: true
                 },
                 {
                     id: 'preset_all_tasks',
@@ -13070,8 +13094,7 @@ function endTaskDrag(item) {
                     statuses: [],
                     completed: false,
                     justStart: false,
-                    isDefault: false,
-                    isBuiltin: true
+                    isDefault: false
                 },
                 {
                     id: 'preset_say_court',
@@ -13080,8 +13103,7 @@ function endTaskDrag(item) {
                     statuses: ['0'],
                     completed: true,
                     justStart: true,
-                    isDefault: false,
-                    isBuiltin: false
+                    isDefault: false
                 }
             ];
 
@@ -13158,7 +13180,17 @@ function endTaskDrag(item) {
                 let presets = getStoredEisenPresets();
                 presets = presets.filter(p => p.id !== presetId);
                 if(presets.length === 0){
-                    presets = JSON.parse(JSON.stringify(DEFAULT_BUILTIN_PRESETS));
+                    presets = [
+                        {
+                            id: 'preset_' + Date.now(),
+                            name: 'All Tasks',
+                            tags: [],
+                            statuses: [],
+                            completed: false,
+                            justStart: false,
+                            isDefault: true
+                        }
+                    ];
                 }
                 if(!presets.some(p => p.isDefault)) presets[0].isDefault = true;
                 saveStoredEisenPresets(presets);
@@ -13197,7 +13229,8 @@ function endTaskDrag(item) {
                     if(p.justStart) descParts.push('\u26A1 Just Start');
                     const descStr = descParts.join(' \u00B7 ');
 
-                    html += `<div class="eisen-preset-item ${isAct ? 'active' : ''}" data-preset-id="${p.id}">
+                    html += `<div class="eisen-preset-item ${isAct ? 'active' : ''}" data-preset-id="${p.id}" draggable="true">
+                        <span class="eisen-preset-drag-handle" title="Drag to reorder presets" aria-label="Drag to reorder presets">â‹®â‹®</span>
                         <div class="eisen-preset-left">
                             <span class="eisen-preset-radio">${isAct ? "\u25CF" : "\u25CB"}</span>
                             <div class="eisen-preset-text">
@@ -13208,7 +13241,7 @@ function endTaskDrag(item) {
                         <div class="eisen-preset-badges">
                             ${isDef ? '<span class="eisen-preset-default-badge" title="Default preset on matrix open">Default</span>' : ''}
                             <button type="button" class="eisen-preset-star-btn ${isDef ? "is-default" : ""}" data-star-id="${p.id}" title="${isDef ? "Currently default on matrix open" : "Set as default preset on open"}">${isDef ? "\u2605" : "\u2606"}</button>
-                            ${!p.isBuiltin ? `<button type="button" class="eisen-preset-del-btn" data-del-id="${p.id}" title="Delete preset">\u2715</button>` : ""}
+                            <button type="button" class="eisen-preset-del-btn" data-del-id="${p.id}" title="Delete preset">\u2715</button>
                         </div>
                     </div>`;
                 });
@@ -13448,8 +13481,76 @@ function endTaskDrag(item) {
                     });
                 }
 
+                let draggedPresetId = null;
+                let isDraggingPreset = false;
+
                 if(listEl){
+                    listEl.addEventListener('dragstart', e => {
+                        const item = e.target.closest('.eisen-preset-item');
+                        if(!item) return;
+                        draggedPresetId = item.dataset.presetId;
+                        isDraggingPreset = true;
+                        item.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        try {
+                            e.dataTransfer.setData('text/plain', draggedPresetId);
+                        } catch(err){}
+                    });
+
+                    listEl.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        e.dataTransfer.dropEffect = 'move';
+                        const item = e.target.closest('.eisen-preset-item');
+                        if(!item || item.dataset.presetId === draggedPresetId) return;
+                        listEl.querySelectorAll('.eisen-preset-item.drag-over').forEach(el => {
+                            if(el !== item) el.classList.remove('drag-over');
+                        });
+                        item.classList.add('drag-over');
+                    });
+
+                    listEl.addEventListener('dragleave', e => {
+                        const item = e.target.closest('.eisen-preset-item');
+                        if(item && !item.contains(e.relatedTarget)){
+                            item.classList.remove('drag-over');
+                        }
+                    });
+
+                    listEl.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const targetItem = e.target.closest('.eisen-preset-item');
+                        listEl.querySelectorAll('.eisen-preset-item').forEach(el => {
+                            el.classList.remove('drag-over');
+                            el.classList.remove('dragging');
+                        });
+                        if(!targetItem || !draggedPresetId) return;
+                        const targetId = targetItem.dataset.presetId;
+                        if(targetId === draggedPresetId) return;
+
+                        let presets = getStoredEisenPresets();
+                        const fromIdx = presets.findIndex(p => p.id === draggedPresetId);
+                        const toIdx = presets.findIndex(p => p.id === targetId);
+                        if(fromIdx !== -1 && toIdx !== -1){
+                            const [moved] = presets.splice(fromIdx, 1);
+                            presets.splice(toIdx, 0, moved);
+                            saveStoredEisenPresets(presets);
+                            renderEisenPresetList();
+                            showToast('â†• Presets reordered');
+                        }
+                        draggedPresetId = null;
+                        setTimeout(() => { isDraggingPreset = false; }, 100);
+                    });
+
+                    listEl.addEventListener('dragend', e => {
+                        listEl.querySelectorAll('.eisen-preset-item').forEach(el => {
+                            el.classList.remove('drag-over');
+                            el.classList.remove('dragging');
+                        });
+                        draggedPresetId = null;
+                        setTimeout(() => { isDraggingPreset = false; }, 100);
+                    });
+
                     listEl.addEventListener('click', e => {
+                        if(isDraggingPreset) return;
                         e.stopPropagation();
                         const starBtn = e.target.closest('[data-star-id]');
                         if(starBtn){
