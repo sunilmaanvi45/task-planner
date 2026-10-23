@@ -3637,9 +3637,9 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         <div class="calendar-panel" id="calendarPanel">
             <div class="calendar-header">
                 <div class="header-left">
-                    <button class="nav-btn" id="btnPrevMonth" aria-label="Previous month">◀</button>
+                    <button class="nav-btn" id="btnPrevMonth" aria-label="Previous month">&#10094;</button>
                     <span class="calendar-title" id="calendarTitle">June 2026</span>
-                    <button class="nav-btn" id="btnNextMonth" aria-label="Next month">▶</button>
+                    <button class="nav-btn" id="btnNextMonth" aria-label="Next month">&#10095;</button>
                     <button class="btn-today" id="btnToday">Today</button>
                 </div>
                 <div class="header-right">
@@ -3676,7 +3676,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
             <div class="destination-time-section ui-section" id="destinationTimeSection">
                 <div class="ui-section-header" id="destinationTimeHeader">
-                    <div class="ui-section-title"><button class="ui-section-chevron" type="button" aria-label="Toggle Destination Time">▼</button><span>🧭 Destination Time</span></div>
+                    <div class="ui-section-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>🧭 Destination Time</span></div>
                     <div class="destination-section-actions"><span class="destination-meta" id="destinationCount">0 destinations</span></div>
                 </div>
                 <div class="ui-section-body destination-time-body" id="destinationTimeBody">
@@ -3765,7 +3765,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
             <div class="learnings-section ui-section" id="learningsSection">
                 <div class="ui-section-header learnings-header">
-                    <div class="ui-section-title learnings-title"><button class="ui-section-chevron" type="button">▼</button><span>🧠 Learnings <span class="learnings-count" id="learningsCount"></span></span></div>
+                    <div class="ui-section-title learnings-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>🧠 Learnings <span class="learnings-count" id="learningsCount"></span></span></div>
                     <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
                         <select class="learnings-deck-filter" id="deckFilterSelect" title="Filter by deck"></select>
                         <button class="btn-oldest-due" id="btnOldestDue">⏳ Oldest Due</button>
@@ -3832,10 +3832,10 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             </div>
             <div class="task-list" id="taskList"></div>
             <div class="pj-daily-section" id="pjDailySection"></div>
-                        <div class="habits-section daily-only" id="habitsSection">
+            <div class="habits-section daily-only" id="habitsSection">
                 <div class="habits-header">
                     <div class="habits-title-wrap">
-                        <span class="habits-title-icon">ðŸŽ¯</span>
+                        <span class="habits-title-icon">🎯</span>
                         <span class="habits-title-text">Habits & Routines</span>
                         <span class="habits-progress-pill">0/0 Done</span>
                     </div>
@@ -3898,7 +3898,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
     <div class="undo-toast" id="undoToast" role="status" aria-live="polite">
         <span class="undo-toast-msg" id="undoToastMsg">Action performed</span>
-        <button class="undo-toast-btn" id="undoToastBtn" type="button">↶ Undo</button>
+        <button class="undo-toast-btn" id="undoToastBtn" type="button">&#8617; Undo</button>
     </div>
 
     <!-- Login Page / Full Overlay -->
@@ -4032,11 +4032,11 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 <div class="eisen-title" id="eisenTitle">Eisenhower Matrix</div>
                 <div class="eisen-filters" id="eisenFilters">
                     <div class="eisen-filter-group">
-                        <button type="button" class="eisen-filter-select" id="eisenTagFilterBtn" title="Filter by tag">🏷 All tags</button>
+                        <button type="button" class="eisen-filter-select" id="eisenTagFilterBtn" title="Filter by tag">&#127991; All tags</button>
                         <div class="eisen-filter-menu" id="eisenTagFilterMenu" hidden></div>
                     </div>
                     <div class="eisen-filter-group">
-                        <button type="button" class="eisen-filter-select" id="eisenSubFilterBtn" title="Filter by sub-status">📌 All statuses</button>
+                        <button type="button" class="eisen-filter-select" id="eisenSubFilterBtn" title="Filter by sub-status">&#9873; All statuses</button>
                         <div class="eisen-filter-menu" id="eisenSubFilterMenu" hidden></div>
                     </div>
                     <div class="eisen-presets-container" style="position:relative;display:inline-flex;align-items:center;">
@@ -4063,9 +4063,9 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                             </div>
                         </div>
                     </div>
-                    <button class="eisen-completed-toggle" id="eisenCompletedToggle" title="Show or hide completed items">○ Completed</button>
+                    <button class="eisen-completed-toggle" id="eisenCompletedToggle" title="Show or hide completed items">&#9675; Completed</button>
                     <button class="eisen-just-start-toggle" id="eisenJustStartToggle" title="Just Start mode — dims task text and lets you write a starting action on top">🚀 Just Start</button>
-                    <button class="eisen-filter-clear" id="eisenFilterClear" title="Clear all filters">✕</button>
+                    <button class="eisen-filter-clear" id="eisenFilterClear" title="Clear all filters">&#10005;</button>
                 </div>
                 <button class="eisen-copy-png" id="eisenCopyPng" title="Copy matrix as high-quality PNG">📷</button>
                 <button class="eisen-close" id="eisenClose" title="Close">✕</button>
@@ -4244,7 +4244,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         if(window.localStorage){
             for(let i=0; i<window.localStorage.length; i++){
                 const k = window.localStorage.key(i);
-                if(k && (k.startsWith('td_') || k.startsWith('tdw_') || k === 'tp_auth_users_v2')){
+                if(k && (k.startsWith('td_') || k.startsWith('tdw_') || k.startsWith('tp_') || legacyPrefix.test(k))){
                     const val = window.localStorage.getItem(k);
                     if(val !== null && val !== undefined){
                         cache.set(k, val);
@@ -4301,7 +4301,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         const legacy=[];
         for(let i=0;i<window.localStorage.length;i++){
             const key=window.localStorage.key(i);
-            if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key === 'tp_auth_users_v2' || legacyPrefix.test(key))){
+            if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || legacyPrefix.test(key))){
                 const value=window.localStorage.getItem(key);
                 cache.set(key,value);
                 legacy.push({key,value});
@@ -4329,7 +4329,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             if(window.localStorage){
                 for(let i=0;i<window.localStorage.length;i++){
                     const key=window.localStorage.key(i);
-                    if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key === 'tp_auth_users_v2' || legacyPrefix.test(key))){
+                    if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || legacyPrefix.test(key))){
                         cache.set(key,window.localStorage.getItem(key));
                     }
                 }
@@ -5642,7 +5642,7 @@ function renderHabits() {
                 <div class="habit-card ${ic ? 'is-completed' : ''} ${isDue ? 'is-due' : 'is-rest'}" data-habit="${escapeHtml(h.name)}" data-habit-id="${h.id || escapeHtml(h.name)}">
                     <div class="habit-card-main">
                         <button type="button" class="habit-toggle-btn ${ic ? 'checked' : ''}" data-habit="${escapeHtml(h.name)}" title="${ic ? 'Mark as incomplete' : 'Mark as complete'}">
-                            <span class="habit-check-icon">✓</span>
+                            <span class="habit-check-icon">&#10003;</span>
                         </button>
                         <div class="habit-info" data-habit-name="${escapeHtml(h.name)}" title="Click to view month calendar history">
                             <div class="habit-name habit-card-name ${ia ? 'active' : ''}">${escapeHtml(h.name)}</div>
@@ -6537,9 +6537,9 @@ function renderHabitMiniCalendar() {
                             <button class="task-defer-btn" data-lt="defer" data-days="30">+1m</button>
                         </div>
                     `:''}
-                    <button class="task-toolbar-btn" data-lt="edit">✎ Edit</button>
-                    ${!l.completed?`<button class="task-toolbar-btn success" data-lt="done">✓ Done</button>`:''}
-                    <button class="task-toolbar-btn danger" data-lt="delete">🗑</button>
+                    <button class="task-toolbar-btn" data-lt="edit">&#9998; Edit</button>
+                    ${!l.completed?`<button class="task-toolbar-btn success" data-lt="done">&#10003; Done</button>`:''}
+                    <button class="task-toolbar-btn danger" data-lt="delete">&#128465; Delete</button>
                 `;
             }
 
@@ -7102,8 +7102,18 @@ function renderHabitMiniCalendar() {
                 } catch(e){ return []; }
             }
             function savePjContacts(arr){
-                appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(Array.isArray(arr) ? arr : []));
+                const validArr = Array.isArray(arr) ? arr : [];
+                appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(validArr));
                 invalidatePjCache();
+                if(typeof setLocalKeyTimestamp === 'function'){
+                    setLocalKeyTimestamp(PJ_CONTACTS_KEY, Date.now());
+                }
+                if(typeof window.__taskPlannerScheduleCloudPush === 'function'){
+                    window.__taskPlannerScheduleCloudPush(20);
+                } else if(typeof scheduleCloudPush === 'function'){
+                    try { hasPendingLocalEdits = true; } catch(e){}
+                    scheduleCloudPush(20);
+                }
             }
 
             function deletePjContact(pid, options){
@@ -7472,6 +7482,15 @@ function renderHabitMiniCalendar() {
             }
             function savePjMeta(){
                 appStorage.setItem(PJ_META_KEY, JSON.stringify(pjMeta));
+                if(typeof setLocalKeyTimestamp === 'function'){
+                    setLocalKeyTimestamp(PJ_META_KEY, Date.now());
+                }
+                if(typeof window.__taskPlannerScheduleCloudPush === 'function'){
+                    window.__taskPlannerScheduleCloudPush(50);
+                } else if(typeof scheduleCloudPush === 'function'){
+                    try { hasPendingLocalEdits = true; } catch(e){}
+                    scheduleCloudPush(50);
+                }
             }
             function pjAllTags(){ return PJ_TAGS.concat(pjMeta.customTags||[]).filter((x,i,a)=>x&&a.indexOf(x)===i); }
             function pjTagMeta(t){ return PJ_TAG_META[t] || { icon:'&#127991;', label: t.replace(/[-_]+/g,' ').replace(/\b\w/g,m=>m.toUpperCase()) }; }
@@ -11558,6 +11577,10 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         name = [g, m, f].filter(Boolean).join(' ');
                     }
                     if(!name){
+                        const orgIdx = headers.findIndex(h => ['organization 1 - name', 'company', 'organization', 'org'].includes(h));
+                        if(orgIdx !== -1 && row[orgIdx]) name = String(row[orgIdx]||'').replace(/^["']|["']$/g, '').trim();
+                    }
+                    if(!name){
                         if(phones.length > 0) name = 'Contact (' + phones[0] + ')';
                         else if(emails.length > 0) name = emails[0].split('@')[0];
                         else continue;
@@ -11571,6 +11594,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         name: name,
                         phones: phones,
                         emails: emails,
+                        isContact: true,
                         source: 'csv'
                     });
                 }
@@ -11585,14 +11609,60 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                         if(!parsed.length){ alert('No contacts found in CSV.'); return; }
                         const existing = loadPjContacts();
                         const map = new Map(existing.map(x => [x.personId, x]));
+                        const nameToPid = new Map();
+                        const phoneToPid = new Map();
+                        const emailToPid = new Map();
+
+                        existing.forEach(x => {
+                            if(x.name) nameToPid.set(normalizePjName(x.name), x.personId);
+                            (Array.isArray(x.phones) ? x.phones : (x.phone ? [x.phone] : [])).forEach(ph => {
+                                const clean = String(ph).replace(/\D+/g, '');
+                                if(clean.length >= 7) phoneToPid.set(clean.slice(-10), x.personId);
+                            });
+                            (Array.isArray(x.emails) ? x.emails : (x.email ? [x.email] : [])).forEach(em => {
+                                const clean = String(em).trim().toLowerCase();
+                                if(clean) emailToPid.set(clean, x.personId);
+                            });
+                        });
+
                         let newCount = 0;
                         let mergedCount = 0;
                         parsed.forEach(p => {
-                            if(!map.has(p.personId)){
+                            const pNorm = normalizePjName(p.name);
+                            let matchedPid = map.has(p.personId) ? p.personId : (nameToPid.get(pNorm) || null);
+                            if(!matchedPid && p.phones && p.phones.length){
+                                for(const ph of p.phones){
+                                    const clean = String(ph).replace(/\D+/g, '');
+                                    if(clean.length >= 7 && phoneToPid.has(clean.slice(-10))){
+                                        matchedPid = phoneToPid.get(clean.slice(-10));
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!matchedPid && p.emails && p.emails.length){
+                                for(const em of p.emails){
+                                    const clean = String(em).trim().toLowerCase();
+                                    if(clean && emailToPid.has(clean)){
+                                        matchedPid = emailToPid.get(clean);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if(!matchedPid || !map.has(matchedPid)){
                                 map.set(p.personId, p);
+                                if(p.name) nameToPid.set(pNorm, p.personId);
+                                (p.phones || []).forEach(ph => {
+                                    const clean = String(ph).replace(/\D+/g, '');
+                                    if(clean.length >= 7) phoneToPid.set(clean.slice(-10), p.personId);
+                                });
+                                (p.emails || []).forEach(em => {
+                                    const clean = String(em).trim().toLowerCase();
+                                    if(clean) emailToPid.set(clean, p.personId);
+                                });
                                 newCount++;
                             } else {
-                                const ext = map.get(p.personId);
+                                const ext = map.get(matchedPid);
                                 const phSet = new Set(Array.isArray(ext.phones) ? ext.phones : (ext.phone ? [ext.phone] : []));
                                 (p.phones||[]).forEach(ph => phSet.add(ph));
                                 ext.phones = Array.from(phSet);
@@ -11601,7 +11671,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                 (p.emails||[]).forEach(em => emSet.add(em));
                                 ext.emails = Array.from(emSet);
 
-                                if(p.name) ext.name = p.name;
+                                if(p.name && !ext.name) ext.name = p.name;
+                                ext.isContact = true;
                                 mergedCount++;
                             }
                         });
@@ -12934,14 +13005,14 @@ function endTaskDrag(item) {
 
             function updateEisenFilterUI(){
                 if(eisenTagFilterBtn){
-                    if(eisenTagFilter.size===0){eisenTagFilterBtn.textContent='🏷 All tags';eisenTagFilterBtn.classList.remove('active')}
-                    else if(eisenTagFilter.size===1){const t=Array.from(eisenTagFilter)[0];eisenTagFilterBtn.textContent='🏷 '+((TAG_META[t]&&TAG_META[t].label)||t);eisenTagFilterBtn.classList.add('active')}
-                    else{eisenTagFilterBtn.textContent='🏷 '+eisenTagFilter.size+' tags';eisenTagFilterBtn.classList.add('active')}
+                    if(eisenTagFilter.size===0){eisenTagFilterBtn.textContent='\u{1F3F7} All tags';eisenTagFilterBtn.classList.remove('active')}
+                    else if(eisenTagFilter.size===1){const t=Array.from(eisenTagFilter)[0];eisenTagFilterBtn.textContent='\u{1F3F7} ' +((TAG_META[t]&&TAG_META[t].label)||t);eisenTagFilterBtn.classList.add('active')}
+                    else{eisenTagFilterBtn.textContent='\u{1F3F7} ' +eisenTagFilter.size+' tags';eisenTagFilterBtn.classList.add('active')}
                 }
                 if(eisenSubFilterBtn){
-                    if(eisenSubFilter.size===0){eisenSubFilterBtn.textContent='📌 All statuses';eisenSubFilterBtn.classList.remove('active')}
-                    else if(eisenSubFilter.size===1){const st=Array.from(eisenSubFilter)[0];const idx=st==='none'?-1:parseInt(st,10);const label=idx>=0?((DEFAULT_SUB_LABELS[idx])||st):'Unassigned';eisenSubFilterBtn.textContent='📌 '+label;eisenSubFilterBtn.classList.add('active')}
-                    else{eisenSubFilterBtn.textContent='📌 '+eisenSubFilter.size+' statuses';eisenSubFilterBtn.classList.add('active')}
+                    if(eisenSubFilter.size===0){eisenSubFilterBtn.textContent='\u2691 All statuses';eisenSubFilterBtn.classList.remove('active')}
+                    else if(eisenSubFilter.size===1){const st=Array.from(eisenSubFilter)[0];const idx=st==='none'?-1:parseInt(st,10);const label=idx>=0?((DEFAULT_SUB_LABELS[idx])||st):'Unassigned';eisenSubFilterBtn.textContent='\u2691 ' +label;eisenSubFilterBtn.classList.add('active')}
+                    else{eisenSubFilterBtn.textContent='\u2691 ' +eisenSubFilter.size+' statuses';eisenSubFilterBtn.classList.add('active')}
                 }
                 eisenFilterClear.classList.toggle('visible',eisenFilterActive());
                 if(eisenDefaultsToggle){
@@ -13230,7 +13301,7 @@ function endTaskDrag(item) {
                     const descStr = descParts.join(' \u00B7 ');
 
                     html += `<div class="eisen-preset-item ${isAct ? 'active' : ''}" data-preset-id="${p.id}" draggable="true">
-                        <span class="eisen-preset-drag-handle" title="Drag to reorder presets" aria-label="Drag to reorder presets">â‹®â‹®</span>
+                        <span class="eisen-preset-drag-handle" title="Drag to reorder presets" aria-label="Drag to reorder presets">&#8942;&#8942;</span>
                         <div class="eisen-preset-left">
                             <span class="eisen-preset-radio">${isAct ? "\u25CF" : "\u25CB"}</span>
                             <div class="eisen-preset-text">
@@ -13796,7 +13867,7 @@ function endTaskDrag(item) {
                 QUADRANT_KEYS.forEach(k=>{
                     html+=`<button type="button" class="eisen-inbox-quad-btn" data-inbox-quad="${k}">${escapeHtml(tpl.quadrants[k].label)}</button>`;
                 });
-                html+=`</div><button type="button" class="eisen-inbox-clear" data-inbox-clear="1">✕ Clear selection</button>`;
+                html+=`<button type="button" class="eisen-inbox-quad-btn" data-inbox-move-date="1" style="background:var(--surface-3);color:var(--accent);">📅 Date…</button></div><button type="button" class="eisen-inbox-clear" data-inbox-clear="1">✕ Clear selection</button>`;
                 eisenInboxBar.innerHTML=html;
             }
 
@@ -13899,16 +13970,16 @@ function endTaskDrag(item) {
                 });
 
                 eisenSelectionBar.innerHTML=
-                    `<span class="eisen-selection-count">🧩 ${n} item${n===1?'':'s'} selected</span>`+
+                    `<span class="eisen-selection-count">&#9745; ${n} item${n===1?'':'s'} selected</span>`+
                     `<button type="button" class="eisen-sel-btn" data-esel="select-all" title="Select or deselect all items">&#9745; Select All</button>`+
-                    `<button type="button" class="eisen-sel-btn success" data-esel="done">✓ Done</button>`+
-                    `<button type="button" class="eisen-sel-btn" data-esel="todo">○ Todo</button>`+
+                    `<button type="button" class="eisen-sel-btn success" data-esel="done">&#10003; Done</button>`+
+                    `<button type="button" class="eisen-sel-btn" data-esel="todo">&#9675; Todo</button>`+
                     `<select class="eisen-sel-select" data-esel-select="tag" title="Set tag for all selected">${tagOpts}</select>`+
                     `<select class="eisen-sel-select" data-esel-select="sub" title="Set status for all selected">${subOpts}</select>`+
                     `<select class="eisen-sel-select" data-esel-select="quad" title="Move selected items to a quadrant">${quadOpts}</select>`+
-                    `<button type="button" class="eisen-sel-btn" data-esel="move-date" title="Move all selected items to another date">📅 Move to date…</button>`+
-                    `<button type="button" class="eisen-sel-btn danger" data-esel="remove">🗑 Remove from matrix</button>`+
-                    `<button type="button" class="eisen-sel-btn" data-esel="clear">✕ Clear</button>`;
+                    `<button type="button" class="eisen-sel-btn" data-esel="move-date" title="Move all selected items to another date">&#128197; Move to date&hellip;</button>`+
+                    `<button type="button" class="eisen-sel-btn danger" data-esel="remove">&#128465; Remove from matrix</button>`+
+                    `<button type="button" class="eisen-sel-btn" data-esel="clear">&#10005; Clear</button>`;
             }
 
             function handleEisenSelectionBarClick(e){
@@ -14060,7 +14131,7 @@ function endTaskDrag(item) {
                 }else if(origin==='source'){
                     selBoxHTML=`<div class="chip-select-box${isSel?' selected':''}" data-select-inbox-id="${item.id}"></div>`;
                 }
-                const doneBoxHTML=`<button type="button" class="chip-done-box${sm.done?' checked':''}" data-done-kind="${escapeHtml(item.kind||'')}" data-done-source="${escapeHtml(item.sourceId||'')}" title="${sm.done?'Mark as not done':'Mark as done'}" aria-label="Toggle complete">${sm.done?'✓':''}</button>`;
+                const doneBoxHTML=`<button type="button" class="chip-done-box${sm.done?' checked':''}" data-done-kind="${escapeHtml(item.kind||'')}" data-done-source="${escapeHtml(item.sourceId||'')}" title="${sm.done?'Mark as not done':'Mark as done'}" aria-label="Toggle complete">${sm.done?'&#10003;':''}</button>`;
 
                 let titleHTML;
                 if(eisenJustStartMode){
@@ -14071,7 +14142,7 @@ function endTaskDrag(item) {
                 }
 
                 const removeBtnHTML = origin==='quadrant'
-                    ? `<button class="chip-remove" title="Remove">✕</button>`
+                    ? `<button class="chip-remove" title="Remove">&#10005;</button>`
                     : '';
                 chip.innerHTML=`<div class="eisen-chip-main">${selBoxHTML}${doneBoxHTML}<span class="chip-kind">${icon}</span>${titleHTML}${removeBtnHTML}</div>${tagsRow}`;
 
@@ -14205,7 +14276,7 @@ function endTaskDrag(item) {
                         const q=data.quadrants[k];const base=q.items.filter(it=>eisenItemMatches(it,false));const vis=base.filter(it=>eisenItemMatches(it));
                         const quad=document.createElement('div');quad.className='eisen-quadrant';quad.dataset.quad=k;
                         const cntTxt=(eisenFilterActive()&&vis.length!==base.length)?(vis.length+'/'+base.length):String(vis.length);
-                        quad.innerHTML=`<div class="eisen-quadrant-header"><span class="eisen-quadrant-label" data-quad="${k}">${escapeHtml(q.label)}</span><span class="eisen-quadrant-count">${cntTxt}</span><button class="eisen-expand-btn" data-quad="${k}" title="Open sub-matrix">⤢</button></div><div class="eisen-quadrant-body" data-quad="${k}"></div>`;
+                        quad.innerHTML=`<div class="eisen-quadrant-header"><span class="eisen-quadrant-label" data-quad="${k}">${escapeHtml(q.label)}</span><span class="eisen-quadrant-count">${cntTxt}</span><button class="eisen-expand-btn" data-quad="${k}" title="Open sub-matrix">&#10530;</button></div><div class="eisen-quadrant-body" data-quad="${k}"></div>`;
                         const body=quad.querySelector('.eisen-quadrant-body');
                         if(vis.length===0){body.innerHTML=(eisenFilterActive()&&base.length>0)?'<div class="eisen-empty">No items match filter</div>':'<div class="eisen-empty">Drop tasks / learnings here — double-click to open sub-matrix</div>'}
                         else{const sorted=sortEisenItems(vis);sorted.forEach(it=>body.appendChild(buildEisenChip(it,'quadrant',k,it.sub)))}
@@ -14568,7 +14639,7 @@ function endTaskDrag(item) {
                     wrapper.id='calendarSection';
                     const header=document.createElement('div');
                     header.className='ui-section-header';
-                    header.innerHTML='<div class="ui-section-title"><button class="ui-section-chevron" type="button">▼</button><span>📅 Calendar</span></div>';
+                    header.innerHTML='<div class="ui-section-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>📅 Calendar</span></div>';
                     const body=document.createElement('div');
                     body.className='ui-section-body';
                     calLayout.parentNode.insertBefore(wrapper,calLayout);
@@ -14591,7 +14662,7 @@ function endTaskDrag(item) {
                     wrapper.id=id;
                     const header=document.createElement('div');
                     header.className='ui-section-header';
-                    header.innerHTML=`<div class="ui-section-title"><button class="ui-section-chevron" type="button">▼</button><span>${icon} ${title}</span></div>`;
+                    header.innerHTML=`<div class="ui-section-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>${icon} ${title}</span></div>`;
                     const body=document.createElement('div');
                     body.className='ui-section-body';
                     first.parentNode.insertBefore(wrapper,first);
@@ -16004,9 +16075,9 @@ function endTaskDrag(item) {
                         <input class="pert-p${pInvalid}" type="number" step="0.1" value="${a.p}" data-id="${a.id}" data-field="p" placeholder="P" title="Pessimistic (hours)">
                         <input class="pert-te-input" type="number" step="0.1" value="${fmt(te,2)}" data-id="${a.id}" data-field="te" title="Enter Te directly → sets O = M = P = Te">
                         <div class="pert-row-actions">
-                            <button class="pert-ins" data-insert="${a.id}" title="Insert empty activity after this row" tabindex="-1">⊕</button>
-                            <button class="pert-dup" data-dup="${a.id}" title="Duplicate activity" tabindex="-1">⧉</button>
-                            <button class="pert-del" data-del="${a.id}" title="Remove activity" tabindex="-1">✕</button>
+                            <button class="pert-ins" data-insert="${a.id}" title="Insert empty activity after this row" tabindex="-1">+</button>
+                            <button class="pert-dup" data-dup="${a.id}" title="Duplicate activity" tabindex="-1">&#128203;</button>
+                            <button class="pert-del" data-del="${a.id}" title="Remove activity" tabindex="-1">&#128465;</button>
                         </div>
                     </div>`;
                 });
@@ -16028,7 +16099,7 @@ function endTaskDrag(item) {
                     html += `<div class="pert-task-row" data-task-id="${esc(t.id)}">
                         <input class="pert-task-name" type="text" value="${esc(t.name)}" placeholder="Task name" data-task-field="name" data-task-id="${esc(t.id)}" autocomplete="off" spellcheck="false" title="Task name">
                         <input class="pert-task-time" type="text" value="${esc(t.time)}" placeholder="0.0h" data-task-field="time" data-task-id="${esc(t.id)}" autocomplete="off" spellcheck="false" title="Hours from start (3.5) or clock time (11:30)">
-                        <button class="pert-task-del" data-task-del="${esc(t.id)}" title="Remove task" tabindex="-1">✕</button>
+                        <button class="pert-task-del" data-task-del="${esc(t.id)}" title="Remove task" tabindex="-1">&#10005;</button>
                     </div>`;
                 });
                 tasksListEl.innerHTML = html;
@@ -17797,8 +17868,8 @@ function endTaskDrag(item) {
     <div class="eisen-move-modal-overlay" id="eisenMoveDateOverlay" style="display:none;">
         <div class="eisen-move-modal" id="eisenMoveDateModal" role="dialog" aria-modal="true">
             <div class="eisen-move-header">
-                <div class="eisen-move-title">ðŸ“… Move to Date</div>
-                <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">âœ•</button>
+                <div class="eisen-move-title">📅 Move to Date</div>
+                <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">&#10005;</button>
             </div>
             <div class="eisen-move-body">
                 <div class="eisen-move-summary" id="eisenMoveSummary">Moving selected items</div>
@@ -17829,8 +17900,8 @@ function endTaskDrag(item) {
     <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;">
         <div class="habit-manage-modal" id="habitManageModal" role="dialog" aria-modal="true">
             <div class="habit-manage-header">
-                <div class="habit-manage-title">âš™ï¸ Manage Habit & Streak</div>
-                <button type="button" class="habit-modal-close" id="btnHabitManageClose" title="Close">âœ•</button>
+                <div class="habit-manage-title">⚙️ Manage Habit & Streak</div>
+                <button type="button" class="habit-modal-close" id="btnHabitManageClose" title="Close">&#10005;</button>
             </div>
             <div class="habit-manage-body" id="habitManageBody"></div>
             <div class="habit-manage-footer">
@@ -18338,6 +18409,11 @@ function endTaskDrag(item) {
             if(typeof renderEisenPresetList === 'function'){
                 renderEisenPresetList();
             }
+
+            if(typeof invalidatePjCache === 'function') invalidatePjCache();
+            if(typeof loadPjMeta === 'function') loadPjMeta();
+            if(typeof renderPjDirectory === 'function' && document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+            if(typeof renderPjRelationshipCenter === 'function' && document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjRelationshipCenter();
         }
 
         function mergePayloads(localPayload, remotePayload, remoteUpdatedAt){
@@ -18380,6 +18456,187 @@ function endTaskDrag(item) {
                             mergedItems[k] = curLocalVal;
                             mergedTimestamps[k] = Math.max(localTs, Date.now());
                             hasLocalNewerChanges = true;
+                            continue;
+                        }
+                    } catch(e){}
+                }
+
+                // Protect contacts from being wiped out by remote pulls (Intelligent Union Merge)
+                if(k === 'tp_contacts'){
+                    try {
+                        const localList = curLocalVal ? JSON.parse(curLocalVal) : [];
+                        const remoteList = remoteStrVal ? JSON.parse(remoteStrVal) : [];
+                        const localArr = Array.isArray(localList) ? localList : [];
+                        const remoteArr = Array.isArray(remoteList) ? remoteList : [];
+
+                        if(localArr.length === 0 && remoteArr.length === 0){
+                            if(curLocalVal || remoteStrVal){
+                                mergedItems[k] = '[]';
+                                mergedTimestamps[k] = Math.max(localTs, remoteTs);
+                            }
+                            continue;
+                        }
+
+                        const mergedMap = new Map();
+                        const keyForContact = (c) => {
+                            if(c.personId) return 'id:' + c.personId;
+                            const normName = (c.name || '').trim().toLowerCase();
+                            if(normName) return 'name:' + normName;
+                            const phone = Array.isArray(c.phones) && c.phones[0] ? c.phones[0].trim() : '';
+                            if(phone) return 'phone:' + phone;
+                            const email = Array.isArray(c.emails) && c.emails[0] ? c.emails[0].trim().toLowerCase() : '';
+                            if(email) return 'email:' + email;
+                            return 'raw:' + Math.random();
+                        };
+
+                        const mergeTwoContacts = (c1, c2) => {
+                            const phones = Array.from(new Set([...(c1.phones || []), ...(c2.phones || [])])).filter(Boolean);
+                            const emails = Array.from(new Set([...(c1.emails || []), ...(c2.emails || [])])).filter(Boolean);
+                            const tags = Array.from(new Set([...(c1.tags || []), ...(c2.tags || [])])).filter(Boolean);
+                            return {
+                                ...c1,
+                                ...c2,
+                                personId: c1.personId || c2.personId || ('c_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
+                                name: (c1.name && c1.name.length >= (c2.name || '').length) ? c1.name : (c2.name || c1.name || ''),
+                                phones: phones,
+                                emails: emails,
+                                tags: tags,
+                                company: c2.company || c1.company || '',
+                                role: c2.role || c1.role || '',
+                                notes: (c2.notes && c2.notes.length >= (c1.notes || '').length) ? c2.notes : (c1.notes || c2.notes || ''),
+                                isContact: !!(c1.isContact || c2.isContact),
+                                frequencyDays: c2.frequencyDays || c1.frequencyDays || null,
+                                lastInteractionDate: (c2.lastInteractionDate && (!c1.lastInteractionDate || c2.lastInteractionDate > c1.lastInteractionDate)) ? c2.lastInteractionDate : (c1.lastInteractionDate || c2.lastInteractionDate || null),
+                                updatedAt: Math.max(c1.updatedAt || 0, c2.updatedAt || 0, Date.now())
+                            };
+                        };
+
+                        // 1. Seed with all local contacts
+                        localArr.forEach(c => {
+                            if(c && typeof c === 'object'){
+                                const key = keyForContact(c);
+                                mergedMap.set(key, c);
+                            }
+                        });
+
+                        let addedFromRemote = 0;
+                        let updatedFromRemote = 0;
+
+                        // 2. Union merge remote contacts
+                        remoteArr.forEach(rc => {
+                            if(rc && typeof rc === 'object'){
+                                const key = keyForContact(rc);
+                                if(mergedMap.has(key)){
+                                    const lc = mergedMap.get(key);
+                                    mergedMap.set(key, mergeTwoContacts(lc, rc));
+                                    updatedFromRemote++;
+                                } else {
+                                    let matchedKey = null;
+                                    const rNormName = (rc.name || '').trim().toLowerCase();
+                                    for(const [kKey, existing] of mergedMap.entries()){
+                                        if(rNormName && (existing.name || '').trim().toLowerCase() === rNormName){
+                                            matchedKey = kKey;
+                                            break;
+                                        }
+                                        if(rc.personId && existing.personId === rc.personId){
+                                            matchedKey = kKey;
+                                            break;
+                                        }
+                                    }
+                                    if(matchedKey){
+                                        const lc = mergedMap.get(matchedKey);
+                                        mergedMap.set(matchedKey, mergeTwoContacts(lc, rc));
+                                        updatedFromRemote++;
+                                    } else {
+                                        mergedMap.set(key, rc);
+                                        addedFromRemote++;
+                                    }
+                                }
+                            }
+                        });
+
+                        const mergedContacts = Array.from(mergedMap.values());
+                        const mergedStrVal = JSON.stringify(mergedContacts);
+
+                        if(mergedContacts.length > remoteArr.length || localArr.length > remoteArr.length){
+                            hasLocalNewerChanges = true;
+                        }
+                        if(addedFromRemote > 0 || updatedFromRemote > 0 || curLocalVal !== mergedStrVal){
+                            if(storage) storage.setItem(k, mergedStrVal);
+                            localAppliedRemoteChanges = true;
+                        }
+
+                        mergedItems[k] = mergedStrVal;
+                        mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
+                        continue;
+                    } catch(e){
+                        console.error('Error union-merging tp_contacts:', e);
+                    }
+                }
+
+                // Intelligent union-merge for tp_people_meta
+                if(k === 'tp_people_meta'){
+                    try {
+                        const localMeta = curLocalVal ? JSON.parse(curLocalVal) : {};
+                        const remoteMeta = remoteStrVal ? JSON.parse(remoteStrVal) : {};
+                        const mergedMeta = { ...localMeta, ...remoteMeta };
+
+                        const localTags = Array.isArray(localMeta.customTags) ? localMeta.customTags : [];
+                        const remoteTags = Array.isArray(remoteMeta.customTags) ? remoteMeta.customTags : [];
+                        mergedMeta.customTags = Array.from(new Set([...localTags, ...remoteTags])).filter(Boolean);
+
+                        const localProfiles = (localMeta.profiles && typeof localMeta.profiles === 'object') ? localMeta.profiles : {};
+                        const remoteProfiles = (remoteMeta.profiles && typeof remoteMeta.profiles === 'object') ? remoteMeta.profiles : {};
+                        mergedMeta.profiles = { ...localProfiles, ...remoteProfiles };
+
+                        const mergedStrVal = JSON.stringify(mergedMeta);
+
+                        if(mergedMeta.customTags.length > remoteTags.length || Object.keys(mergedMeta.profiles).length > Object.keys(remoteProfiles).length){
+                            hasLocalNewerChanges = true;
+                        }
+                        if(mergedMeta.customTags.length > localTags.length || Object.keys(mergedMeta.profiles).length > Object.keys(localProfiles).length || curLocalVal !== mergedStrVal){
+                            if(storage) storage.setItem(k, mergedStrVal);
+                            localAppliedRemoteChanges = true;
+                        }
+
+                        mergedItems[k] = mergedStrVal;
+                        mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
+                        continue;
+                    } catch(e){
+                        console.error('Error union-merging tp_people_meta:', e);
+                    }
+                }
+
+                // Intelligent union-merge for day encounters (td_pj_YYYY-MM-DD)
+                if(k.startsWith('td_pj_')){
+                    try {
+                        const localDay = curLocalVal ? JSON.parse(curLocalVal) : null;
+                        const remoteDay = remoteStrVal ? JSON.parse(remoteStrVal) : null;
+                        if(localDay && remoteDay && Array.isArray(localDay.encounters) && Array.isArray(remoteDay.encounters)){
+                            const mergedEncounters = [];
+                            const seenEncIds = new Set();
+                            const addEnc = (e) => {
+                                const encId = e.encounterId || (e.personId + '_' + (e.time || '') + '_' + (e.type || ''));
+                                if(!seenEncIds.has(encId)){
+                                    seenEncIds.add(encId);
+                                    mergedEncounters.push(e);
+                                }
+                            };
+                            localDay.encounters.forEach(addEnc);
+                            remoteDay.encounters.forEach(addEnc);
+
+                            const mergedDay = { ...localDay, ...remoteDay, encounters: mergedEncounters };
+                            const mergedDayStr = JSON.stringify(mergedDay);
+
+                            if(mergedEncounters.length > remoteDay.encounters.length){
+                                hasLocalNewerChanges = true;
+                            }
+                            if(mergedEncounters.length > localDay.encounters.length || curLocalVal !== mergedDayStr){
+                                if(storage) storage.setItem(k, mergedDayStr);
+                                localAppliedRemoteChanges = true;
+                            }
+                            mergedItems[k] = mergedDayStr;
+                            mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
                             continue;
                         }
                     } catch(e){}
@@ -18876,11 +19133,13 @@ function endTaskDrag(item) {
 
         initCloudSync();
 
+        window.__taskPlannerScheduleCloudPush = scheduleCloudPush;
         if(window.__taskPlannerAppBridge){
             window.__taskPlannerAppBridge.collectSyncPayload = collectSyncPayload;
             window.__taskPlannerAppBridge.mergePayloads = mergePayloads;
             window.__taskPlannerAppBridge.pushToCloud = pushToCloud;
             window.__taskPlannerAppBridge.pullFromCloud = pullFromCloud;
+            window.__taskPlannerAppBridge.scheduleCloudPush = scheduleCloudPush;
         }
         if('serviceWorker' in navigator){
             window.addEventListener('load', function(){
