@@ -20542,6 +20542,137 @@ window.moveWtbTask = moveWtbTask;
             continue;
         }
 
+        // Intelligent entity-level union merge for daily and weekly records (td_YYYY-MM-DD / tdw_YYYY-Wxx)
+        // Prevents PC vs Mobile overwriting each other's tasks, learnings, and habits on the same date
+        if((/^td_\d{4}-\d{2}-\d{2}$/.test(k) || /^tdw_\d{4}-W\d{2}$/.test(k)) && curLocalVal !== null && curLocalVal !== undefined && remoteStrVal !== null && remoteStrVal !== undefined){
+            try {
+                const localDay = JSON.parse(curLocalVal);
+                const remoteDay = JSON.parse(remoteStrVal);
+                if(localDay && remoteDay && (Array.isArray(localDay.tasks) || Array.isArray(remoteDay.tasks) || Array.isArray(localDay.learnings) || Array.isArray(remoteDay.learnings))){
+                    // Load deleted task tombstones
+                    let delTaskMap = {};
+                    try {
+                        const rawDel = (localPayload && localPayload['tp_deleted_task_ids']) || (storage ? storage.getItem('tp_deleted_task_ids') : null) || (remotePayload && remotePayload['tp_deleted_task_ids']);
+                        if(rawDel) delTaskMap = (typeof rawDel === 'object') ? rawDel : JSON.parse(rawDel);
+                    } catch(e){}
+
+                    // 1. Union Merge Tasks by ID (with anti-resurrection tombstone guard)
+                    const localTasks = Array.isArray(localDay.tasks) ? localDay.tasks : [];
+                    const remoteTasks = Array.isArray(remoteDay.tasks) ? remoteDay.tasks : [];
+                    const taskMap = new Map();
+
+                    localTasks.forEach(t => {
+                        if(t && t.id && !delTaskMap[t.id]){
+                            taskMap.set(t.id, t);
+                        }
+                    });
+
+                    remoteTasks.forEach(rt => {
+                        if(!rt || !rt.id || delTaskMap[rt.id]) return;
+                        if(!taskMap.has(rt.id)){
+                            taskMap.set(rt.id, rt);
+                        } else {
+                            // If both devices have the task, pick properties from the newer save
+                            const lt = taskMap.get(rt.id);
+                            if(remoteTs > localTs + 500){
+                                taskMap.set(rt.id, { ...lt, ...rt });
+                            } else {
+                                taskMap.set(rt.id, { ...rt, ...lt });
+                            }
+                        }
+                    });
+                    const mergedTasks = Array.from(taskMap.values());
+
+                    // 2. Union Merge Learnings by ID
+                    const localLearnings = Array.isArray(localDay.learnings) ? localDay.learnings : [];
+                    const remoteLearnings = Array.isArray(remoteDay.learnings) ? remoteDay.learnings : [];
+                    const learningMap = new Map();
+
+                    localLearnings.forEach(l => {
+                        if(l && l.id){
+                            learningMap.set(l.id, l);
+                        }
+                    });
+
+                    remoteLearnings.forEach(rl => {
+                        if(!rl || !rl.id) return;
+                        if(!learningMap.has(rl.id)){
+                            learningMap.set(rl.id, rl);
+                        } else {
+                            const ll = learningMap.get(rl.id);
+                            if(remoteTs > localTs + 500){
+                                learningMap.set(rl.id, { ...ll, ...rl });
+                            } else {
+                                learningMap.set(rl.id, { ...rl, ...ll });
+                            }
+                        }
+                    });
+                    const mergedLearnings = Array.from(learningMap.values());
+
+                    // 3. Union Merge Habits
+                    const localHabits = Array.isArray(localDay.habits) ? localDay.habits : [];
+                    const remoteHabits = Array.isArray(remoteDay.habits) ? remoteDay.habits : [];
+                    let mergedHabits = localHabits;
+                    if(remoteHabits.length > 0 && localHabits.length === 0){
+                        mergedHabits = remoteHabits;
+                    } else if(localHabits.length > 0 && remoteHabits.length > 0){
+                        const habitMap = new Map();
+                        localHabits.forEach(h => {
+                            const hid = (h && typeof h === 'object') ? (h.id || h.name) : String(h);
+                            if(hid) habitMap.set(hid, h);
+                        });
+                        remoteHabits.forEach(rh => {
+                            const rhid = (rh && typeof rh === 'object') ? (rh.id || rh.name) : String(rh);
+                            if(rhid && !habitMap.has(rhid)){
+                                habitMap.set(rhid, rh);
+                            } else if(rhid && remoteTs > localTs + 500){
+                                habitMap.set(rhid, rh);
+                            }
+                        });
+                        mergedHabits = Array.from(habitMap.values());
+                    }
+
+                    // 4. Notes & Day Title
+                    let mergedNotes = localDay.notes || '';
+                    let mergedDayTitle = localDay.dayTitle || '';
+                    if(remoteTs > localTs + 500){
+                        if(remoteDay.notes || !localDay.notes) mergedNotes = remoteDay.notes || '';
+                        if(remoteDay.dayTitle || !localDay.dayTitle) mergedDayTitle = remoteDay.dayTitle || '';
+                    } else {
+                        if(!localDay.notes && remoteDay.notes) mergedNotes = remoteDay.notes;
+                        if(!localDay.dayTitle && remoteDay.dayTitle) mergedDayTitle = remoteDay.dayTitle;
+                    }
+
+                    const mergedDay = {
+                        ...localDay,
+                        ...remoteDay,
+                        tasks: mergedTasks,
+                        learnings: mergedLearnings,
+                        habits: mergedHabits,
+                        notes: mergedNotes,
+                        dayTitle: mergedDayTitle,
+                        holiday: !!(localDay.holiday || remoteDay.holiday)
+                    };
+
+                    const mergedDayStr = JSON.stringify(mergedDay);
+
+                    if(mergedDayStr !== curLocalVal){
+                        if(storage) storage.setItem(k, mergedDayStr);
+                        localAppliedRemoteChanges = true;
+                    }
+                    if(mergedDayStr !== remoteStrVal){
+                        hasLocalNewerChanges = true;
+                    }
+
+                    mergedItems[k] = mergedDayStr;
+                    mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
+                    continue;
+                }
+            } catch(e){
+                console.error('Error in daily union merge for ' + k, e);
+            }
+        }
+
         if(remoteStrVal !== null && curLocalVal !== null && curLocalVal !== undefined){
             if(remoteTs > localTs + 500){
                 if(curLocalVal !== remoteStrVal){
