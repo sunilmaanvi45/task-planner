@@ -4972,12 +4972,18 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         } catch(e){}
     }
 
+    let cachedKeys = null;
+    function getCachedKeys() {
+        if (!cachedKeys) cachedKeys = Array.from(cache.keys());
+        return cachedKeys;
+    }
     window.appStorage={
         get length(){return cache.size;},
         key(index){
             if(index<0 || index>=cache.size)return null;
-            return Array.from(cache.keys())[index] ?? null;
+            return getCachedKeys()[index] ?? null;
         },
+        keys(){return getCachedKeys();},
         getItem(key){
             key=String(key);
             if(cache.has(key)) return cache.get(key);
@@ -4993,6 +4999,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         setItem(key,value){
             key=String(key); value=String(value);
             cache.set(key,value);
+            cachedKeys = null;
             try {
                 if(window.localStorage){
                     window.localStorage.setItem(key, value);
@@ -5003,6 +5010,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         removeItem(key){
             key=String(key);
             cache.delete(key);
+            cachedKeys = null;
             try {
                 if(window.localStorage){
                     window.localStorage.removeItem(key);
@@ -5011,8 +5019,9 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             deleteRecord(key);
         },
         clear(){
-            const keys=Array.from(cache.keys());
+            const keys=getCachedKeys().slice();
             cache.clear();
+            cachedKeys = null;
             try {
                 keys.forEach(k => {
                     try { window.localStorage.removeItem(k); } catch(e){}
@@ -5249,7 +5258,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             function getWeekData(w){const r=appStorage.getItem(getWeekKey(w));if(!r)return null;try{const p=JSON.parse(r);return{tasks:Array.isArray(p.tasks)?p.tasks:[],notes:p.notes||''}}catch(e){return null}}
             function saveWeekData(w,data){appStorage.setItem(getWeekKey(w),JSON.stringify({tasks:data.tasks||[],notes:data.notes||''}))}
             function deleteWeekData(w){appStorage.removeItem(getWeekKey(w))}
-            function getMonthData(y,m){const o={};const pre=STORAGE_PREFIX+y+'-'+String(m).padStart(2,'0')+'-';for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(pre)&&!k.startsWith(WEEK_PREFIX)){const d=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(d)){const dd=getData(d);if(dd)o[d]=dd}}}return o}
+            function getMonthData(y,m){const o={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const dd=getData(ds);if(dd)o[ds]=dd}return o}
             function formatDateStr(y,m,d){return y+'-'+String(m).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
             function getTodayStr(){const n=new Date();return formatDateStr(n.getFullYear(),n.getMonth()+1,n.getDate())}
             function getDaysInMonth(y,m){return new Date(y,m,0).getDate()}
@@ -5708,10 +5717,11 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             }
             window.tdImageUtils={canvasToClipboardOrDownload,showToast};
 
-            function buildTaskDoneMap(){const map=new Map();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(data&&Array.isArray(data.tasks)){data.tasks.forEach(t=>{map.set(t.id,t.status==='done')})}}return map}
-            function buildLearningDoneMap(){const map=new Map();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(data&&Array.isArray(data.learnings)){data.learnings.forEach(l=>{map.set(l.id,l.completed===true)})}}return map}
+            function buildCombinedDoneMaps(){const taskMap=new Map(),learningMap=new Map();const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data)continue;if(Array.isArray(data.tasks)){data.tasks.forEach(t=>{if(t&&t.id)taskMap.set(t.id,t.status==='done')})}if(Array.isArray(data.learnings)){data.learnings.forEach(l=>{if(l&&l.id)learningMap.set(l.id,l.completed===true)})}}return{taskDoneMap:taskMap,learningDoneMap:learningMap}}
+            function buildTaskDoneMap(){return buildCombinedDoneMaps().taskDoneMap}
+            function buildLearningDoneMap(){return buildCombinedDoneMaps().learningDoneMap}
             function isEisenItemDone(it,taskDoneMap,learningDoneMap){if(!it)return false;if(it.kind==='task')return taskDoneMap.get(it.sourceId)===true;if(it.kind==='learning')return learningDoneMap.get(it.sourceId)===true;return false}
-            function computeEisenCountsMap(y,m){const map={};const dim=getDaysInMonth(y,m);let taskDoneMap=null,learningDoneMap=null;for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const raw=appStorage.getItem(EISEN_PREFIX+ds);if(!raw)continue;let data=getEisenData(ds);if(!data||!data.quadrants)continue;if(!taskDoneMap){taskDoneMap=buildTaskDoneMap();learningDoneMap=buildLearningDoneMap()}const c=[0,0,0,0];QUADRANT_KEYS.forEach((k,i)=>{const q=data.quadrants[k];if(!q||!Array.isArray(q.items))return;q.items.forEach(it=>{if(!isEisenItemDone(it,taskDoneMap,learningDoneMap))c[i]++})});if(c.some(x=>x>0))map[ds]=c}return map}
+            function computeEisenCountsMap(y,m){const map={};const dim=getDaysInMonth(y,m);let taskDoneMap=null,learningDoneMap=null;for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const raw=appStorage.getItem(EISEN_PREFIX+ds);if(!raw)continue;let data=getEisenData(ds);if(!data||!data.quadrants)continue;if(!taskDoneMap){const maps=buildCombinedDoneMaps();taskDoneMap=maps.taskDoneMap;learningDoneMap=maps.learningDoneMap;}const c=[0,0,0,0];QUADRANT_KEYS.forEach((k,i)=>{const q=data.quadrants[k];if(!q||!Array.isArray(q.items))return;q.items.forEach(it=>{if(!isEisenItemDone(it,taskDoneMap,learningDoneMap))c[i]++})});if(c.some(x=>x>0))map[ds]=c}return map}
 
             /* ============================================================
    STEP 6Q: EISENHOWER MOVE-TO-DATE & ADVANCED HABITS ENGINE
@@ -6727,8 +6737,8 @@ function renderHabitMiniCalendar() {
             function srsStatus(l){if(l.completed)return{status:'completed',label:'Done'};const cur=l.currentDate;const today=getTodayStr();if(!cur)return{status:'new',label:'New'};if(cur===today)return{status:'due',label:'Due'};if(cur<today)return{status:'due',label:'Due'};const due=new Date(cur+'T00:00:00');const now=new Date(today+'T00:00:00');const dd=Math.ceil((due-now)/(24*60*60*1000));return{status:'future',label:dd<=1?'1d':dd+'d'}}
             function srsSort(arr){return arr.slice().sort((a,b)=>{if((b.votes||0)!==(a.votes||0))return(b.votes||0)-(a.votes||0);if(a.completed&&!b.completed)return 1;if(!a.completed&&b.completed)return-1;const ad=a.currentDate||'9999',bd=b.currentDate||'9999';return ad.localeCompare(bd)})}
             function getLearningsDueForDate(t){const r=[];const s=new Set();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){const data=getData(ds);if(data&&data.learnings&&data.learnings.length>0){data.learnings.forEach(l=>{if(s.has(l.id))return;if(l.currentDate===t){s.add(l.id);r.push({...l,_sourceDate:ds})}else if(!l.currentDate&&ds===t){s.add(l.id);r.push({...l,_sourceDate:ds})}})}}}}return srsSort(r)}
-            function getLearningsDueForWeek(wd){const r=[];const s=new Set();wd.forEach(t=>{getLearningsDueForDate(t).forEach(l=>{if(!s.has(l.id)){s.add(l.id);r.push(l)}})});return srsSort(r)}
-            function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++){const ds=formatDateStr(y,m,d);const due=getLearningsDueForDate(ds);map[ds]=due.filter(l=>!l.completed).length}return map}
+            function getLearningsDueForWeek(wd){const r=[];const s=new Set();const wdSet=new Set(wd);const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data||!Array.isArray(data.learnings)||!data.learnings.length)continue;data.learnings.forEach(l=>{if(!l||!l.id||s.has(l.id))return;const target=l.currentDate||ds;if(wdSet.has(target)){s.add(l.id);r.push({...l,_sourceDate:ds})}})}return srsSort(r)}
+            function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++)map[formatDateStr(y,m,d)]=0;const mPre=y+'-'+String(m).padStart(2,'0')+'-';const s=new Set();const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data||!Array.isArray(data.learnings)||!data.learnings.length)continue;data.learnings.forEach(l=>{if(!l||!l.id||s.has(l.id))return;const target=l.currentDate||ds;if(target&&target.startsWith(mPre)&&!l.completed){s.add(l.id);if(map[target]!==undefined)map[target]++}})}return map}
 
             function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);pruneEisenItemGlobal('learning',id,nc);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
                         function deferLearning(id,days,sourceDate){if(typeof flushDebounced==='function')flushDebounced();if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}pushUndo('Defer learning');let found=null;if(sourceDate){const sdData=getData(sourceDate);if(sdData&&Array.isArray(sdData.learnings)){const item=sdData.learnings.find(x=>x.id===id);if(item)found={dateStr:sourceDate,learning:item}}}if(!found)found=findLearningById(id);if(!found)return;const l=found.learning;const originDate=found.dateStr;const baseDate=(selectionMode==='daily'&&selectedDateStr)?selectedDateStr:(l.currentDate||found.dateStr||getTodayStr());let newDate=addDaysToDateStr(baseDate,days);if(days>0&&newDate<=baseDate){newDate=addDaysToDateStr(baseDate,1)}const origData=getData(originDate);if(origData&&Array.isArray(origData.learnings)){origData.learnings=origData.learnings.filter(x=>x.id!==id);const sc=origData.learnings.length>0||origData.tasks?.length||origData.notes?.trim()||origData.dayTitle?.trim()||origData.holiday||origData.attachments?.length||origData.habits?.length||origData.textCalendar?.length;if(sc)saveData(originDate,origData);else deleteData(originDate)}if(sourceDate&&sourceDate!==originDate){const sData=getData(sourceDate);if(sData&&Array.isArray(sData.learnings)){sData.learnings=sData.learnings.filter(x=>x.id!==id);const sc=sData.learnings.length>0||sData.tasks?.length||sData.notes?.trim()||sData.dayTitle?.trim()||sData.holiday||sData.attachments?.length||sData.habits?.length||sData.textCalendar?.length;if(sc)saveData(sourceDate,sData);else deleteData(sourceDate)}}for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==newDate&&ds!==originDate&&ds!==sourceDate){const otherData=getData(ds);if(otherData&&Array.isArray(otherData.learnings)&&otherData.learnings.some(x=>x.id===id)){otherData.learnings=otherData.learnings.filter(x=>x.id!==id);const sc=otherData.learnings.length>0||otherData.tasks?.length||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.habits?.length||otherData.textCalendar?.length;if(sc)saveData(ds,otherData);else deleteData(ds)}}}}const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings=td.learnings.filter(x=>x.id!==id);l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);pruneEisenItemGlobal('learning',id,newDate);selectedLearningKeys.clear();currentDataCache=null;if(selectionMode==='daily'&&selectedDateStr){const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};currentDataCache=JSON.parse(JSON.stringify(curD))}closeLearningModal();renderLearningsSection();renderCalendar();renderLearningsToolbar();if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}updateSingleCell(originDate,{pop:true});if(sourceDate&&sourceDate!==originDate)updateSingleCell(sourceDate,{pop:true});if(originDate!==newDate)updateSingleCell(newDate,{pop:true});if(eisenOverlay.classList.contains('active'))renderEisen();showSaved();if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);window.dispatchEvent(new CustomEvent('td-tasks-changed'))}
@@ -7526,8 +7536,26 @@ function renderHabitMiniCalendar() {
                     }
                 }
                 calendarGrid.innerHTML=html;
-                calendarGrid.onclick=e=>{const c=e.target.closest('.calendar-cell:not(.empty)');if(!c)return;const ds=c.getAttribute('data-date');if(ds)selectDate(ds);const pTarget=e.target.closest('[data-pid]');if(pTarget&&pTarget.dataset.pid){if(typeof openPjProfile==='function')openPjProfile(pTarget.dataset.pid);}};
-                calendarGrid.ondblclick=e=>{if(textCalendarMode)return;const c=e.target.closest('.calendar-cell:not(.empty)');if(!c)return;const ds=c.getAttribute('data-date');if(ds)openEisenModal(ds)};
+                if(!calendarGrid.__calendarGridListenersBound){
+                    calendarGrid.__calendarGridListenersBound = true;
+                    calendarGrid.onclick = e => {
+                        const c = e.target.closest('.calendar-cell:not(.empty)');
+                        if (!c) return;
+                        const ds = c.getAttribute('data-date');
+                        if (ds) selectDate(ds);
+                        const pTarget = e.target.closest('[data-pid]');
+                        if (pTarget && pTarget.dataset.pid) {
+                            if (typeof openPjProfile === 'function') openPjProfile(pTarget.dataset.pid);
+                        }
+                    };
+                    calendarGrid.ondblclick = e => {
+                        if (textCalendarMode) return;
+                        const c = e.target.closest('.calendar-cell:not(.empty)');
+                        if (!c) return;
+                        const ds = c.getAttribute('data-date');
+                        if (ds) openEisenModal(ds);
+                    };
+                }
                 if(typeof syncMagnifierClone === 'function') syncMagnifierClone();
                 renderWeekColumn(md);renderStats(md);renderHabitMiniCalendar();
             }
@@ -7693,6 +7721,7 @@ function renderHabitMiniCalendar() {
             }
             function invalidatePjCache(){
                 firstSeenMapCache = null;
+                if(typeof invalidatePjFollowUpsIndex==='function') invalidatePjFollowUpsIndex();
                 peopleRegistryCache = null;
                 searchIndexCache = null;
             }
@@ -8485,53 +8514,62 @@ function renderHabitMiniCalendar() {
                 return html;
             }
 
+            let pjFollowUpsDateIndex = null;
+            function invalidatePjFollowUpsIndex(){
+                pjFollowUpsDateIndex = null;
+            }
             function getPjFollowUpsForDate(ds){
                 if(!ds || typeof pjAllPeople !== 'function') return [];
-                const list = [];
-                const people = pjAllPeople();
-                const seen = new Set();
-                people.forEach(p => {
-                    const pr = (typeof pjProfile === 'function') ? pjProfile(p.personId) : {};
-                    // 1. Follow-up from profile
-                    if(pr && pr.nextActionDue === ds && pr.nextActionStatus !== 'done'){
-                        const key = 'prof_' + p.personId + '_' + ds;
-                        if(!seen.has(key)){
-                            seen.add(key);
-                            list.push({
-                                source: 'profile',
-                                personId: p.personId,
-                                name: pjCanonicalName(p, p.personId),
-                                action: pr.nextAction || 'Follow-up',
-                                due: ds,
-                                status: 'open',
-                                priority: pr.priority || 'normal',
-                                person: p
-                            });
-                        }
-                    }
-                    // 2. Follow-ups from encounters
-                    (p.encounters || []).forEach(e => {
-                        if(e.followUp === ds && !e.followUpDone){
-                            const key = 'enc_' + (e.id || (p.personId + '_' + e._date));
+                if(!pjFollowUpsDateIndex){
+                    pjFollowUpsDateIndex = new Map();
+                    const people = pjAllPeople();
+                    const seen = new Set();
+                    people.forEach(p => {
+                        const pr = (typeof pjProfile === 'function') ? pjProfile(p.personId) : {};
+                        if(pr && pr.nextActionDue && pr.nextActionStatus !== 'done'){
+                            const due = pr.nextActionDue;
+                            const key = 'prof_' + p.personId + '_' + due;
                             if(!seen.has(key)){
                                 seen.add(key);
-                                list.push({
-                                    source: 'encounter',
+                                const arr = pjFollowUpsDateIndex.get(due) || [];
+                                arr.push({
+                                    source: 'profile',
                                     personId: p.personId,
                                     name: pjCanonicalName(p, p.personId),
-                                    action: e.followUpAction || 'Follow-up',
-                                    due: ds,
+                                    action: pr.nextAction || 'Follow-up',
+                                    due: due,
                                     status: 'open',
-                                    priority: 'normal',
-                                    encounterId: e.id,
-                                    encounterDate: e._date,
+                                    priority: pr.priority || 'normal',
                                     person: p
                                 });
+                                pjFollowUpsDateIndex.set(due, arr);
                             }
                         }
+                        (p.encounters || []).forEach(e => {
+                            if(e.followUp && !e.followUpDone){
+                                const due = e.followUp;
+                                const key = 'enc_' + (e.id || (p.personId + '_' + due));
+                                if(!seen.has(key)){
+                                    seen.add(key);
+                                    const arr = pjFollowUpsDateIndex.get(due) || [];
+                                    arr.push({
+                                        source: 'encounter',
+                                        personId: p.personId,
+                                        encounterId: e.id,
+                                        name: pjCanonicalName(p, p.personId),
+                                        action: e.followUpText || 'Follow-up',
+                                        due: due,
+                                        status: 'open',
+                                        priority: 'normal',
+                                        person: p
+                                    });
+                                    pjFollowUpsDateIndex.set(due, arr);
+                                }
+                            }
+                        });
                     });
-                });
-                return list;
+                }
+                return pjFollowUpsDateIndex.get(ds) || [];
             }
 
             function renderPjDailySection(ds){
