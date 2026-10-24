@@ -5066,7 +5066,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
     let cachedKeys = null;
     function getCachedKeys() {
-        if (!cachedKeys) cachedKeys = Array.from(cache.keys());
+        if (!cachedKeys || cachedKeys.length !== cache.size) cachedKeys = Array.from(cache.keys());
         return cachedKeys;
     }
     window.appStorage={
@@ -5161,11 +5161,13 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         await migrateLegacy();
     }
 
+    cachedKeys = null;
     window.dispatchEvent(new CustomEvent('td-idb-ready'));
     return true;
         }catch(err){
     console.error('IndexedDB initialization failed:',err);
     installFallback();
+    cachedKeys = null;
     window.dispatchEvent(new CustomEvent('td-idb-ready'));
     return false;
         }
@@ -14516,7 +14518,7 @@ function deleteTask(id){
                     presets.splice(toIdx, 0, moved);
                     saveStoredEisenPresets(presets);
                     renderEisenPresetList();
-                    showToast('Ã¢â€ â€¢ Presets reordered');
+                    showToast('â†• Presets reordered');
                 }
                 draggedPresetId = null;
                 setTimeout(() => { isDraggingPreset = false; }, 100);
@@ -16213,7 +16215,7 @@ window.moveWtbTask = moveWtbTask;
         initMainCollapsibleSections();initWeekTimeblocksModal();
         initDestinationTime();
         window.dispatchEvent(new CustomEvent('td-date-changed',{detail:{date:ts}}));
-        window.addEventListener('td-idb-ready', function(){
+        function refreshOnIdbReady(){
             renderCalendar();
             renderLearningsSection();
             renderHabits();
@@ -16221,7 +16223,11 @@ window.moveWtbTask = moveWtbTask;
                 const d=getData(selectedDateStr);
                 if(d) updateDetailPanel(d,selectedDateStr);
             }
-        });
+        }
+        window.addEventListener('td-idb-ready', refreshOnIdbReady);
+        if(window.__taskPlannerIDBReady && typeof window.__taskPlannerIDBReady.then === 'function'){
+            window.__taskPlannerIDBReady.then(refreshOnIdbReady);
+        }
 
         if(savePrefixBtn&&pathPrefixInput) savePrefixBtn.addEventListener('click',()=>{filePathPrefix=pathPrefixInput.value.trim();appStorage.setItem(PREFIX_KEY,filePathPrefix);showSaved()});
         btnAddTask.addEventListener('click',()=>addTask());
