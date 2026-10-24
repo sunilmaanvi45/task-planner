@@ -4467,7 +4467,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             const DEFAULT_TAG='nothing';
             const TAG_META={nothing:{icon:'⚪',label:'Nothing'},learn:{icon:'📚',label:'Learn'},whatsapp:{icon:'💬',label:'WhatsApp'},call:{icon:'📞',label:'Call'},email:{icon:'✉️',label:'Email'},say:{icon:'🗣️',label:'Say'},visit:{icon:'📍',label:'Visit'},work:{icon:'💼',label:'Work'},check:{icon:'✅',label:'Check'},meeting:{icon:'📅',label:'Meeting'},escalate:{icon:'🚨',label:'Escalate'}};
             const TAG_RANK={work:10,check:9,meeting:8,visit:7,escalate:6,email:5,call:4,whatsapp:3,say:2,learn:1,nothing:0};
-            let eisenDateStr=null,eisenView='main',eisenDragPayload=null,eisenSortTimeout=null;
+            let eisenDateStr=null,eisenView='main',eisenDragPayload=null,eisenSortTimeout=null,eisenTagEditingIds=new Set();
             let eisenTagFilter=new Set(['work']),eisenSubFilter=new Set(['0']),eisenShowCompleted=false;
             let eisenDefaultsMode=true;
             let eisenJustStartMode=true;
@@ -13048,6 +13048,13 @@ function endTaskDrag(item) {
             function eisenItemMatches(it,applySub){
                 if(!it)return false;
                 if(!eisenShowCompleted&&isEisenItemCompleted(it))return false;
+                if(typeof eisenTagEditingIds!=='undefined'&&eisenTagEditingIds.has(it.id)){
+                    if(applySub!==false&&eisenSubFilter.size>0){
+                        const s=(it.sub===null||it.sub===undefined||it.sub==='')?'none':String(it.sub);
+                        if(!eisenSubFilter.has(s))return false;
+                    }
+                    return true;
+                }
                 if(eisenTagFilter.size>0){
                     const t=(it.tag&&TAG_META[it.tag])?it.tag:DEFAULT_TAG;
                     if(!eisenTagFilter.has(t))return false;
@@ -13795,7 +13802,7 @@ function endTaskDrag(item) {
             }
             setTimeout(initEisenPresetsInteractions, 150);
 
-            function openEisenModal(ds){if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null}eisenDateStr=ds;eisenView='main';eisenDragPayload=null;selectedEisenIds.clear();selectedEisenSourceIds.clear();resetEisenCaches();
+            function openEisenModal(ds){if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null};if(typeof eisenTagEditingIds!=='undefined'){eisenTagEditingIds.clear()}eisenDateStr=ds;eisenView='main';eisenDragPayload=null;selectedEisenIds.clear();selectedEisenSourceIds.clear();resetEisenCaches();
                 // Apply the user-chosen default preset when matrix opens
                 const openPresets = getStoredEisenPresets();
                 const openDefaultPreset = openPresets.find(p => p.isDefault) || openPresets[0];
@@ -13809,7 +13816,7 @@ function endTaskDrag(item) {
                 updateEisenFilterUI();eisenModal.style.left='';eisenModal.style.top='';eisenModal.style.transform='';eisenOverlay.classList.add('active');renderEisen()}
             function closeEisenModal(){
                 flushJustStartSave();
-                if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null}
+                if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null};if(typeof eisenTagEditingIds!=='undefined'){eisenTagEditingIds.clear()}
                 closeEisenItemPopup();
                 if(eisenTagFilterMenu)eisenTagFilterMenu.hidden=true;
                 if(eisenSubFilterMenu)eisenSubFilterMenu.hidden=true;
@@ -14198,7 +14205,7 @@ function endTaskDrag(item) {
                 let subTag='';
                 if(origin==='quadrant'&&item.sub!==null&&item.sub!==undefined&&eisenDateStr){const q=getEisenData(eisenDateStr).quadrants[qk];if(q)subTag=`<span class="chip-sub">${escapeHtml(q.sub.labels[item.sub]||'')}</span>`}
                 let tagPill='';
-                if(origin==='quadrant'){const tk=(item.tag&&TAG_META[item.tag])?item.tag:DEFAULT_TAG;const meta=TAG_META[tk];tagPill=`<span class="chip-tag" data-tag="${tk}"><button type="button" class="chip-tag-btn" data-tag-dir="-1" title="Previous">◀</button><span class="chip-tag-label"><span class="chip-tag-icon">${meta.icon}</span><span class="chip-tag-name">${meta.label}</span></span><button type="button" class="chip-tag-btn" data-tag-dir="1" title="Next">▶</button></span>`}
+                if(origin==='quadrant'){const tk=(item.tag&&TAG_META[item.tag])?item.tag:DEFAULT_TAG;const meta=TAG_META[tk];tagPill=`<span class="chip-tag" data-tag="${tk}"><button type="button" class="chip-tag-btn" data-tag-dir="-1" title="Previous">&#8249;</button><span class="chip-tag-label"><span class="chip-tag-icon">${meta.icon}</span><span class="chip-tag-name">${meta.label}</span></span><button type="button" class="chip-tag-btn" data-tag-dir="1" title="Next">&#8250;</button></span>`}
                 const tagsRow=(subTag||tagPill)?`<div class="eisen-chip-tags">${subTag}${tagPill}</div>`:'';
                 let isSel=false;
                 if(origin==='quadrant')isSel=selectedEisenIds.has(item.id+'|'+qk);
@@ -14303,7 +14310,23 @@ function endTaskDrag(item) {
 
                 return chip;
             }
-            function updateChipTagPill(id,qk,tag){const chip=document.querySelector(`.eisen-chip[data-item-id="${id}"][data-origin="quadrant"][data-quad="${qk}"]`);if(!chip)return;const tagEl=chip.querySelector('.chip-tag');if(!tagEl)return;const meta=TAG_META[tag]||TAG_META[DEFAULT_TAG];tagEl.setAttribute('data-tag',tag);const iconEl=tagEl.querySelector('.chip-tag-icon');const nameEl=tagEl.querySelector('.chip-tag-name');if(iconEl)iconEl.textContent=meta.icon;if(nameEl)nameEl.textContent=meta.label}
+            function updateChipTagPill(id,qk,tag){
+                const selector = qk
+                    ? `.eisen-chip[data-item-id="${id}"][data-origin="quadrant"][data-quad="${qk}"]`
+                    : `.eisen-chip[data-item-id="${id}"][data-origin="quadrant"]`;
+                const chips=document.querySelectorAll(selector);
+                if(!chips||chips.length===0)return;
+                const meta=TAG_META[tag]||TAG_META[DEFAULT_TAG];
+                chips.forEach(chip=>{
+                    const tagEl=chip.querySelector('.chip-tag');
+                    if(!tagEl)return;
+                    tagEl.setAttribute('data-tag',tag);
+                    const iconEl=tagEl.querySelector('.chip-tag-icon');
+                    const nameEl=tagEl.querySelector('.chip-tag-name');
+                    if(iconEl)iconEl.textContent=meta.icon;
+                    if(nameEl)nameEl.textContent=meta.label;
+                });
+            }
             function cycleEisenTag(id,qk,dir){
                 if(!eisenDateStr||!qk)return;
                 const data=getEisenData(eisenDateStr);
@@ -14312,10 +14335,21 @@ function endTaskDrag(item) {
                 const cur=(it.tag&&TAG_META[it.tag])?it.tag:DEFAULT_TAG;
                 const idx=EISEN_TAGS.indexOf(cur);
                 const ni=dir>0?(idx+1)%EISEN_TAGS.length:(idx-1+EISEN_TAGS.length)%EISEN_TAGS.length;
-                it.tag=EISEN_TAGS[ni];saveEisenData(eisenDateStr,data);updateChipTagPill(id,qk,it.tag);updateSingleCell(eisenDateStr);
-                if(eisenFilterActive()){if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null}renderEisen();return}
+                it.tag=EISEN_TAGS[ni];
+                saveEisenData(eisenDateStr,data);
+                updateChipTagPill(id,qk,it.tag);
+                updateSingleCell(eisenDateStr);
+                if(typeof eisenTagEditingIds!=='undefined'){
+                    eisenTagEditingIds.add(id);
+                }
                 if(eisenSortTimeout)clearTimeout(eisenSortTimeout);
-                eisenSortTimeout=setTimeout(()=>{eisenSortTimeout=null;renderEisen()},3000);
+                eisenSortTimeout=setTimeout(()=>{
+                    eisenSortTimeout=null;
+                    if(typeof eisenTagEditingIds!=='undefined'){
+                        eisenTagEditingIds.clear();
+                    }
+                    renderEisen();
+                },2500);
             }
             function removeEisenItem(id,qk){if(!eisenDateStr||!qk)return;pushUndo('Remove chip');const data=getEisenData(eisenDateStr);const q=data.quadrants[qk];if(!q)return;q.items=q.items.filter(it=>it.id!==id);saveEisenData(eisenDateStr,data);selectedEisenIds.delete(id+'|'+qk);renderEisenSelectionBar();renderEisen();updateSingleCell(eisenDateStr)}
             function renderEisenSourceList(data){const all=getEisenSourceItems(eisenDateStr);const used=collectEisenUsedIds(data);const avail=all.filter(it=>!used.has(it.id)).filter(it=>eisenItemMatches(it,false));eisenSourceList.innerHTML='';eisenSourceList.classList.remove('drop-target');if(avail.length===0){eisenSourceList.innerHTML='<div class="eisen-empty">'+(eisenFilterActive()?'No unplaced items match the current filter.':'All items have been placed.')+'</div>'}else avail.forEach(it=>eisenSourceList.appendChild(buildEisenChip(it,'source',null,null)));setupEisenDropZone(eisenSourceList,null,null)}
@@ -14397,7 +14431,7 @@ function endTaskDrag(item) {
                 });
             }
 
-            function openEisenSub(qk){eisenView=qk;renderEisen()}
+            function openEisenSub(qk){if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null}if(typeof eisenTagEditingIds!=='undefined'){eisenTagEditingIds.clear()}eisenView=qk;renderEisen()}
             function renderEisenSubGrid(data,qk){
                 const q=data.quadrants[qk];eisenGrid.innerHTML='';
                 const order=[0,1,3,2];
@@ -15575,7 +15609,7 @@ function endTaskDrag(item) {
 
                 eisenClose.addEventListener('click',closeEisenModal);
                 if(eisenOverlay)eisenOverlay.addEventListener('click',e=>{if(e.target===eisenOverlay)closeEisenModal();});
-                eisenBack.addEventListener('click',()=>{eisenView='main';renderEisen()});
+                eisenBack.addEventListener('click',()=>{if(eisenSortTimeout){clearTimeout(eisenSortTimeout);eisenSortTimeout=null}if(typeof eisenTagEditingIds!=='undefined'){eisenTagEditingIds.clear()}eisenView='main';renderEisen()});
                 initEisenModalDrag();
                 initEisenMoveDateModal();
                 initHabitManageModal();
@@ -15757,6 +15791,12 @@ function endTaskDrag(item) {
                 setHabitCompletion,
                 getHabitStreak,
                 closeEisenModal,
+                applyEisenPreset,
+                applyEisenFilterPreset,
+                getStoredEisenPresets,
+                isEisenSortPending: () => !!(eisenSortTimeout),
+                getEisenTagEditingIds: () => (typeof eisenTagEditingIds !== 'undefined' ? Array.from(eisenTagEditingIds) : []),
+                flushEisenSort: () => { if(eisenSortTimeout){ clearTimeout(eisenSortTimeout); eisenSortTimeout = null; } if(typeof eisenTagEditingIds !== 'undefined'){ eisenTagEditingIds.clear(); } renderEisen(); },
                 deferLearning,
                 deleteTask,
                 computeEisenCountsMap,
@@ -15858,6 +15898,12 @@ function endTaskDrag(item) {
                 setHabitCompletion,
                 getHabitStreak,
                 closeEisenModal,
+                applyEisenPreset,
+                applyEisenFilterPreset,
+                getStoredEisenPresets,
+                isEisenSortPending: () => !!(eisenSortTimeout),
+                getEisenTagEditingIds: () => (typeof eisenTagEditingIds !== 'undefined' ? Array.from(eisenTagEditingIds) : []),
+                flushEisenSort: () => { if(eisenSortTimeout){ clearTimeout(eisenSortTimeout); eisenSortTimeout = null; } if(typeof eisenTagEditingIds !== 'undefined'){ eisenTagEditingIds.clear(); } renderEisen(); },
                 deferLearning,
                 deleteTask,
                 computeEisenCountsMap,
