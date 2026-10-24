@@ -3607,6 +3607,587 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   background: #2563eb;
 }
 
+
+/* ============================================================
+   Step 6s: Week 3-Hour Time Blocks Modal & Chips Styling
+   ============================================================ */
+.wtb-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12400;
+  background: var(--modal-overlay, rgba(15, 23, 42, 0.72));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wtb-modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.wtb-modal {
+  width: 96vw;
+  max-width: 1440px;
+  height: 88vh;
+  max-height: 920px;
+  background: var(--surface-1, #ffffff);
+  color: var(--text, #14161b);
+  border-radius: var(--r-xl, 16px);
+  border: 1px solid var(--border-strong, rgba(0, 0, 0, 0.15));
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateY(8px) scale(0.99);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wtb-modal-overlay.active .wtb-modal {
+  transform: translateY(0) scale(1);
+}
+
+/* Modal Header */
+.wtb-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 20px;
+  background: var(--surface-2, #f8f9fb);
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  flex-shrink: 0;
+}
+
+.wtb-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.wtb-modal-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wtb-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.wtb-modal-title {
+  margin: 0;
+  font-size: var(--fs-lg, 1rem);
+  font-weight: 700;
+  color: var(--text, #14161b);
+  letter-spacing: -0.01em;
+}
+
+.wtb-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: var(--fs-xs, 0.6875rem);
+  font-weight: 700;
+  border-radius: var(--r-full, 999px);
+  background: var(--accent-light, rgba(59, 130, 246, 0.12));
+  color: var(--accent, #2563eb);
+}
+
+.wtb-date-range {
+  font-size: var(--fs-xs, 0.6875rem);
+  color: var(--text-secondary, #6a7280);
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.wtb-header-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.wtb-week-nav-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  border-radius: var(--r-md, 8px);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.wtb-nav-btn {
+  background: transparent;
+  border: 0;
+  padding: 6px 12px;
+  font-size: var(--fs-xs, 0.72rem);
+  font-weight: 600;
+  color: var(--text, #14161b);
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.wtb-nav-btn:hover {
+  background: var(--cell-hover, #eceff5);
+}
+
+.wtb-nav-btn.secondary {
+  border-left: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  border-right: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  font-size: var(--fs-2xs, 0.65rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-stats-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: var(--fs-xs, 0.6875rem);
+  font-weight: 600;
+  background: var(--surface-3, #f1f3f7);
+  border-radius: var(--r-full, 999px);
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-stat-divider {
+  opacity: 0.4;
+}
+
+.wtb-stat-done {
+  color: #10b981;
+}
+
+.wtb-stat-pending {
+  color: #f59e0b;
+}
+
+.wtb-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wtb-btn-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: var(--fs-xs, 0.7rem);
+  font-weight: 600;
+  border-radius: var(--r-md, 8px);
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  color: var(--text-secondary, #6a7280);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.wtb-btn-filter:hover {
+  background: var(--cell-hover, #eceff5);
+  color: var(--text, #14161b);
+}
+
+.wtb-btn-filter.active {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+  color: #2563eb;
+}
+
+.wtb-close-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--r-md, 8px);
+  color: var(--text-secondary, #6a7280);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.wtb-close-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* Modal Body */
+.wtb-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 16px;
+  background: var(--bg, #f2f3f6);
+}
+
+.wtb-grid {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(175px, 1fr);
+  gap: 12px;
+  align-items: start;
+  min-height: 100%;
+}
+
+/* Day Column */
+.wtb-day-col {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--r-lg, 12px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.wtb-day-col:hover {
+  border-color: var(--border-strong, rgba(0, 0, 0, 0.18));
+}
+
+.wtb-day-col.is-today {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 1px #f59e0b, 0 2px 6px rgba(245, 158, 11, 0.15);
+}
+
+.wtb-day-header {
+  padding: 10px 12px;
+  background: var(--surface-2, #f8f9fb);
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.06));
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.12s ease;
+}
+
+.wtb-day-header:hover {
+  background: var(--cell-hover, #eceff5);
+}
+
+.wtb-day-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.wtb-day-name {
+  font-size: var(--fs-xs, 0.7rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-day-date {
+  font-size: var(--fs-sm, 0.8125rem);
+  font-weight: 700;
+  color: var(--text, #14161b);
+}
+
+.wtb-day-col.is-today .wtb-day-date {
+  color: #d97706;
+}
+
+.wtb-day-task-count {
+  font-size: var(--fs-2xs, 0.65rem);
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--r-full, 999px);
+  background: var(--surface-3, #f1f3f7);
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-day-task-count.has-items {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.wtb-day-blocks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+/* 3-Hour Time Block Tiles */
+.wtb-timeblock-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 8px;
+  border-radius: var(--r-md, 8px);
+  transition: all 0.15s ease;
+  min-height: 38px;
+}
+
+/* Empty Time Block */
+.wtb-timeblock-tile.is-empty {
+  background: var(--surface-2, rgba(248, 249, 251, 0.5));
+  border: 1px dashed var(--border, rgba(0, 0, 0, 0.1));
+  opacity: 0.72;
+}
+
+.wtb-timeblock-tile.is-empty:hover {
+  opacity: 1;
+  background: var(--surface-2, #f8f9fb);
+  border-color: var(--border-strong, rgba(0, 0, 0, 0.2));
+}
+
+/* When active-only filter is ON, hide empty blocks */
+.wtb-hide-empty .wtb-timeblock-tile.is-empty {
+  display: none !important;
+}
+
+/* Time Block With Tasks (Visually Distinct!) */
+.wtb-timeblock-tile.has-tasks {
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.05);
+}
+
+.wtb-timeblock-tile.has-tasks:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.wtb-tb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.wtb-tb-label {
+  font-size: var(--fs-2xs, 0.65rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-timeblock-tile.has-tasks .wtb-tb-label {
+  color: #1d4ed8;
+}
+
+.wtb-tb-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: var(--r-full, 999px);
+  background: rgba(59, 130, 246, 0.15);
+  color: #2563eb;
+  line-height: 1.2;
+}
+
+/* Small Task Chips Container */
+.wtb-chips-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Very Small Task Chip */
+.wtb-task-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 6px;
+  min-height: 20px;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.15;
+  border-radius: 4px;
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  color: var(--text, #14161b);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.12s ease;
+}
+
+.wtb-task-chip:hover {
+  background: var(--cell-hover, #eceff5);
+  border-color: var(--border-strong, rgba(0, 0, 0, 0.25));
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.wtb-chip-icon {
+  font-size: 0.625rem;
+  line-height: 1;
+  flex-shrink: 0;
+  color: #3b82f6;
+}
+
+.wtb-chip-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* Completed Task Chip */
+.wtb-task-chip.is-done {
+  background: rgba(16, 185, 129, 0.07);
+  border-color: rgba(16, 185, 129, 0.22);
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-task-chip.is-done .wtb-chip-text {
+  text-decoration: line-through;
+  opacity: 0.75;
+}
+
+.wtb-task-chip.is-done .wtb-chip-icon {
+  color: #10b981;
+}
+
+/* Modal Footer */
+.wtb-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: var(--surface-2, #f8f9fb);
+  border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  flex-shrink: 0;
+}
+
+.wtb-footer-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs, 0.7rem);
+  color: var(--text-secondary, #6a7280);
+}
+
+.wtb-hint-icon {
+  font-size: 0.85rem;
+}
+
+.wtb-footer-close-btn {
+  padding: 6px 16px;
+  font-size: var(--fs-sm, 0.75rem);
+  font-weight: 600;
+  border-radius: var(--r-md, 8px);
+  background: var(--surface-1, #ffffff);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
+  color: var(--text, #14161b);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.wtb-footer-close-btn:hover {
+  background: var(--cell-hover, #eceff5);
+  border-color: var(--border-strong, rgba(0, 0, 0, 0.3));
+}
+
+/* Dark & OLED Themes */
+[data-theme="dark"] .wtb-modal,
+[data-theme="oled"] .wtb-modal {
+  background: var(--surface-1, #181c24);
+  color: var(--text, #e7eaf0);
+  border-color: var(--border-strong, rgba(255, 255, 255, 0.12));
+}
+
+[data-theme="dark"] .wtb-modal-header,
+[data-theme="oled"] .wtb-modal-header,
+[data-theme="dark"] .wtb-modal-footer,
+[data-theme="oled"] .wtb-modal-footer {
+  background: var(--surface-2, #1f242e);
+  border-color: var(--border, rgba(255, 255, 255, 0.08));
+}
+
+[data-theme="dark"] .wtb-day-col,
+[data-theme="oled"] .wtb-day-col {
+  background: var(--surface-1, #181c24);
+  border-color: var(--border, rgba(255, 255, 255, 0.08));
+}
+
+[data-theme="dark"] .wtb-day-header,
+[data-theme="oled"] .wtb-day-header {
+  background: var(--surface-2, #1f242e);
+  border-color: var(--border, rgba(255, 255, 255, 0.06));
+}
+
+[data-theme="dark"] .wtb-timeblock-tile.is-empty,
+[data-theme="oled"] .wtb-timeblock-tile.is-empty {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .wtb-timeblock-tile.has-tasks,
+[data-theme="oled"] .wtb-timeblock-tile.has-tasks {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="dark"] .wtb-timeblock-tile.has-tasks .wtb-tb-label,
+[data-theme="oled"] .wtb-timeblock-tile.has-tasks .wtb-tb-label {
+  color: #60a5fa;
+}
+
+[data-theme="dark"] .wtb-task-chip,
+[data-theme="oled"] .wtb-task-chip {
+  background: var(--surface-2, #1f242e);
+  border-color: var(--border, rgba(255, 255, 255, 0.1));
+  color: var(--text, #e7eaf0);
+}
+
+[data-theme="dark"] .wtb-task-chip:hover,
+[data-theme="oled"] .wtb-task-chip:hover {
+  background: var(--cell-hover, #2a313d);
+}
+
+[data-theme="dark"] .wtb-task-chip.is-done,
+[data-theme="oled"] .wtb-task-chip.is-done {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+[data-theme="dark"] .wtb-week-nav-group,
+[data-theme="oled"] .wtb-week-nav-group,
+[data-theme="dark"] .wtb-btn-filter,
+[data-theme="oled"] .wtb-btn-filter,
+[data-theme="dark"] .wtb-footer-close-btn,
+[data-theme="oled"] .wtb-footer-close-btn {
+  background: var(--surface-1, #181c24);
+  border-color: var(--border, rgba(255, 255, 255, 0.12));
+  color: var(--text, #e7eaf0);
+}
+
+[data-theme="dark"] .wtb-nav-btn:hover,
+[data-theme="oled"] .wtb-nav-btn:hover,
+[data-theme="dark"] .wtb-btn-filter:hover,
+[data-theme="oled"] .wtb-btn-filter:hover,
+[data-theme="dark"] .wtb-footer-close-btn:hover,
+[data-theme="oled"] .wtb-footer-close-btn:hover {
+  background: var(--cell-hover, #2a313d);
+}
+
 </style>
 </head>
 <body>
@@ -6859,7 +7440,7 @@ function renderHabitMiniCalendar() {
                 let html='';
                 ws.forEach(w=>{const b=buildWeekCellHTML(w,md);html+=`<div class="${b.classes.join(' ')}" data-week="${w.id}" title="Week ${w.index}">${b.inner}</div>`});
                 weekCells.innerHTML=html;
-                weekCells.onclick=e=>{const c=e.target.closest('.week-cell');if(!c)return;const wid=c.getAttribute('data-week');if(wid)selectWeek(wid)};
+                weekCells.onclick=e=>{const c=e.target.closest('.week-cell');if(!c)return;const wid=c.getAttribute('data-week');if(wid)selectWeek(wid)};weekCells.ondblclick=e=>{const c=e.target.closest('.week-cell');if(!c)return;const wid=c.getAttribute('data-week');if(wid){e.preventDefault();e.stopPropagation();openWeekTimeblocksModal(wid);}};
             }
             function renderCalendar(opts={}){
                 const animate=opts.animate===true;
@@ -14575,9 +15156,9 @@ function endTaskDrag(item) {
             function applyTheme(t){if(!THEMES.includes(t))t='light';document.documentElement.setAttribute('data-theme',t);if(t==='light'){themeIcon.innerHTML=moonIconPath;btnTheme.title='Switch to Dark mode'}else if(t==='dark'){themeIcon.innerHTML=oledIconPath;btnTheme.title='Switch to OLED Black mode'}else{themeIcon.innerHTML=sunIconPath;btnTheme.title='Switch to Light mode'}}
             function initTheme(){let t=appStorage.getItem(THEME_KEY);if(!t)t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';applyTheme(t);window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change',e=>{if(!appStorage.getItem(THEME_KEY))applyTheme(e.matches?'dark':'light')})}
             function toggleTheme(){const c=document.documentElement.getAttribute('data-theme')||'light';const n=THEMES[(THEMES.indexOf(c)+1)%THEMES.length];appStorage.setItem(THEME_KEY,n);applyTheme(n)}
-            function initStatsCollapse(){if(appStorage.getItem(STATS_COLLAPSED_KEY)==='1')statsBar.classList.add('collapsed')}
+            function initStatsCollapse(){if(appStorage.getItem(STATS_COLLAPSED_KEY)!=='0')statsBar.classList.add('collapsed')}
             function toggleStatsCollapse(){statsBar.classList.toggle('collapsed');appStorage.setItem(STATS_COLLAPSED_KEY,statsBar.classList.contains('collapsed')?'1':'0')}
-            function initPertCollapse(){if(appStorage.getItem(PERT_COLLAPSE_KEY)==='1')pertSection.classList.add('collapsed')}
+            function initPertCollapse(){if(appStorage.getItem(PERT_COLLAPSE_KEY)!=='0')pertSection.classList.add('collapsed')}
             function togglePertCollapse(){pertSection.classList.toggle('collapsed');appStorage.setItem(PERT_COLLAPSE_KEY,pertSection.classList.contains('collapsed')?'1':'0')}
 
             function getUiSectionStates(){
@@ -14586,6 +15167,398 @@ function endTaskDrag(item) {
             function setUiSectionState(id,collapsed){
                 const st=getUiSectionStates();st[id]=!!collapsed;appStorage.setItem(UI_SECTION_STATE_KEY,JSON.stringify(st));
             }
+            /* ============================================================
+   Step 6s: Week 3-Hour Time Blocks Modal Engine & Helpers
+   ============================================================ */
+
+let currentWtbWeekId = null;
+let isWtbActiveFilterOn = false;
+
+function getTaskShortform(task) {
+    if (!task) return 'Untitled';
+    const raw = typeof task === 'string' ? task : (task.text || '');
+    if (!raw.trim()) return 'Untitled';
+    let firstLine = raw.split('\n')[0].trim();
+    // Strip timeblock tags: @0, @3, @15, @9:00am, etc.
+    firstLine = firstLine.replace(/@\d{1,2}(?::\d{2})?(?:am|pm)?(?:-\d{1,2})?\b/gi, '').trim();
+    // Strip markdown checklist: [ ], [x], [X], -, *, +
+    firstLine = firstLine.replace(/^[-*+]\s+/, '').replace(/^\[[ xX]\]\s*/, '').trim();
+    if (!firstLine) return 'Untitled';
+    if (firstLine.length > 16) {
+        return firstLine.slice(0, 13).trim() + '...';
+    }
+    return firstLine;
+}
+
+function getWeekObjById(wid) {
+    if (!wid) return null;
+    const parts = wid.split('-');
+    if (parts.length < 3) return null;
+    const y = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10);
+    if (isNaN(y) || isNaN(m)) return null;
+    const weeks = computeWeeksForMonth(y, m);
+    return weeks.find(w => w.id === wid) || weeks[0] || null;
+}
+
+function formatWeekDateRange(days) {
+    if (!days || days.length === 0) return '';
+    const first = days[0];
+    const last = days[days.length - 1];
+    const [y1, m1, d1] = first.split('-').map(Number);
+    const [y2, m2, d2] = last.split('-').map(Number);
+    const date1 = new Date(y1, m1 - 1, d1);
+    const date2 = new Date(y2, m2 - 1, d2);
+    const m1Name = date1.toLocaleDateString('en-US', { month: 'short' });
+    const m2Name = date2.toLocaleDateString('en-US', { month: 'short' });
+    if (m1 === m2) {
+        return `${m1Name} ${d1} - ${d2}, ${y1}`;
+    }
+    return `${m1Name} ${d1} - ${m2Name} ${d2}, ${y2}`;
+}
+
+function expandSectionIfCollapsed(sectionId) {
+    const sec = document.getElementById(sectionId);
+    if (sec && sec.classList.contains('collapsed')) {
+        sec.classList.remove('collapsed');
+        if (typeof setUiSectionState === 'function') setUiSectionState(sectionId, false);
+        const header = sec.querySelector(':scope > .ui-section-header');
+        if (header) header.setAttribute('aria-expanded', 'true');
+    }
+}
+
+function openWeekTimeblocksModal(wid) {
+    const overlay = document.getElementById('weekTimeblocksOverlay');
+    if (!overlay) return;
+    
+    if (!wid) {
+        if (typeof selectedWeekId === 'string' && selectedWeekId) {
+            wid = selectedWeekId;
+        } else {
+            const ts = typeof selectedDateStr === 'string' && selectedDateStr ? selectedDateStr : getTodayStr();
+            const [y, m] = ts.split('-').map(Number);
+            const ws = computeWeeksForMonth(y, m);
+            const found = ws.find(w => w.days.includes(ts));
+            wid = found ? found.id : (ws[0]?.id || `${y}-${String(m).padStart(2, '0')}-W1`);
+        }
+    }
+    
+    currentWtbWeekId = wid;
+    renderWeekTimeblocksModal(wid);
+    overlay.classList.add('active');
+    overlay.setAttribute('aria-hidden', 'false');
+}
+
+function closeWeekTimeblocksModal() {
+    const overlay = document.getElementById('weekTimeblocksOverlay');
+    if (!overlay) return;
+    overlay.classList.remove('active');
+    overlay.setAttribute('aria-hidden', 'true');
+}
+
+function renderWeekTimeblocksModal(wid) {
+    const overlay = document.getElementById('weekTimeblocksOverlay');
+    if (!overlay) return;
+    
+    const weekBadge = document.getElementById('wtbWeekBadge');
+    const weekDateRange = document.getElementById('wtbWeekDateRange');
+    const wtbTotalStatEl = document.getElementById('wtbStatTotal');
+    const wtbDoneStatEl = document.getElementById('wtbStatDone');
+    const wtbPendingStatEl = document.getElementById('wtbStatPending');
+    const grid = document.getElementById('wtbGrid');
+    if (!grid) return;
+
+    let weekObj = getWeekObjById(wid);
+    if (!weekObj) {
+        const [y, m] = wid.split('-').map(Number);
+        const ws = computeWeeksForMonth(y || currentYear, m || currentMonth);
+        weekObj = ws[0];
+    }
+    if (!weekObj) return;
+
+    currentWtbWeekId = weekObj.id;
+
+    if (weekBadge) weekBadge.textContent = `Week ${weekObj.index}`;
+    if (weekDateRange) weekDateRange.textContent = formatWeekDateRange(weekObj.days);
+
+    let totalTasksCount = 0;
+    let doneTasksCount = 0;
+    const todayStr = getTodayStr();
+
+    let gridHTML = '';
+
+    // Render columns for each day in week
+    weekObj.days.forEach(ds => {
+        const [y, m, d] = ds.split('-').map(Number);
+        const dateObj = new Date(y, m - 1, d);
+        const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+        const monthShort = dateObj.toLocaleDateString('en-US', { month: 'short' });
+        const isToday = (ds === todayStr);
+
+        const dayData = getData(ds) || {};
+        const tasks = Array.isArray(dayData.tasks) ? dayData.tasks : [];
+
+        // Partition tasks into timeblocks
+        const blockMap = {};
+        TIMEBLOCK_DEFS.forEach(b => { blockMap[b.id] = []; });
+
+        tasks.forEach(task => {
+            totalTasksCount++;
+            if (task.status === 'done') doneTasksCount++;
+            const bId = parseTaskTimeblock(task.text);
+            if (!blockMap[bId]) blockMap[bId] = [];
+            blockMap[bId].push(task);
+        });
+
+        const dayTotal = tasks.length;
+        const dayDone = tasks.filter(t => t.status === 'done').length;
+
+        let dayBlocksHTML = '';
+        TIMEBLOCK_DEFS.forEach(bDef => {
+            const bTasks = blockMap[bDef.id] || [];
+            const hasTasks = bTasks.length > 0;
+            const tileClass = hasTasks ? 'wtb-timeblock-tile has-tasks' : 'wtb-timeblock-tile is-empty';
+            
+            let chipsHTML = '';
+            if (hasTasks) {
+                bTasks.forEach(task => {
+                    const isDone = (task.status === 'done');
+                    const shortText = getTaskShortform(task);
+                    const fullText = (task.text || '').replace(/"/g, '&quot;');
+                    chipsHTML += `
+                        <div class="wtb-task-chip ${isDone ? 'is-done' : ''}" 
+                             title="${fullText}" 
+                             data-date="${ds}" 
+                             data-task-id="${task.id}">
+                            <span class="wtb-chip-icon">${isDone ? '&#10003;' : '&bull;'}</span>
+                            <span class="wtb-chip-text">${escapeHtml(shortText)}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            const badgeHTML = hasTasks ? `<span class="wtb-tb-badge">${bTasks.length}</span>` : '';
+
+            dayBlocksHTML += `
+                <div class="${tileClass}" data-block-id="${bDef.id}">
+                    <div class="wtb-tb-header">
+                        <span class="wtb-tb-label">${escapeHtml(bDef.shortLabel)}</span>
+                        ${badgeHTML}
+                    </div>
+                    ${hasTasks ? `<div class="wtb-chips-container">${chipsHTML}</div>` : ''}
+                </div>
+            `;
+        });
+
+        const countBadgeClass = dayTotal > 0 ? 'wtb-day-task-count has-items' : 'wtb-day-task-count';
+        const countText = dayTotal > 0 ? `${dayDone}/${dayTotal}` : '0';
+
+        gridHTML += `
+            <div class="wtb-day-col ${isToday ? 'is-today' : ''}" data-date="${ds}">
+                <div class="wtb-day-header" data-date="${ds}" title="Click to open this day">
+                    <div class="wtb-day-title-wrap">
+                        <span class="wtb-day-name">${dayName}</span>
+                        <span class="wtb-day-date">${monthShort} ${d}</span>
+                    </div>
+                    <span class="${countBadgeClass}">${countText}</span>
+                </div>
+                <div class="wtb-day-blocks">
+                    ${dayBlocksHTML}
+                </div>
+            </div>
+        `;
+    });
+
+    // Check for weekly-level tasks
+    const weekData = getWeekData(weekObj.id) || {};
+    const weekTasks = Array.isArray(weekData.tasks) ? weekData.tasks : [];
+    if (weekTasks.length > 0) {
+        let weekChipsHTML = '';
+        weekTasks.forEach(task => {
+            totalTasksCount++;
+            if (task.status === 'done') doneTasksCount++;
+            const isDone = (task.status === 'done');
+            const shortText = getTaskShortform(task);
+            const fullText = (task.text || '').replace(/"/g, '&quot;');
+            weekChipsHTML += `
+                <div class="wtb-task-chip ${isDone ? 'is-done' : ''}" 
+                     title="${fullText}" 
+                     data-week="${weekObj.id}" 
+                     data-task-id="${task.id}">
+                    <span class="wtb-chip-icon">${isDone ? '&#10003;' : '&bull;'}</span>
+                    <span class="wtb-chip-text">${escapeHtml(shortText)}</span>
+                </div>
+            `;
+        });
+
+        gridHTML += `
+            <div class="wtb-day-col week-level-col" data-week="${weekObj.id}">
+                <div class="wtb-day-header" data-week="${weekObj.id}" title="Week-level tasks">
+                    <div class="wtb-day-title-wrap">
+                        <span class="wtb-day-name">Week Level</span>
+                        <span class="wtb-day-date">W${weekObj.index} Tasks</span>
+                    </div>
+                    <span class="wtb-day-task-count has-items">${weekTasks.length}</span>
+                </div>
+                <div class="wtb-day-blocks">
+                    <div class="wtb-timeblock-tile has-tasks">
+                        <div class="wtb-tb-header">
+                            <span class="wtb-tb-label">Weekly Goals</span>
+                            <span class="wtb-tb-badge">${weekTasks.length}</span>
+                        </div>
+                        <div class="wtb-chips-container">
+                            ${weekChipsHTML}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    grid.innerHTML = gridHTML;
+
+    // Apply active-only filter class
+    if (isWtbActiveFilterOn) {
+        grid.classList.add('wtb-hide-empty');
+    } else {
+        grid.classList.remove('wtb-hide-empty');
+    }
+
+    const pendingCount = totalTasksCount - doneTasksCount;
+    if (wtbTotalStatEl) wtbTotalStatEl.textContent = `${totalTasksCount} task${totalTasksCount === 1 ? '' : 's'}`;
+    if (wtbDoneStatEl) wtbDoneStatEl.textContent = `${doneTasksCount} done`;
+    if (wtbPendingStatEl) wtbPendingStatEl.textContent = `${pendingCount} pending`;
+}
+
+function navigateWtbWeek(delta) {
+    if (!currentWtbWeekId) return;
+    const parts = currentWtbWeekId.split('-');
+    let y = parseInt(parts[0], 10);
+    let m = parseInt(parts[1], 10);
+    if (isNaN(y) || isNaN(m)) return;
+
+    let ws = computeWeeksForMonth(y, m);
+    let idx = ws.findIndex(w => w.id === currentWtbWeekId);
+
+    let targetWid = null;
+    if (delta > 0) {
+        if (idx >= 0 && idx < ws.length - 1) {
+            targetWid = ws[idx + 1].id;
+        } else {
+            m++;
+            if (m > 12) { m = 1; y++; }
+            const nextWs = computeWeeksForMonth(y, m);
+            targetWid = nextWs[0]?.id;
+        }
+    } else if (delta < 0) {
+        if (idx > 0) {
+            targetWid = ws[idx - 1].id;
+        } else {
+            m--;
+            if (m < 1) { m = 12; y--; }
+            const prevWs = computeWeeksForMonth(y, m);
+            targetWid = prevWs[prevWs.length - 1]?.id;
+        }
+    }
+
+    if (targetWid) {
+        currentWtbWeekId = targetWid;
+        renderWeekTimeblocksModal(targetWid);
+    }
+}
+
+function initWeekTimeblocksModal() {
+    const overlay = document.getElementById('weekTimeblocksOverlay');
+    if (!overlay) return;
+
+    const btnClose = document.getElementById('btnWtbClose');
+    const btnFooterClose = document.getElementById('btnWtbFooterClose');
+    const btnPrevWeek = document.getElementById('btnWtbPrevWeek');
+    const btnNextWeek = document.getElementById('btnWtbNextWeek');
+    const btnCurrentWeek = document.getElementById('btnWtbCurrentWeek');
+    const btnToggleActive = document.getElementById('btnWtbToggleActiveOnly');
+    const grid = document.getElementById('wtbGrid');
+
+    if (btnClose) btnClose.onclick = closeWeekTimeblocksModal;
+    if (btnFooterClose) btnFooterClose.onclick = closeWeekTimeblocksModal;
+
+    overlay.onclick = e => {
+        if (e.target === overlay) {
+            closeWeekTimeblocksModal();
+        }
+    };
+
+    if (btnPrevWeek) btnPrevWeek.onclick = () => navigateWtbWeek(-1);
+    if (btnNextWeek) btnNextWeek.onclick = () => navigateWtbWeek(1);
+    if (btnCurrentWeek) {
+        btnCurrentWeek.onclick = () => {
+            const ts = getTodayStr();
+            const [y, m] = ts.split('-').map(Number);
+            const ws = computeWeeksForMonth(y, m);
+            const found = ws.find(w => w.days.includes(ts));
+            if (found) {
+                currentWtbWeekId = found.id;
+                renderWeekTimeblocksModal(found.id);
+            }
+        };
+    }
+
+    if (btnToggleActive) {
+        btnToggleActive.onclick = () => {
+            isWtbActiveFilterOn = !isWtbActiveFilterOn;
+            btnToggleActive.classList.toggle('active', isWtbActiveFilterOn);
+            if (grid) {
+                grid.classList.toggle('wtb-hide-empty', isWtbActiveFilterOn);
+            }
+        };
+    }
+
+    if (grid) {
+        grid.onclick = e => {
+            const chip = e.target.closest('.wtb-task-chip');
+            if (chip) {
+                e.stopPropagation();
+                const ds = chip.dataset.date;
+                const wid = chip.dataset.week;
+                const taskId = chip.dataset.taskId;
+                closeWeekTimeblocksModal();
+                if (ds) {
+                    expandSectionIfCollapsed('tasksSection');
+                    selectDate(ds);
+                    setTimeout(() => {
+                        const item = taskList.querySelector(`.task-item[data-id="${taskId}"]`);
+                        if (item) {
+                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            item.classList.add('task-highlight-pulse');
+                            setTimeout(() => item.classList.remove('task-highlight-pulse'), 1500);
+                            const ta = item.querySelector('.task-text');
+                            if (ta) ta.focus();
+                        }
+                    }, 120);
+                } else if (wid) {
+                    expandSectionIfCollapsed('tasksSection');
+                    selectWeek(wid);
+                }
+                return;
+            }
+
+            const dayHeader = e.target.closest('.wtb-day-header');
+            if (dayHeader) {
+                e.stopPropagation();
+                const ds = dayHeader.dataset.date;
+                const wid = dayHeader.dataset.week;
+                closeWeekTimeblocksModal();
+                if (ds) {
+                    selectDate(ds);
+                } else if (wid) {
+                    selectWeek(wid);
+                }
+            }
+        };
+    }
+}
+
+
             function initGenericCollapsibles(){
                 const states=getUiSectionStates();
                 document.querySelectorAll('.ui-section').forEach(sec=>{
@@ -14603,12 +15576,12 @@ function endTaskDrag(item) {
                     };
                     header.setAttribute('role','button');
                     header.setAttribute('tabindex','0');
-                    header.setAttribute('aria-expanded',states[id]?'false':'true');
+                    const isCollapsed=(states[id]!==undefined)?!!states[id]:(id!=='calendarSection');header.setAttribute('aria-expanded',isCollapsed?'false':'true');
                     header.addEventListener('click',e=>{if(e.target.closest('button, select, input, textarea, label, .learnings-deck-filter, [data-no-collapse]'))return;toggle()});
                     const chev=header.querySelector('.ui-section-chevron');
                     if(chev)chev.addEventListener('click',e=>{e.stopPropagation();toggle()});
                     header.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
-                    if(states[id])sec.classList.add('collapsed');
+                    if(isCollapsed)sec.classList.add('collapsed');
                 });
             }
 
@@ -14822,7 +15795,7 @@ function endTaskDrag(item) {
                 renderCalendar({animate:true});
                 updateDetailPanel(getData(ts)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},ts);
                 renderLearningsSection();renderHabits();
-                initMainCollapsibleSections();
+                initMainCollapsibleSections();initWeekTimeblocksModal();
                 initDestinationTime();
                 window.dispatchEvent(new CustomEvent('td-date-changed',{detail:{date:ts}}));
                 window.addEventListener('td-idb-ready', function(){
@@ -15735,6 +16708,7 @@ function endTaskDrag(item) {
                         if((e.key==='r'||e.key==='R')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openPjCenter('dashboard');return}
                         if((e.key==='n'||e.key==='N')&&!e.ctrlKey&&!e.metaKey){e.preventDefault();openAddPjEncounter();return}
                     }
+                    if(e.key==='Escape'&&document.getElementById('weekTimeblocksOverlay')?.classList.contains('active')){e.preventDefault();closeWeekTimeblocksModal();return;}
                     if(e.key==='Escape'&&eisenItemPopupOverlay&&eisenItemPopupOverlay.classList.contains('active')){
 
                         e.preventDefault();
@@ -15759,6 +16733,12 @@ function endTaskDrag(item) {
             function hideBreakReminder(){breakToast.classList.remove('visible');breakToast.classList.add('hiding');setTimeout(()=>{breakToast.classList.remove('hiding')},350)}
             window.__taskPlannerAppBridge = {
                 renderCalendar,
+                openWeekTimeblocksModal,
+                closeWeekTimeblocksModal,
+                renderWeekTimeblocksModal,
+                getTaskShortform,
+                getUiSectionStates,
+                setUiSectionState,
                 renderLearningsSection,
                 renderHabits,
                 renderDestinationTimes,
@@ -15869,6 +16849,12 @@ function endTaskDrag(item) {
                 renderTaskToolbar: typeof renderTaskToolbar === 'function' ? renderTaskToolbar : undefined,
                 getSelectedDateStr: () => typeof selectedDateStr !== 'undefined' ? selectedDateStr : null,
                 renderCalendar,
+                openWeekTimeblocksModal,
+                closeWeekTimeblocksModal,
+                renderWeekTimeblocksModal,
+                getTaskShortform,
+                getUiSectionStates,
+                setUiSectionState,
                 renderLearningsSection,
                 renderHabits,
                 renderDestinationTimes,
@@ -18035,6 +19021,56 @@ function endTaskDrag(item) {
             </div>
         </div>
     </div>
+
+    <!-- Week 3-Hour Time Blocks Modal Overlay -->
+    <div id="weekTimeblocksOverlay" class="wtb-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wtbModalTitle">
+        <div class="wtb-modal">
+            <div class="wtb-modal-header">
+                <div class="wtb-header-left">
+                    <div class="wtb-modal-icon">&#128197;</div>
+                    <div>
+                        <div class="wtb-title-row">
+                            <h2 id="wtbModalTitle" class="wtb-modal-title">Week Time Blocks</h2>
+                            <span id="wtbWeekBadge" class="wtb-badge">Week</span>
+                        </div>
+                        <div id="wtbWeekDateRange" class="wtb-date-range">Date Range</div>
+                    </div>
+                </div>
+                <div class="wtb-header-center">
+                    <div class="wtb-week-nav-group">
+                        <button type="button" id="btnWtbPrevWeek" class="wtb-nav-btn" title="Previous Week">&lsaquo; Prev Week</button>
+                        <button type="button" id="btnWtbCurrentWeek" class="wtb-nav-btn secondary" title="Jump to Current Week">Current</button>
+                        <button type="button" id="btnWtbNextWeek" class="wtb-nav-btn" title="Next Week">Next Week &rsaquo;</button>
+                    </div>
+                    <div id="wtbStatsPill" class="wtb-stats-pill">
+                        <span id="wtbStatTotal">0 tasks</span>
+                        <span class="wtb-stat-divider">&bull;</span>
+                        <span id="wtbStatDone" class="wtb-stat-done">0 done</span>
+                        <span class="wtb-stat-divider">&bull;</span>
+                        <span id="wtbStatPending" class="wtb-stat-pending">0 pending</span>
+                    </div>
+                </div>
+                <div class="wtb-header-right">
+                    <button type="button" id="btnWtbToggleActiveOnly" class="wtb-btn-filter" title="Toggle empty blocks">
+                        <span class="wtb-filter-icon">&#9889;</span>
+                        <span class="wtb-filter-text">Active Blocks Only</span>
+                    </button>
+                    <button type="button" id="btnWtbClose" class="wtb-close-btn" aria-label="Close modal" title="Close (Esc)">&#10005;</button>
+                </div>
+            </div>
+            <div class="wtb-modal-body" id="wtbModalBody">
+                <div class="wtb-grid" id="wtbGrid"></div>
+            </div>
+            <div class="wtb-modal-footer">
+                <div class="wtb-footer-hint">
+                    <span class="wtb-hint-icon">&#128161;</span>
+                    <span>Double-click any week tile to reopen this view. Click any chip to jump directly to that task. Click a day header to open that day.</span>
+                </div>
+                <button type="button" id="btnWtbFooterClose" class="wtb-footer-close-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Auth Controller & Realtime Cloud Sync Engine -->
     <script>
     (function(){
