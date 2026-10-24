@@ -1028,7 +1028,7 @@ body{
   opacity:0;-webkit-backdrop-filter:blur(6px) saturate(120%);backdrop-filter:blur(6px) saturate(120%);
   transition:opacity var(--dur-base) var(--ease-in-out);
 }
-.account-modal-overlay.active{
+.account-modal-overlay.active, .account-modal-overlay.visible{
   display:flex;opacity:1;
 }
 .account-modal{
@@ -19944,6 +19944,76 @@ window.moveWtbTask = moveWtbTask;
         const btnForcePull = document.getElementById('btnForcePull');
         const btnAccountSettingsOpen = document.getElementById('btnAccountSettingsOpen');
 
+        function openCloudSyncModal(){
+            if(cloudSyncModalOverlay){
+                cloudSyncModalOverlay.classList.add('active');
+                cloudSyncModalOverlay.classList.add('visible');
+            }
+        }
+        function closeCloudSyncModal(){
+            if(cloudSyncModalOverlay){
+                cloudSyncModalOverlay.classList.remove('active');
+                cloudSyncModalOverlay.classList.remove('visible');
+            }
+        }
+
+        if(btnCloudSync){
+            btnCloudSync.addEventListener('click', openCloudSyncModal);
+        }
+        if(btnCloudSyncClose){
+            btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
+        }
+        if(cloudSyncModalOverlay){
+            cloudSyncModalOverlay.addEventListener('click', (e) => {
+                if(e.target === cloudSyncModalOverlay) closeCloudSyncModal();
+            });
+        }
+        if(btnAccountSettingsOpen){
+            btnAccountSettingsOpen.addEventListener('click', () => {
+                closeCloudSyncModal();
+                openAccountModal(false);
+            });
+        }
+        if(btnForceSync){
+            btnForceSync.addEventListener('click', async () => {
+                const origText = btnForceSync.textContent;
+                btnForceSync.disabled = true;
+                btnForceSync.textContent = 'Syncing...';
+                try {
+                    if(!supabaseClient && window.supabase && window.supabase.createClient){
+                        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                    }
+                    await pollCheckRemote(true);
+                    if(hasPendingLocalEdits) await pushToCloud();
+                    setSyncStatus('connected', 'Sync Complete', 'Local and cloud data synchronized');
+                } catch(err){
+                    setSyncStatus('error', 'Sync Failed', err ? (err.message || String(err)) : 'Error syncing');
+                } finally {
+                    btnForceSync.disabled = false;
+                    btnForceSync.textContent = origText;
+                }
+            });
+        }
+        if(btnForcePull){
+            btnForcePull.addEventListener('click', async () => {
+                const origText = btnForcePull.textContent;
+                btnForcePull.disabled = true;
+                btnForcePull.textContent = 'Pulling...';
+                try {
+                    if(!supabaseClient && window.supabase && window.supabase.createClient){
+                        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+                    }
+                    await pullFromCloud(true);
+                    setSyncStatus('connected', 'Pull Complete', 'Latest cloud data loaded');
+                } catch(err){
+                    setSyncStatus('error', 'Pull Failed', err ? (err.message || String(err)) : 'Error pulling');
+                } finally {
+                    btnForcePull.disabled = false;
+                    btnForcePull.textContent = origText;
+                }
+            });
+        }
+
         function setSyncStatus(st, msg, detail){
     if(syncStatusDot){
         syncStatusDot.className = 'sync-status-dot ' + (st === 'connected' ? 'active' : (st === 'syncing' ? 'syncing' : (st === 'error' ? 'error' : '')));
@@ -20813,39 +20883,7 @@ window.moveWtbTask = moveWtbTask;
     }
     hookStorage();
 
-    if(btnCloudSync && cloudSyncModalOverlay){
-        btnCloudSync.addEventListener('click', () => {
-            cloudSyncModalOverlay.classList.add('visible');
-        });
-    }
-    if(btnCloudSyncClose && cloudSyncModalOverlay){
-        btnCloudSyncClose.addEventListener('click', () => {
-            cloudSyncModalOverlay.classList.remove('visible');
-        });
-    }
-    if(cloudSyncModalOverlay){
-        cloudSyncModalOverlay.addEventListener('click', (e) => {
-            if(e.target === cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('visible');
-        });
-    }
-    if(btnForceSync){
-        btnForceSync.addEventListener('click', () => {
-            pollCheckRemote(true).then(() => {
-                if(hasPendingLocalEdits) pushToCloud();
-            });
-        });
-    }
-    if(btnForcePull){
-        btnForcePull.addEventListener('click', () => {
-            pullFromCloud(true);
-        });
-    }
-    if(btnAccountSettingsOpen){
-        btnAccountSettingsOpen.addEventListener('click', () => {
-            if(cloudSyncModalOverlay) cloudSyncModalOverlay.classList.remove('visible');
-            openAccountModal(false);
-        });
-    }
+    // Modal & sync listeners bound immediately on DOM init
 
     try {
         supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
