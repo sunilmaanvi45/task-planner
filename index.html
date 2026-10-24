@@ -4238,6 +4238,102 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   background: var(--cell-hover, #2a313d);
 }
 
+
+/* Step 6w: Time Machine Snapshots Modal Styles */
+.time-machine-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    z-index: 10050;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    box-sizing: border-box;
+}
+.time-machine-overlay.active {
+    display: flex;
+}
+.time-machine-modal {
+    background: var(--card-bg, #ffffff);
+    border: 1px solid var(--border-strong, #cbd5e1);
+    border-radius: var(--r-xl, 12px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 680px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.time-machine-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2, #f8fafc);
+}
+.time-machine-title {
+    font-size: var(--fs-md, 0.95rem);
+    font-weight: 700;
+    color: var(--text, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.time-machine-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--card-bg, #ffffff);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.15s, color 0.15s;
+}
+.time-machine-close:hover {
+    background: var(--danger-bg, #fee2e2);
+    color: var(--danger, #ef4444);
+    border-color: var(--danger-border, #fca5a5);
+}
+.time-machine-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 18px;
+    background: var(--card-bg, #ffffff);
+    border-bottom: 1px dashed var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.time-machine-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--bg-primary, #ffffff);
+}
+.time-machine-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-2, #f8fafc);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 </style>
 </head>
 <body>
@@ -4640,6 +4736,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         </div>
         <div class="account-modal-actions" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;">
             <button type="button" class="btn-secondary" id="btnAccountSettingsOpen">Account Credentials</button>
+            <button type="button" class="btn-secondary" id="btnSyncTimeMachine" title="Open Time Machine Snapshots">&#9203; Time Machine</button>
             <button type="button" class="btn-secondary" id="btnForcePull" title="Pull latest data from cloud to this device">&#8681; Pull from Cloud</button>
             <button type="button" class="btn-primary" id="btnForceSync" title="Sync bidirectionally with cloud">&#8645; Sync Now</button>
         </div>
@@ -11781,6 +11878,13 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                     </div>
                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">
                         Stored Backup Snapshots: <strong>${Array.isArray(pjMeta.backups)?pjMeta.backups.length:0}</strong> &middot; Total People: <strong>${people.length}</strong> &middot; Active Contacts: <strong>${activePeople.length}</strong>
+                    </div>
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+                        <div>
+                            <div style="font-weight:600;font-size:var(--fs-xs);color:var(--text);">&#9203; Automated Rolling Daily Snapshots ("Time Machine")</div>
+                            <div style="font-size:var(--fs-2xs);color:var(--text-secondary);">Isolated IndexedDB rolling 7-day backups. Restore anytime with cloud sync failsafe.</div>
+                        </div>
+                        <button type="button" class="btn-primary" id="btnOpenTimeMachineFromData" style="padding:6px 14px;font-size:var(--fs-xs);cursor:pointer;">&#9203; Open Time Machine</button>
                     </div>
                 </div>
             `;
@@ -19366,6 +19470,42 @@ window.moveWtbTask = moveWtbTask;
         </div>
     </div>
 
+    <!-- Step 6w: Time Machine Snapshots Overlay Modal -->
+    <div class="time-machine-overlay" id="timeMachineOverlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="timeMachineTitle">
+        <div class="time-machine-modal">
+            <div class="time-machine-header">
+                <div>
+                    <div class="time-machine-title" id="timeMachineTitle">
+                        <span>&#9203;</span> Time Machine Snapshots
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:2px;">
+                        Rolling 7-day backups stored in isolated local database. Restore anytime with cloud sync failsafe.
+                    </div>
+                </div>
+                <button type="button" class="time-machine-close" id="btnTimeMachineClose" title="Close Time Machine" aria-label="Close">&#10005;</button>
+            </div>
+            <div class="time-machine-toolbar">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="pj-badge" style="background:#ecfdf5; color:#059669; font-weight:650; font-size:0.72rem; padding:3px 8px; border-radius:12px;">&#128737; Zero-Data Shield Active</span>
+                    <span style="font-size:0.72rem; color:var(--text-secondary);">Max 7 rolling daily snapshots</span>
+                </div>
+                <button type="button" class="btn-primary" id="btnTakeManualSnapshot" style="padding:5px 12px; font-size:0.78rem; display:flex; align-items:center; gap:5px; cursor:pointer;">
+                    <span>&#128248;</span> Take Snapshot Now
+                </button>
+            </div>
+            <div class="time-machine-body" id="timeMachineSnapshotsList">
+                <!-- Rendered dynamically -->
+            </div>
+            <div class="time-machine-footer">
+                <div style="font-size:0.72rem; color:var(--text-secondary); max-width:440px; line-height:1.35;">
+                    Restoring advances timestamps and syncs authoritatively with Supabase so mobile and PC never revert to old versions.
+                </div>
+                <button type="button" class="btn-secondary" id="btnTimeMachineFooterClose" style="padding:6px 14px; font-size:0.78rem; cursor:pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Auth Controller & Realtime Cloud Sync Engine -->
     <script>
     (function(){
@@ -20738,6 +20878,612 @@ window.moveWtbTask = moveWtbTask;
     });
         }
     })();
+    </script>
+    <!-- Step 6w: Time Machine Engine -->
+    <script>
+/* ============================================================
+   STEP 6W: AUTOMATED ROLLING DAILY SNAPSHOTS & TIME MACHINE ENGINE
+   ============================================================ */
+
+(function(){
+    const SNAP_DB_NAME = 'TaskPlannerSnapshots';
+    const SNAP_STORE_NAME = 'snapshots';
+    const MAX_ROLLING_SNAPSHOTS = 7;
+    const MAX_MANUAL_SNAPSHOTS = 5;
+
+    function openSnapshotDB() {
+        return new Promise((resolve, reject) => {
+            if (!('indexedDB' in window)) {
+                reject(new Error('IndexedDB not supported'));
+                return;
+            }
+            const req = indexedDB.open(SNAP_DB_NAME, 1);
+            req.onupgradeneeded = e => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains(SNAP_STORE_NAME)) {
+                    db.createObjectStore(SNAP_STORE_NAME, { keyPath: 'id' });
+                }
+            };
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error || new Error('Could not open snapshots DB'));
+        });
+    }
+
+    async function getAllSnapshots() {
+        try {
+            const db = await openSnapshotDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(SNAP_STORE_NAME, 'readonly');
+                const req = tx.objectStore(SNAP_STORE_NAME).getAll();
+                req.onsuccess = () => {
+                    db.close();
+                    const list = req.result || [];
+                    list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                    resolve(list);
+                };
+                req.onerror = () => {
+                    db.close();
+                    reject(req.error);
+                };
+            });
+        } catch(e) {
+            console.warn('[TimeMachine] Could not read snapshots:', e);
+            return [];
+        }
+    }
+
+    async function getSnapshotById(id) {
+        try {
+            const db = await openSnapshotDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(SNAP_STORE_NAME, 'readonly');
+                const req = tx.objectStore(SNAP_STORE_NAME).get(id);
+                req.onsuccess = () => {
+                    db.close();
+                    resolve(req.result || null);
+                };
+                req.onerror = () => {
+                    db.close();
+                    reject(req.error);
+                };
+            });
+        } catch(e) {
+            return null;
+        }
+    }
+
+    async function saveSnapshotRecord(record) {
+        const db = await openSnapshotDB();
+        await new Promise((resolve, reject) => {
+            const tx = db.transaction(SNAP_STORE_NAME, 'readwrite');
+            tx.objectStore(SNAP_STORE_NAME).put(record);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+
+        // Pruning: keep up to 7 daily auto-snapshots and up to 5 manual/safety backups
+        try {
+            const all = await new Promise((resolve, reject) => {
+                const tx = db.transaction(SNAP_STORE_NAME, 'readonly');
+                const req = tx.objectStore(SNAP_STORE_NAME).getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => reject(req.error);
+            });
+            all.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            const autoSnaps = all.filter(s => s.isAuto);
+            const manualSnaps = all.filter(s => !s.isAuto);
+            const toDel = [];
+            if (autoSnaps.length > MAX_ROLLING_SNAPSHOTS) {
+                toDel.push(...autoSnaps.slice(MAX_ROLLING_SNAPSHOTS));
+            }
+            if (manualSnaps.length > MAX_MANUAL_SNAPSHOTS) {
+                toDel.push(...manualSnaps.slice(MAX_MANUAL_SNAPSHOTS));
+            }
+            if (toDel.length > 0) {
+                const txDel = db.transaction(SNAP_STORE_NAME, 'readwrite');
+                const store = txDel.objectStore(SNAP_STORE_NAME);
+                toDel.forEach(s => store.delete(s.id));
+                await new Promise(r => { txDel.oncomplete = r; });
+            }
+        } catch(e) {}
+        db.close();
+    }
+
+    function collectCurrentSnapshotPayload() {
+        const payload = {};
+        let totalKeys = 0;
+        let taskCount = 0;
+        let habitCount = 0;
+        let dayCount = 0;
+
+        if (window.appStorage) {
+            for (let i = 0; i < window.appStorage.length; i++) {
+                const k = window.appStorage.key(i);
+                if (!k) continue;
+                if (k.startsWith('td_') || k.startsWith('tdw_') || k.startsWith('tp_')) {
+                    totalKeys++;
+                    const val = window.appStorage.getItem(k);
+                    if (val !== null && val !== undefined) {
+                        payload[k] = val;
+                        if (k.startsWith('td_') && !k.startsWith('td_eisen_') && !k.startsWith('td_pert_')) {
+                            dayCount++;
+                            try {
+                                const parsed = JSON.parse(val);
+                                if (parsed && Array.isArray(parsed.tasks)) taskCount += parsed.tasks.length;
+                                if (parsed && Array.isArray(parsed.habits)) habitCount += parsed.habits.length;
+                            } catch(e){}
+                        }
+                    }
+                }
+            }
+        }
+
+        return { payload, totalKeys, taskCount, habitCount, dayCount };
+    }
+
+    function advanceKeyTimestamp(k, ts) {
+        if (!k) return;
+        const now = ts || Date.now();
+        try {
+            const raw = window.localStorage ? window.localStorage.getItem('tp_key_timestamps') : null;
+            const map = raw ? JSON.parse(raw) : {};
+            map[k] = now;
+            if (window.localStorage) {
+                window.localStorage.setItem('tp_key_timestamps', JSON.stringify(map));
+            }
+        } catch(e){}
+        if (typeof setLocalKeyTimestamp === 'function') {
+            try { setLocalKeyTimestamp(k, now); } catch(e){}
+        }
+    }
+
+    function triggerCloudSyncPush(delayMs) {
+        const d = delayMs || 50;
+        if (typeof scheduleCloudPush === 'function') {
+            scheduleCloudPush(d);
+        } else if (typeof window.__taskPlannerScheduleCloudPush === 'function') {
+            window.__taskPlannerScheduleCloudPush(d);
+        } else if (window.__taskPlannerAppBridge && typeof window.__taskPlannerAppBridge.scheduleCloudPush === 'function') {
+            window.__taskPlannerAppBridge.scheduleCloudPush(d);
+        }
+    }
+
+    let autoSnapRetries = 0;
+    async function captureDailyAutoSnapshot() {
+        try {
+            const today = typeof getTodayStr === 'function' ? getTodayStr() : new Date().toISOString().slice(0, 10);
+            const lastSnapDate = localStorage.getItem('tp_last_snapshot_date');
+            if (lastSnapDate === today) return; // Already captured today
+
+            const stats = collectCurrentSnapshotPayload();
+
+            // Zero-Data Shield: do not snapshot an empty or uninitialized database!
+            if (stats.totalKeys < 2 || stats.taskCount < 1) {
+                if (autoSnapRetries < 3) {
+                    autoSnapRetries++;
+                    setTimeout(captureDailyAutoSnapshot, 5000);
+                }
+                return;
+            }
+
+            const record = {
+                id: 'snap_' + today + '_' + Date.now().toString(36),
+                dateStr: today,
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                isAuto: true,
+                totalKeys: stats.totalKeys,
+                taskCount: stats.taskCount,
+                habitCount: stats.habitCount,
+                dayCount: stats.dayCount,
+                payload: stats.payload
+            };
+
+            await saveSnapshotRecord(record);
+            localStorage.setItem('tp_last_snapshot_date', today);
+            console.log('[TimeMachine] Daily auto-snapshot captured for', today, 'with', stats.taskCount, 'tasks');
+        } catch(err) {
+            console.warn('[TimeMachine] Auto-snapshot skipped:', err);
+        }
+    }
+
+    function initDailyAutoSnapshot() {
+        // Schedule during browser idle time ~4 seconds after load
+        const scheduleIdle = window.requestIdleCallback || (fn => setTimeout(fn, 4000));
+        scheduleIdle(() => {
+            captureDailyAutoSnapshot();
+        });
+    }
+
+    // Modal UI and Interaction
+    function openTimeMachineModal() {
+        const overlay = document.getElementById('timeMachineOverlay');
+        if (!overlay) return;
+        overlay.classList.remove('hidden');
+        overlay.classList.add('active');
+        overlay.style.display = 'flex';
+        renderTimeMachineSnapshotsList();
+    }
+
+    function closeTimeMachineModal() {
+        const overlay = document.getElementById('timeMachineOverlay');
+        if (!overlay) return;
+        overlay.classList.add('hidden');
+        overlay.classList.remove('active');
+        overlay.style.display = 'none';
+    }
+
+    async function renderTimeMachineSnapshotsList() {
+        const container = document.getElementById('timeMachineSnapshotsList');
+        if (!container) return;
+
+        container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary); font-size:0.85rem;">Loading snapshots...</div>';
+        const list = await getAllSnapshots();
+
+        if (list.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 20px; color:var(--text-secondary);">
+                    <div style="font-size:2rem; margin-bottom:8px;">&#9203;</div>
+                    <div style="font-weight:600; font-size:0.9rem; color:var(--text); margin-bottom:4px;">No Snapshots Recorded Yet</div>
+                    <div style="font-size:0.78rem; max-width:360px; margin:0 auto 14px;">
+                        Snapshots are created automatically once daily during idle time, or you can take one right now.
+                    </div>
+                    <button type="button" class="btn-primary" id="btnEmptyStateTakeSnap" style="padding:6px 14px; font-size:0.8rem;">Take Snapshot Now</button>
+                </div>
+            `;
+            document.getElementById('btnEmptyStateTakeSnap')?.addEventListener('click', handleManualSnapshot);
+            return;
+        }
+
+        let html = '';
+        list.forEach(s => {
+            const d = new Date(s.timestamp || s.createdAt);
+            const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateStr = d.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            const isToday = (s.dateStr === (typeof getTodayStr === 'function' ? getTodayStr() : ''));
+            const badgeText = isToday ? 'Today' : s.dateStr;
+
+            let typeLabel = '<span style="font-size:0.68rem; color:var(--text-secondary);">(Daily Auto)</span>';
+            if (s.id && s.id.startsWith('snap_prerestore_')) {
+                typeLabel = '<span style="font-size:0.68rem; color:var(--warning, #d97706); font-weight:600;">(Safety Backup)</span>';
+            } else if (!s.isAuto) {
+                typeLabel = '<span style="font-size:0.68rem; color:var(--accent, #0284c7); font-weight:600;">(Manual)</span>';
+            }
+
+            html += `
+                <div class="tm-snapshot-card" data-snap-id="${s.id}" style="border: 1px solid var(--border); border-radius: var(--r-md, 8px); padding: 12px 14px; background: var(--card-bg, #ffffff); display:flex; flex-direction:column; gap:8px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-weight:700; font-size:0.88rem; color:var(--text);">&#128197; ${dateStr}</span>
+                            <span class="pj-badge" style="background:var(--accent-subtle, #e0f2fe); color:var(--accent, #0284c7); font-weight:650; font-size:0.7rem; padding:2px 7px; border-radius:12px;">${badgeText}</span>
+                            ${typeLabel}
+                        </div>
+                        <div style="font-size:0.75rem; color:var(--text-secondary);">
+                            <strong>${s.taskCount || 0}</strong> tasks &middot; <strong>${s.dayCount || 0}</strong> days
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 2px; flex-wrap:wrap; gap:6px;">
+                        <span style="font-size:0.72rem; color:var(--text-secondary);">&#9200; Captured at ${timeStr}</span>
+                        <div style="display:flex; gap:6px;">
+                            <button type="button" class="btn-secondary btn-tm-preview" data-snap-id="${s.id}" style="padding: 4px 9px; font-size: 0.74rem; cursor:pointer;">&#128065; Preview</button>
+                            <button type="button" class="btn-secondary btn-tm-restore-day" data-snap-id="${s.id}" style="padding: 4px 9px; font-size: 0.74rem; cursor:pointer;">&#128197; Restore Day...</button>
+                            <button type="button" class="btn-primary btn-tm-restore-all" data-snap-id="${s.id}" style="padding: 4px 10px; font-size: 0.74rem; background:var(--accent, #0284c7); color:#fff; cursor:pointer;">Restore All</button>
+                        </div>
+                    </div>
+                    <div class="tm-preview-drawer" id="tmPreview_${s.id}" style="display:none; margin-top:6px; padding:10px 12px; background:var(--surface-2, #f8fafc); border:1px solid var(--border); border-radius:6px; font-size:0.75rem; max-height:160px; overflow-y:auto;">
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+
+        // Bind card actions
+        container.querySelectorAll('.btn-tm-preview').forEach(btn => {
+            btn.addEventListener('click', () => toggleSnapshotPreview(btn.dataset.snapId));
+        });
+        container.querySelectorAll('.btn-tm-restore-all').forEach(btn => {
+            btn.addEventListener('click', () => handleRestoreAll(btn.dataset.snapId));
+        });
+        container.querySelectorAll('.btn-tm-restore-day').forEach(btn => {
+            btn.addEventListener('click', () => handleRestoreSpecificDay(btn.dataset.snapId));
+        });
+    }
+
+    async function toggleSnapshotPreview(snapId) {
+        const drawer = document.getElementById('tmPreview_' + snapId);
+        if (!drawer) return;
+        if (drawer.style.display !== 'none') {
+            drawer.style.display = 'none';
+            return;
+        }
+
+        drawer.style.display = 'block';
+        drawer.innerHTML = 'Loading snapshot preview...';
+
+        const s = await getSnapshotById(snapId);
+        if (!s || !s.payload) {
+            drawer.innerHTML = '<div style="color:var(--danger, #ef4444);">Could not read snapshot details.</div>';
+            return;
+        }
+
+        // Extract dates and top tasks
+        const dateKeys = Object.keys(s.payload).filter(k => k.startsWith('td_') && !k.startsWith('td_eisen_') && !k.startsWith('td_pert_') && /^\d{4}-\d{2}-\d{2}$/.test(k.slice(3)));
+        dateKeys.sort().reverse();
+
+        let previewHtml = `<div style="font-weight:700; margin-bottom:6px; color:var(--text);">Dates included (${dateKeys.length}):</div>`;
+        const visibleDates = dateKeys.slice(0, 5);
+        visibleDates.forEach(k => {
+            const ds = k.slice(3);
+            let tasksSummary = '';
+            try {
+                const parsed = JSON.parse(s.payload[k]);
+                const tasks = parsed.tasks || [];
+                const firstFew = tasks.slice(0, 3).map(t => (t.text || '').split('\n')[0]).filter(Boolean);
+                tasksSummary = tasks.length + ' task(s): ' + (firstFew.join(', ') || 'No tasks');
+            } catch(e){}
+            previewHtml += `<div style="margin-bottom:4px; padding-left:8px; border-left:2px solid var(--accent, #0284c7);"><strong style="color:var(--text);">${ds}:</strong> <span style="color:var(--text-secondary);">${previewHtmlEscape(tasksSummary)}</span></div>`;
+        });
+        if (dateKeys.length > 5) {
+            previewHtml += `<div style="color:var(--text-secondary); margin-top:4px;">+ ${dateKeys.length - 5} more dates</div>`;
+        }
+        drawer.innerHTML = previewHtml;
+    }
+
+    function previewHtmlEscape(s) {
+        return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function handleManualSnapshot() {
+        const btn = document.getElementById('btnTakeManualSnapshot');
+        if (btn) btn.disabled = true;
+
+        try {
+            const today = typeof getTodayStr === 'function' ? getTodayStr() : new Date().toISOString().slice(0, 10);
+            const stats = collectCurrentSnapshotPayload();
+
+            const record = {
+                id: 'snap_manual_' + today + '_' + Date.now().toString(36),
+                dateStr: today,
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                isAuto: false,
+                totalKeys: stats.totalKeys,
+                taskCount: stats.taskCount,
+                habitCount: stats.habitCount,
+                dayCount: stats.dayCount,
+                payload: stats.payload
+            };
+
+            await saveSnapshotRecord(record);
+            if (typeof showToast === 'function') showToast('Time Machine: Snapshot created successfully!');
+            renderTimeMachineSnapshotsList();
+        } catch(err) {
+            alert('Failed to create manual snapshot: ' + err.message);
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    async function handleRestoreAll(snapId) {
+        const s = await getSnapshotById(snapId);
+        if (!s || !s.payload) {
+            alert('Snapshot record not found.');
+            return;
+        }
+
+        const dateFormatted = s.dateStr || 'selected snapshot';
+        const confirmMsg = 'Restore all data from snapshot (' + dateFormatted + ')?\n\n' +
+            'This will update ' + Object.keys(s.payload).length + ' records and push the restored state to Supabase cloud sync.\n\n' +
+            'A safety backup of your current state will be taken before restoring.';
+
+        if (!confirm(confirmMsg)) return;
+
+        // 1. Safety backup of right now before restoring!
+        try {
+            const currentStats = collectCurrentSnapshotPayload();
+            await saveSnapshotRecord({
+                id: 'snap_prerestore_' + Date.now().toString(36),
+                dateStr: typeof getTodayStr === 'function' ? getTodayStr() : '',
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                isAuto: false,
+                totalKeys: currentStats.totalKeys,
+                taskCount: currentStats.taskCount,
+                habitCount: currentStats.habitCount,
+                dayCount: currentStats.dayCount,
+                payload: currentStats.payload
+            });
+        } catch(e){}
+
+        // 2. Restore all keys into appStorage
+        const now = Date.now();
+        const payload = s.payload;
+
+        // Clear tombstones so restored tasks are not filtered out
+        try {
+            if (window.localStorage) {
+                window.localStorage.removeItem('tp_key_deleted');
+                window.localStorage.removeItem('tp_deleted_task_ids');
+            }
+            if (window.appStorage) {
+                window.appStorage.removeItem('tp_key_deleted');
+                window.appStorage.removeItem('tp_deleted_task_ids');
+            }
+        } catch(e){}
+
+        Object.entries(payload).forEach(([k, val]) => {
+            try {
+                if (window.appStorage) {
+                    window.appStorage.setItem(k, val);
+                }
+                advanceKeyTimestamp(k, now);
+            } catch(e){}
+        });
+
+        // 3. Fast cloud sync push
+        triggerCloudSyncPush(50);
+
+        // 4. Re-render UI
+        if (typeof renderCalendar === 'function') renderCalendar({ animate: true });
+        if (typeof selectDate === 'function') selectDate(typeof selectedDateStr !== 'undefined' ? selectedDateStr : (typeof getTodayStr === 'function' ? getTodayStr() : ''));
+        if (typeof renderTaskList === 'function') renderTaskList();
+
+        closeTimeMachineModal();
+        if (typeof showToast === 'function') {
+            showToast('Time Machine: Restored full snapshot from ' + dateFormatted);
+        }
+    }
+
+    async function handleRestoreSpecificDay(snapId) {
+        const s = await getSnapshotById(snapId);
+        if (!s || !s.payload) {
+            alert('Snapshot record not found.');
+            return;
+        }
+
+        const dateKeys = Object.keys(s.payload).filter(k => k.startsWith('td_') && !k.startsWith('td_eisen_') && !k.startsWith('td_pert_') && /^\d{4}-\d{2}-\d{2}$/.test(k.slice(3)));
+        dateKeys.sort().reverse();
+
+        if (dateKeys.length === 0) {
+            alert('No day records found in this snapshot.');
+            return;
+        }
+
+        const promptMsg = 'Enter the date (YYYY-MM-DD) you want to restore from this snapshot:\n\nAvailable dates:\n' + dateKeys.slice(0, 10).map(k => k.slice(3)).join(', ');
+        const targetDate = prompt(promptMsg, (typeof selectedDateStr !== 'undefined' && selectedDateStr) ? selectedDateStr : dateKeys[0].slice(3));
+
+        if (!targetDate || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate.trim())) return;
+        const cleanDate = targetDate.trim();
+
+        const dayKey = 'td_' + cleanDate;
+        if (!s.payload[dayKey]) {
+            alert('Date ' + cleanDate + ' is not in this snapshot.');
+            return;
+        }
+
+        if (!confirm('Restore only ' + cleanDate + ' from snapshot? Other dates will remain untouched.')) return;
+
+        // Take safety backup of right now
+        try {
+            const currentStats = collectCurrentSnapshotPayload();
+            await saveSnapshotRecord({
+                id: 'snap_prerestore_' + Date.now().toString(36),
+                dateStr: typeof getTodayStr === 'function' ? getTodayStr() : '',
+                createdAt: new Date().toISOString(),
+                timestamp: Date.now(),
+                isAuto: false,
+                totalKeys: currentStats.totalKeys,
+                taskCount: currentStats.taskCount,
+                habitCount: currentStats.habitCount,
+                dayCount: currentStats.dayCount,
+                payload: currentStats.payload
+            });
+        } catch(e){}
+
+        const now = Date.now();
+        // Restore day, eisen, and pert for that day if present
+        const dayKeysToRestore = [dayKey, 'td_eisen_' + cleanDate, 'td_pert_' + cleanDate];
+        dayKeysToRestore.forEach(k => {
+            if (s.payload[k] !== undefined && window.appStorage) {
+                window.appStorage.setItem(k, s.payload[k]);
+                advanceKeyTimestamp(k, now);
+            }
+        });
+
+        // Clear tombstones for restored tasks in that day
+        try {
+            const d = JSON.parse(s.payload[dayKey]);
+            if (d && Array.isArray(d.tasks)) {
+                ['localStorage', 'appStorage'].forEach(st => {
+                    try {
+                        if (window[st]) {
+                            const rawDel = window[st].getItem('tp_deleted_task_ids');
+                            if (rawDel) {
+                                const delMap = JSON.parse(rawDel);
+                                d.tasks.forEach(t => { if (t && t.id) delete delMap[t.id]; });
+                                window[st].setItem('tp_deleted_task_ids', JSON.stringify(delMap));
+                            }
+                        }
+                    } catch(e){}
+                });
+            }
+        } catch(e){}
+
+        triggerCloudSyncPush(50);
+        if (typeof renderCalendar === 'function') renderCalendar({ animate: true });
+        if (typeof selectDate === 'function') selectDate(cleanDate);
+
+        closeTimeMachineModal();
+        if (typeof showToast === 'function') showToast('Time Machine: Restored ' + cleanDate + ' from snapshot');
+    }
+
+    // Bindings
+    function ensureTimeMachineListenersBound() {
+        const overlay = document.getElementById('timeMachineOverlay');
+        if (!overlay || overlay.__tmBound) return;
+        overlay.__tmBound = true;
+
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay || !e.target.closest('.time-machine-modal')) {
+                closeTimeMachineModal();
+                return;
+            }
+            if (e.target.closest('#btnTimeMachineClose') || e.target.closest('#btnTimeMachineFooterClose')) {
+                closeTimeMachineModal();
+                return;
+            }
+        });
+
+        document.getElementById('btnTakeManualSnapshot')?.addEventListener('click', handleManualSnapshot);
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                closeTimeMachineModal();
+            }
+        });
+
+        // Delegated clicks for trigger buttons
+        document.addEventListener('click', e => {
+            if (e.target.closest('#btnOpenTimeMachineFromData')) {
+                openTimeMachineModal();
+            } else if (e.target.closest('#btnSyncTimeMachine')) {
+                const cloudSyncModal = document.getElementById('cloudSyncModal');
+                if (cloudSyncModal) {
+                    cloudSyncModal.classList.remove('active');
+                    cloudSyncModal.style.display = 'none';
+                }
+                openTimeMachineModal();
+            }
+        });
+    }
+
+    // Exports on AppBridge
+    if (window.__taskPlannerAppBridge) {
+        window.__taskPlannerAppBridge.openTimeMachineModal = openTimeMachineModal;
+        window.__taskPlannerAppBridge.closeTimeMachineModal = closeTimeMachineModal;
+        window.__taskPlannerAppBridge.getAllSnapshots = getAllSnapshots;
+        window.__taskPlannerAppBridge.getSnapshotById = getSnapshotById;
+        window.__taskPlannerAppBridge.captureDailyAutoSnapshot = captureDailyAutoSnapshot;
+        window.__taskPlannerAppBridge.saveSnapshotRecord = saveSnapshotRecord;
+        window.__taskPlannerAppBridge.handleRestoreAll = handleRestoreAll;
+        window.__taskPlannerAppBridge.handleRestoreSpecificDay = handleRestoreSpecificDay;
+        window.__taskPlannerAppBridge.handleManualSnapshot = handleManualSnapshot;
+    }
+
+    // Wire up on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            ensureTimeMachineListenersBound();
+            initDailyAutoSnapshot();
+        });
+    } else {
+        ensureTimeMachineListenersBound();
+        initDailyAutoSnapshot();
+    }
+})();
+
     </script>
 </body>
 </html>
