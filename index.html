@@ -2871,6 +2871,33 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4) !important;
 }
 
+/* Inline Task Row Delete Button */
+.task-delete-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #888);
+  border-radius: var(--r-xs, 4px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  opacity: 0.35;
+  transition: all var(--dur-fast, 0.15s) ease;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.task-item:hover .task-delete-btn {
+  opacity: 0.85;
+}
+.task-delete-btn:hover {
+  background: var(--danger-bg, rgba(239, 68, 68, 0.15)) !important;
+  color: var(--danger, #ef4444) !important;
+  opacity: 1 !important;
+}
+
 
 /* ============================================================
    STEP 6Q: EISENHOWER MOVE-TO-DATE MODAL & ADVANCED HABITS UI
@@ -5192,9 +5219,11 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     const rawTasks = Array.isArray(p.tasks)?p.tasks:[];
                     const seenIds = new Set();
                     const cleanTasks = [];
+                    const delTaskMap = getDeletedTaskIds();
                     for(let idx=0; idx<rawTasks.length; idx++){
                         const item = rawTasks[idx];
                         if(!item || typeof item !== 'object') continue;
+                        if(item.id && delTaskMap[item.id]) continue;
                         let finalTask = item;
                         if(!item.id || seenIds.has(item.id)){
                             finalTask = Object.assign({}, item, { id: generateId() });
@@ -7036,10 +7065,12 @@ function renderHabitMiniCalendar() {
                 if(kind==='delete'){
                     if(!confirm(`Delete ${ids.length} task(s)?`))return;
                     if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
+                    ids.forEach(id=>recordDeletedTaskId(id));
                     pushUndo('Batch delete');
                     data.tasks=(data.tasks||[]).filter(t=>!selectedTaskIds.has(t.id));
                     if(ids.indexOf(activeTaskId)!==-1)activeTaskId=null;
                     selectedTaskIds.clear();
+                    renderTaskToolbar();
                     currentDataCache=JSON.parse(JSON.stringify(data));
                     saveCurrentData(data);
                     ids.forEach(id=>pruneEisenItemGlobal('task',id,null));
@@ -12951,6 +12982,7 @@ function endTaskDrag(item) {
                       `<textarea class="task-text" rows="1" data-id="${task.id}">${escapeHtml(raw)}</textarea>` +
                     `</div>` +
                     `<div class="task-row-meta">${meta}</div>` +
+                    `<button type="button" class="task-delete-btn" data-delete-task="${task.id}" title="Delete task" aria-label="Delete task">✕</button>` +
                 `</div>`;
 
                 body.appendChild(item);
@@ -13069,6 +13101,13 @@ function endTaskDrag(item) {
     renderTaskToolbar();
 }
             function handleTaskListClick(e){
+                const delBtn = e.target.closest('[data-delete-task]');
+                if (delBtn) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    deleteTask(delBtn.dataset.deleteTask);
+                    return;
+                }
                 const addBlockBtn = e.target.closest('[data-add-block]');
                 if (addBlockBtn) {
                     e.stopPropagation();
@@ -13178,14 +13217,37 @@ function endTaskDrag(item) {
                 saveCurrentData(data);
                 renderTaskList(data.tasks);
             }
-            function deleteTask(id){
+            function recordDeletedTaskId(id){
+    if(!id)return;
+    try{
+        let m={};
+        const r=appStorage.getItem('tp_deleted_task_ids')||(window.localStorage?window.localStorage.getItem('tp_deleted_task_ids'):null);
+        if(r)m=JSON.parse(r);
+        m[id]=Date.now();
+        const c=Date.now()-(90*86400000);
+        for(const k in m){if(m[k]<c)delete m[k]}
+        const str=JSON.stringify(m);
+        appStorage.setItem('tp_deleted_task_ids',str);
+        if(window.localStorage){try{window.localStorage.setItem('tp_deleted_task_ids',str)}catch(e){}}
+    }catch(e){}
+}
+function getDeletedTaskIds(){
+    try{
+        const r=appStorage.getItem('tp_deleted_task_ids')||(window.localStorage?window.localStorage.getItem('tp_deleted_task_ids'):null);
+        return r?JSON.parse(r):{};
+    }catch(e){return{};}
+}
+function deleteTask(id){
+                if(!id)return;
                 if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
+                recordDeletedTaskId(id);
                 pushUndo('Delete task');
                 const el=taskList.querySelector('.task-item[data-id="'+id+'"]');
                 const data=getCurrentData();
                 data.tasks=(data.tasks||[]).filter(t=>t.id!==id);
                 selectedTaskIds.delete(id);
-                if(activeTaskId===id)activeTaskId=null;
+                if(activeTaskId===id){activeTaskId=null;}
+                renderTaskToolbar();
                 currentDataCache=JSON.parse(JSON.stringify(data));
                 saveCurrentData(data);
                 for(let i=0;i<appStorage.length;i++){
@@ -14299,7 +14361,7 @@ function endTaskDrag(item) {
                             presets.splice(toIdx, 0, moved);
                             saveStoredEisenPresets(presets);
                             renderEisenPresetList();
-                            showToast('â†• Presets reordered');
+                            showToast('Ã¢â€ â€¢ Presets reordered');
                         }
                         draggedPresetId = null;
                         setTimeout(() => { isDraggingPreset = false; }, 100);
@@ -15775,12 +15837,12 @@ window.moveWtbTask = moveWtbTask;
                     };
                     header.setAttribute('role','button');
                     header.setAttribute('tabindex','0');
-                    const isCollapsed=(states[id]!==undefined)?!!states[id]:(id!=='calendarSection');header.setAttribute('aria-expanded',isCollapsed?'false':'true');
+                    const isCollapsed=(id!=='calendarSection');header.setAttribute('aria-expanded',isCollapsed?'false':'true');
                     header.addEventListener('click',e=>{if(e.target.closest('button, select, input, textarea, label, .learnings-deck-filter, [data-no-collapse]'))return;toggle()});
                     const chev=header.querySelector('.ui-section-chevron');
                     if(chev)chev.addEventListener('click',e=>{e.stopPropagation();toggle()});
                     header.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
-                    if(isCollapsed)sec.classList.add('collapsed');
+                    if(isCollapsed)sec.classList.add('collapsed');else sec.classList.remove('collapsed');
                 });
             }
 
@@ -16564,15 +16626,16 @@ window.moveWtbTask = moveWtbTask;
                                     }
                                 }
                                 renderTaskList(data.tasks);
-                            }else if(wrap){
-                                wrap.classList.remove('editing');
+                            }else{
+                                if(wrap)wrap.classList.remove('editing');
+                                deleteTask(id);
                             }
                         },0);
                     }
                 },true);
                 taskList.addEventListener('keydown',e=>{
                     if(e.target.classList.contains('task-text')){
-                        if(e.key==='Enter'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();e.target.blur()}
+                        if(e.key==='Enter'&&!e.shiftKey&&!e.ctrlKey&&!e.metaKey){e.preventDefault();if(!e.target.value.trim()){deleteTask(e.target.dataset.id);}else{e.target.blur();}}
                         else if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();toggleTaskStatus(e.target.dataset.id)}
                         else if(e.key==='Escape'){e.preventDefault();if(!e.target.value.trim())deleteTask(e.target.dataset.id);else e.target.blur()}
                     }
@@ -16937,6 +17000,8 @@ window.moveWtbTask = moveWtbTask;
                 renderWeekTimeblocksModal,
                 getTaskShortform,
                 moveWtbTask,
+                recordDeletedTaskId,
+                getDeletedTaskIds,
                 getUiSectionStates,
                 setUiSectionState,
                 renderLearningsSection,
@@ -17054,6 +17119,8 @@ window.moveWtbTask = moveWtbTask;
                 renderWeekTimeblocksModal,
                 getTaskShortform,
                 moveWtbTask,
+                recordDeletedTaskId,
+                getDeletedTaskIds,
                 getUiSectionStates,
                 setUiSectionState,
                 renderLearningsSection,
@@ -19709,6 +19776,7 @@ window.moveWtbTask = moveWtbTask;
             if(k.startsWith('td_') || k.startsWith('tdw_')) return true;
             if(k.startsWith('tp_contacts') || k.startsWith('tp_people_meta')) return true;
             if(k.startsWith('tp_eisen_presets') || k.startsWith('tp_habits_list')) return true;
+            if(k === 'tp_deleted_task_ids') return true;
             return false;
         }
 
@@ -20077,6 +20145,61 @@ window.moveWtbTask = moveWtbTask;
                             continue;
                         }
                     } catch(e){}
+                }
+
+                // Intelligent union-merge for deleted task IDs tombstone shield
+                if(k === 'tp_deleted_task_ids'){
+                    try {
+                        const localDelMap = curLocalVal ? JSON.parse(curLocalVal) : {};
+                        const remoteDelMap = remoteStrVal ? JSON.parse(remoteStrVal) : {};
+                        const mergedDelMap = Object.assign({}, remoteDelMap, localDelMap);
+                        const mergedDelStr = JSON.stringify(mergedDelMap);
+                        if(storage) storage.setItem(k, mergedDelStr);
+                        mergedItems[k] = mergedDelStr;
+                        mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
+                        continue;
+                    } catch(e){}
+                }
+
+                // Filter out deleted tasks from daily and weekly records before merge
+                if(k.startsWith('td_') || k.startsWith('tdw_')){
+                    try {
+                        const rawDel = (localPayload && localPayload['tp_deleted_task_ids']) || (storage ? storage.getItem('tp_deleted_task_ids') : null) || (remotePayload && remotePayload['tp_deleted_task_ids']);
+                        if(rawDel){
+                            const delTaskMap = (typeof rawDel === 'object') ? rawDel : JSON.parse(rawDel);
+                            if(delTaskMap && Object.keys(delTaskMap).length > 0){
+                                let rObj = null, lObj = null;
+                                try { rObj = remoteStrVal ? JSON.parse(remoteStrVal) : null; } catch(e){}
+                                try { lObj = curLocalVal ? JSON.parse(curLocalVal) : null; } catch(e){}
+
+                                if(rObj && Array.isArray(rObj.tasks)){
+                                    const bLen = rObj.tasks.length;
+                                    rObj.tasks = rObj.tasks.filter(t => t && t.id && !delTaskMap[t.id]);
+                                    if(rObj.tasks.length !== bLen){
+                                        remoteStrVal = JSON.stringify(rObj);
+                                    }
+                                }
+                                if(lObj && Array.isArray(lObj.tasks)){
+                                    const bLen = lObj.tasks.length;
+                                    lObj.tasks = lObj.tasks.filter(t => t && t.id && !delTaskMap[t.id]);
+                                    if(lObj.tasks.length !== bLen){
+                                        curLocalVal = JSON.stringify(lObj);
+                                        if(storage) storage.setItem(k, curLocalVal);
+                                    }
+                                }
+                            }
+                        }
+                    } catch(e){}
+                }
+
+                // Recent local edit priority shield (protects local deletion from clock drift/skew)
+                if(localTs > 0 && (Date.now() - localTs) < 4000){
+                    if(curLocalVal !== null && curLocalVal !== undefined){
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = localTs;
+                        hasLocalNewerChanges = true;
+                        continue;
+                    }
                 }
 
                 // Check deletions
