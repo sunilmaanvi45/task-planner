@@ -6827,7 +6827,23 @@ function renderHabitMiniCalendar() {
 }
 
     function srsStatus(l){if(l.completed)return{status:'completed',label:'Done'};const cur=l.currentDate;const today=getTodayStr();if(!cur)return{status:'new',label:'New'};if(cur===today)return{status:'due',label:'Due'};if(cur<today)return{status:'due',label:'Due'};const due=new Date(cur+'T00:00:00');const now=new Date(today+'T00:00:00');const dd=Math.ceil((due-now)/(24*60*60*1000));return{status:'future',label:dd<=1?'1d':dd+'d'}}
-    function srsSort(arr){return arr.slice().sort((a,b)=>{if((b.votes||0)!==(a.votes||0))return(b.votes||0)-(a.votes||0);if(a.completed&&!b.completed)return 1;if(!a.completed&&b.completed)return-1;const ad=a.currentDate||'9999',bd=b.currentDate||'9999';return ad.localeCompare(bd)})}
+    function srsSort(arr){
+        return arr.slice().sort((a,b)=>{
+            if(a.completed && !b.completed) return 1;
+            if(!a.completed && b.completed) return -1;
+            const vA = a.votes || 0, vB = b.votes || 0;
+            if(vA > 0 || vB > 0){
+                if(vB !== vA) return vB - vA;
+            }
+            const hasA = (a.duration !== null && a.duration !== undefined && a.duration !== '' && !isNaN(a.duration) && Number(a.duration) > 0);
+            const hasB = (b.duration !== null && b.duration !== undefined && b.duration !== '' && !isNaN(b.duration) && Number(b.duration) > 0);
+            const dA = hasA ? Number(a.duration) : Infinity;
+            const dB = hasB ? Number(b.duration) : Infinity;
+            if(dA !== dB) return dA - dB;
+            const ad = a.currentDate || '9999', bd = b.currentDate || '9999';
+            return ad.localeCompare(bd);
+        });
+    }
     function getLearningsDueForDate(t){const r=[];const s=new Set();for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){const data=getData(ds);if(data&&data.learnings&&data.learnings.length>0){data.learnings.forEach(l=>{if(s.has(l.id))return;if(l.currentDate===t){s.add(l.id);r.push({...l,_sourceDate:ds})}else if(!l.currentDate&&ds===t){s.add(l.id);r.push({...l,_sourceDate:ds})}})}}}}return srsSort(r)}
     function getLearningsDueForWeek(wd){const r=[];const s=new Set();const wdSet=new Set(wd);const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data||!Array.isArray(data.learnings)||!data.learnings.length)continue;data.learnings.forEach(l=>{if(!l||!l.id||s.has(l.id))return;const target=l.currentDate||ds;if(wdSet.has(target)){s.add(l.id);r.push({...l,_sourceDate:ds})}})}return srsSort(r)}
     function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++)map[formatDateStr(y,m,d)]=0;const mPre=y+'-'+String(m).padStart(2,'0')+'-';const s=new Set();const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data||!Array.isArray(data.learnings)||!data.learnings.length)continue;data.learnings.forEach(l=>{if(!l||!l.id||s.has(l.id))return;const target=l.currentDate||ds;if(target&&target.startsWith(mPre)&&!l.completed){s.add(l.id);if(map[target]!==undefined)map[target]++}})}return map}
@@ -6865,7 +6881,7 @@ function renderHabitMiniCalendar() {
 
         learningsCount.textContent=learnings.length>0?`(${learnings.length})`:'';
         let al=null,ol=[...learnings];
-        if(learnings.length>0){const v=learnings.filter(l=>!l.completed&&(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>(b.votes||0)-(a.votes||0));al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
+        if(learnings.length>0){const v=learnings.filter(l=>!l.completed&&(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>{const diff=(b.votes||0)-(a.votes||0);if(diff!==0)return diff;const dA=(a.duration&&!isNaN(a.duration))?Number(a.duration):Infinity;const dB=(b.duration&&!isNaN(b.duration))?Number(b.duration):Infinity;return dA-dB});al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
         if(al){learningsActiveSection.style.display='block';learningsActiveGrid.innerHTML=buildLearningTileHTML(al,true)}
         else{learningsActiveSection.style.display='none';learningsActiveGrid.innerHTML=''}
         if(ol.length===0){
@@ -6901,9 +6917,10 @@ function renderHabitMiniCalendar() {
         const sk=l.id+'|'+l._sourceDate;
         const is=selectedLearningKeys.has(sk);
         const deckBadge=(l.deck&&String(l.deck).trim())?`<span class="deck-badge" title="Deck: ${escapeHtml(l.deck)}">&#128218; ${escapeHtml(l.deck)}</span>`:'';
+        const durBadge=(l.duration&&!isNaN(l.duration)&&Number(l.duration)>0)?`<span class="task-meta-pill" title="Duration: ${l.duration}m">&#9201; ${l.duration}m</span>`:'';
         const previewHTML=(l.type==='text'||!l.type)?renderInlineMarkdown(tp):escapeHtml(tp);
         const titleHTML=renderInlineMarkdown(title);
-        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
+        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
     }function handleLearningsGridClick(e){
         const sb=e.target.closest('.learning-select-box');
         if(sb){e.stopPropagation();toggleLearningSelection(sb.dataset.selectLearning,sb.dataset.selectSource);return}
@@ -7267,6 +7284,10 @@ function renderHabitMiniCalendar() {
                 <input type="number" class="task-vote-input" id="ltVotes" min="0" step="1" value="${l.votes||0}">
                 <button class="task-vote-btn" data-lt="vote-down">▼</button>
             </div>
+            <div class="learning-duration-group" style="display:inline-flex;align-items:center;gap:3px;" title="Duration in minutes">
+                <span style="font-size:var(--fs-2xs);color:var(--text-secondary);font-weight:700;">&#9201;</span>
+                <input type="number" class="task-vote-input" id="ltDuration" min="1" step="1" placeholder="min" value="${l.duration||''}" style="width:48px;" title="Duration in minutes">
+            </div>
             <span class="srs-badge srs-${srs.status}">${srs.label}</span>
             ${!l.completed?`
                 <div class="task-defer-group">
@@ -7392,6 +7413,7 @@ function renderHabitMiniCalendar() {
             `<div class="learning-form-group"><label>Type</label><select id="learningFormType">${typeOptions}</select></div>`+
             `<div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" placeholder="e.g., React Hooks Tutorial" /></div>`+
             `<div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(defaultDeck).replace(/"/g,'&quot;')}" placeholder="e.g., Spanish, React, Math" autocomplete="off" />${deckListHTML}</div>`+
+            `<div class="learning-form-group"><label for="learningFormDuration">Duration in minutes (optional)</label><input type="number" id="learningFormDuration" min="1" step="1" placeholder="e.g., 15, 30" /></div>`+
             `<div class="learning-form-group" id="learningFormContentGroup"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;"><label for="learningFormContent" id="learningFormContentLabel">Content</label><div id="learningMdToggleGroup" style="display:none;gap:4px;"><button type="button" class="learning-tab-btn active" id="btnLearningModeEdit">&#9998; Write</button><button type="button" class="learning-tab-btn" id="btnLearningModePreview">&#128065; Preview</button></div></div><textarea id="learningFormContent" placeholder="Write or paste notes..."></textarea><div id="learningFormContentPreview" class="learning-modal-content" style="display:none;min-height:180px;max-height:48vh;overflow-y:auto;"></div><div id="learningMdHint" style="font-size:11px;color:var(--text-secondary);display:none;margin-top:2px;"><span>Markdown supported: <b>**bold**</b>, <i>*italic*</i>, <code>\`code\`</code>, - lists, # headings</span></div></div>`+
             `<div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Save Learning</button></div>`;
         learningModalOverlay.classList.add('active');
@@ -7414,7 +7436,7 @@ function renderHabitMiniCalendar() {
         const to=['text','youtube','link','file'].map(t=>`<option value="${t}" ${l.type===t?'selected':''}>${getTypeIcon(t)} ${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
         const cv=l.type==='file'?(l.filePath||''):(l.content||l.url||'');
         const deckListHTML=buildDeckDatalistHTML();
-        learningModalBody.innerHTML=`<div class="learning-form-group"><label>Type</label><select id="learningFormType">${to}</select></div><div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" value="${escapeHtml(l.title||'')}" /></div><div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(l.deck||'')}" placeholder="e.g., Spanish, React" autocomplete="off" />${deckListHTML}</div><div class="learning-form-group" id="learningFormContentGroup"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;"><label for="learningFormContent" id="learningFormContentLabel">${l.type==='youtube'||l.type==='link'?'URL':l.type==='file'?'File Path':'Content'}</label><div id="learningMdToggleGroup" style="display:none;gap:4px;"><button type="button" class="learning-tab-btn active" id="btnLearningModeEdit">&#9998; Write</button><button type="button" class="learning-tab-btn" id="btnLearningModePreview">&#128065; Preview</button></div></div><textarea id="learningFormContent">${escapeHtml(cv)}</textarea><div id="learningFormContentPreview" class="learning-modal-content" style="display:none;min-height:180px;max-height:48vh;overflow-y:auto;"></div><div id="learningMdHint" style="font-size:11px;color:var(--text-secondary);display:none;margin-top:2px;"><span>Markdown supported: <b>**bold**</b>, <i>*italic*</i>, <code>\`code\`</code>, - lists, # headings</span></div></div><div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Update</button></div>`;
+        learningModalBody.innerHTML=`<div class="learning-form-group"><label>Type</label><select id="learningFormType">${to}</select></div><div class="learning-form-group"><label for="learningFormTitle">Title</label><input type="text" id="learningFormTitle" value="${escapeHtml(l.title||'')}" /></div><div class="learning-form-group"><label for="learningFormDeck">Deck / Category (optional)</label><input type="text" id="learningFormDeck" list="learningDeckList" value="${escapeHtml(l.deck||'')}" placeholder="e.g., Spanish, React" autocomplete="off" />${deckListHTML}</div><div class="learning-form-group"><label for="learningFormDuration">Duration in minutes (optional)</label><input type="number" id="learningFormDuration" min="1" step="1" value="${l.duration||''}" placeholder="e.g., 15, 30" /></div><div class="learning-form-group" id="learningFormContentGroup"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;"><label for="learningFormContent" id="learningFormContentLabel">${l.type==='youtube'||l.type==='link'?'URL':l.type==='file'?'File Path':'Content'}</label><div id="learningMdToggleGroup" style="display:none;gap:4px;"><button type="button" class="learning-tab-btn active" id="btnLearningModeEdit">&#9998; Write</button><button type="button" class="learning-tab-btn" id="btnLearningModePreview">&#128065; Preview</button></div></div><textarea id="learningFormContent">${escapeHtml(cv)}</textarea><div id="learningFormContentPreview" class="learning-modal-content" style="display:none;min-height:180px;max-height:48vh;overflow-y:auto;"></div><div id="learningMdHint" style="font-size:11px;color:var(--text-secondary);display:none;margin-top:2px;"><span>Markdown supported: <b>**bold**</b>, <i>*italic*</i>, <code>\`code\`</code>, - lists, # headings</span></div></div><div class="learning-form-actions"><button class="btn-cancel-learning" id="btnCancelLearning">Cancel</button><button class="btn-save-learning" id="btnSaveLearning">Update</button></div>`;
         learningModalOverlay.classList.add('active');
         setTimeout(()=>{
             document.getElementById('btnCancelLearning')?.addEventListener('click',closeLearningModal);
@@ -7432,11 +7454,13 @@ function renderHabitMiniCalendar() {
         const type=document.getElementById('learningFormType')?.value||'text';
         const title=document.getElementById('learningFormTitle')?.value?.trim()||'';
         const deck=document.getElementById('learningFormDeck')?.value?.trim()||'';
+        const durVal=document.getElementById('learningFormDuration')?.value?.trim()||'';
+        const duration=(durVal&&!isNaN(durVal)&&Number(durVal)>0)?Number(durVal):null;
         const content=document.getElementById('learningFormContent')?.value?.trim()||'';
         if(!title&&!content){alert('Please enter a title or content.');return}
         pushUndo('Add learning');
         rememberLearningType(type);
-        const l={id:generateLearningId(),type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',votes:0,createdAt:Date.now(),deck};
+        const l={id:generateLearningId(),type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',duration,votes:0,createdAt:Date.now(),deck};
         let td;
         if(selectionMode==='daily'&&selectedDateStr)td=selectedDateStr;
         else if(selectionMode==='weekly'&&selectedWeekId){const w=computeWeeksForMonth(currentYear,currentMonth);const wk=w.find(x=>x.id===selectedWeekId);td=wk?wk.days[0]:getTodayStr()}
@@ -7452,11 +7476,13 @@ function renderHabitMiniCalendar() {
         const type=document.getElementById('learningFormType')?.value||'text';
         const title=document.getElementById('learningFormTitle')?.value?.trim()||'';
         const deck=document.getElementById('learningFormDeck')?.value?.trim()||'';
+        const durVal=document.getElementById('learningFormDuration')?.value?.trim()||'';
+        const duration=(durVal&&!isNaN(durVal)&&Number(durVal)>0)?Number(durVal):null;
         const content=document.getElementById('learningFormContent')?.value?.trim()||'';
         if(!title&&!content){alert('Please enter a title or content.');return}
         pushUndo('Edit learning');
         rememberLearningType(type);
-        const updated={type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',deck};
+        const updated={type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',deck,duration};
         const ok=updateLearningInDate(editingLearningInfo.sourceDate,editingLearningInfo.id,updated);
         if(!ok){alert('Failed to update.');return}
         const src=editingLearningInfo.sourceDate;
@@ -13277,7 +13303,7 @@ function endTaskDrag(item) {
         const clickedToolbar=!!e.target.closest('#taskToolbar');
         const clickedTask=!!e.target.closest('#taskList');
         const clickedEditor=!!e.target.closest('.task-text');
-        if(draftEl&&!clickedToolbar&&!clickedEditor){
+        if(draftEl&&!clickedToolbar&&!clickedEditor&&!clickedTask){
             const id=draftEl.dataset.id;
             const ta=draftEl.querySelector('.task-text');
             const text=ta?ta.value:'';
@@ -16729,6 +16755,9 @@ window.moveWtbTask = moveWtbTask;
                         if(wrap)wrap.classList.remove('editing');
                         return;
                     }
+                    if(window.__isApplyingRemoteUpdate){
+                        return;
+                    }
                     const data=getCurrentData();
                     const t=(data.tasks||[]).find(x=>x.id===id);
                     if(!t){
@@ -16927,26 +16956,62 @@ window.moveWtbTask = moveWtbTask;
             if(kind==='delete'){if(confirm('Delete this learning?'))deleteLearning(id,source);return}
             if(kind==='edit'){openEditLearningModal(id,source);return}
         });
+        function updateLearningDuration(id, sourceDate, mins){
+            let val = mins;
+            let sDate = sourceDate;
+            if (mins === undefined) {
+                val = sourceDate;
+                sDate = null;
+            }
+            const found = (sDate ? { dateStr: sDate, learning: (getData(sDate)?.learnings?.find(x => x.id === id)) } : null) || findLearningById(id);
+            if(!found || !found.dateStr) return;
+            const data = getData(found.dateStr);
+            if(!data || !data.learnings) return;
+            const l = data.learnings.find(x => x.id === id);
+            if(!l) return;
+            const p = parseFloat(val);
+            if(isNaN(p) || p <= 0) l.duration = null;
+            else l.duration = p;
+            saveData(found.dateStr, data);
+            renderLearningsSection();
+        }
+
         learningsToolbar.addEventListener('input',e=>{
-            if(e.target.id!=='ltVotes')return;
-            const keys=Array.from(selectedLearningKeys);
-            if(keys.length!==1)return;
-            const key=keys[0];
-            const idx=key.lastIndexOf('|');
-            if(idx<0)return;
-            const val=e.target.value;
-            if(val==='')return; // Allow empty string while user clears/backspaces to type
-            const id=key.slice(0,idx);
-            const sd=key.slice(idx+1);
-            const data=getData(sd);
-            if(!data||!data.learnings)return;
-            const l=data.learnings.find(x=>x.id===id);
-            if(!l)return;
-            const p=parseInt(val,10);
-            l.votes=isNaN(p)?0:Math.max(0,p);
-            saveData(sd,data);
-            const tile=document.querySelector(`.learning-tile[data-id="${id}"] .learning-vote-badge`);
-            if(tile)tile.textContent=l.votes?("\u2605 " + l.votes):"";
+            if(e.target.id==='ltVotes'){
+                const keys=Array.from(selectedLearningKeys);
+                if(keys.length!==1)return;
+                const key=keys[0];
+                const idx=key.lastIndexOf('|');
+                if(idx<0)return;
+                const val=e.target.value;
+                if(val==='')return;
+                const id=key.slice(0,idx);
+                const sd=key.slice(idx+1);
+                const data=getData(sd);
+                if(!data||!data.learnings)return;
+                const l=data.learnings.find(x=>x.id===id);
+                if(!l)return;
+                const p=parseInt(val,10);
+                l.votes=isNaN(p)?0:Math.max(0,p);
+                saveData(sd,data);
+                const tile=document.querySelector(`.learning-tile[data-id="${id}"] .learning-vote-badge`);
+                if(tile)tile.textContent=l.votes?("\u2605 " + l.votes):"";
+            } else if(e.target.id==='ltDuration'){
+                const keys=Array.from(selectedLearningKeys);
+                if(keys.length!==1)return;
+                const key=keys[0];
+                const idx=key.lastIndexOf('|');
+                if(idx<0)return;
+                const val=e.target.value.trim();
+                const id=key.slice(0,idx);
+                const sd=key.slice(idx+1);
+                updateLearningDuration(id, sd, val);
+            }
+        });
+        learningsToolbar.addEventListener('change',e=>{
+            if(e.target.id==='ltDuration'||e.target.id==='ltVotes'){
+                flushDebounced();
+            }
         });
         learningsToolbar.addEventListener('change',e=>{
             if(e.target.id!=='ltVotes')return;
@@ -17157,6 +17222,7 @@ window.moveWtbTask = moveWtbTask;
         closeHabitManageModal,
         saveHabitManageModal,
         getHabitDetailedStats,
+        updateLearningDuration: typeof updateLearningDuration === 'function' ? updateLearningDuration : undefined,
         isHabitDueOnDate,
         loadHabits,
         saveHabitsToStorage,
@@ -17273,6 +17339,7 @@ window.moveWtbTask = moveWtbTask;
         closeHabitManageModal,
         saveHabitManageModal,
         getHabitDetailedStats,
+        updateLearningDuration: typeof updateLearningDuration === 'function' ? updateLearningDuration : undefined,
         isHabitDueOnDate,
         loadHabits,
         saveHabitsToStorage,
@@ -19975,20 +20042,37 @@ window.moveWtbTask = moveWtbTask;
         function notifyAppBridgeOfExternalChanges(){
     const bridge = window.__taskPlannerAppBridge;
     if(bridge){
-        bridge.clearDataCache();
-        bridge.renderCalendar();
-        bridge.renderLearningsSection();
-        bridge.renderHabits();
+        const activeEl = document.activeElement;
+        const isUserEditing = !!(activeEl && (
+            activeEl.tagName === 'INPUT' ||
+            activeEl.tagName === 'TEXTAREA' ||
+            activeEl.tagName === 'SELECT' ||
+            activeEl.isContentEditable ||
+            activeEl.closest?.('.editing, .task-item.task-draft, #learningModalOverlay.active')
+        ));
+
+        bridge.clearDataCache?.();
+        bridge.renderCalendar?.();
+        bridge.renderHabits?.();
         if(bridge.renderDestinationTimes) bridge.renderDestinationTimes();
+
+        // When user is actively editing a task or learning, do not wipe DOM or lose focus!
+        if(isUserEditing){
+            return;
+        }
+
+        bridge.renderLearningsSection?.();
 
         const mode = bridge.getSelectionMode ? bridge.getSelectionMode() : 'daily';
         const sDate = bridge.getSelectedDateStr ? bridge.getSelectedDateStr() : null;
         const sWeek = bridge.getSelectedWeekId ? bridge.getSelectedWeekId() : null;
 
-        if(mode === 'daily' && sDate && bridge.selectDate){
-            bridge.selectDate(sDate);
-        } else if(mode === 'weekly' && sWeek && bridge.selectWeek){
-            bridge.selectWeek(sWeek);
+        if(mode === 'daily' && sDate && bridge.getData && bridge.updateDetailPanel){
+            const dData = bridge.getData(sDate);
+            if(dData) bridge.updateDetailPanel(dData, sDate);
+        } else if(mode === 'weekly' && sWeek && bridge.getWeekData && bridge.updateDetailPanelWeek){
+            const wData = bridge.getWeekData(sWeek);
+            if(wData) bridge.updateDetailPanelWeek(wData, sWeek);
         }
 
         const em = document.getElementById('eisenOverlay');
