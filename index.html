@@ -7431,6 +7431,16 @@ function renderHabitMiniCalendar() {
             }
             applyLearningTypeUI(defaultType);
             setupLearningFormTabs();
+            const ti=document.getElementById('learningFormTitle');
+            if(ti){ti.focus();}
+            ['learningFormTitle','learningFormDeck','learningFormDuration'].forEach(id=>{
+                document.getElementById(id)?.addEventListener('keydown',e=>{
+                    if(e.key==='Enter'){e.preventDefault();saveNewLearning();}
+                });
+            });
+            document.getElementById('learningFormContent')?.addEventListener('keydown',e=>{
+                if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();saveNewLearning();}
+            });
         },100);
     }
 
@@ -7452,6 +7462,16 @@ function renderHabitMiniCalendar() {
             }
             applyLearningTypeUI(l.type||'text');
             setupLearningFormTabs();
+            const ti=document.getElementById('learningFormTitle');
+            if(ti){ti.focus();ti.select();}
+            ['learningFormTitle','learningFormDeck','learningFormDuration'].forEach(id=>{
+                document.getElementById(id)?.addEventListener('keydown',e=>{
+                    if(e.key==='Enter'){e.preventDefault();saveEditedLearning();}
+                });
+            });
+            document.getElementById('learningFormContent')?.addEventListener('keydown',e=>{
+                if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();saveEditedLearning();}
+            });
         },100);
     }
 
