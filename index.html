@@ -21253,6 +21253,7 @@ window.moveWtbTask = moveWtbTask;
         let totalKeys = 0;
         let taskCount = 0;
         let habitCount = 0;
+        let learningCount = 0;
         let dayCount = 0;
 
         if (window.appStorage) {
@@ -21270,6 +21271,7 @@ window.moveWtbTask = moveWtbTask;
                                 const parsed = JSON.parse(val);
                                 if (parsed && Array.isArray(parsed.tasks)) taskCount += parsed.tasks.length;
                                 if (parsed && Array.isArray(parsed.habits)) habitCount += parsed.habits.length;
+                                if (parsed && Array.isArray(parsed.learnings)) learningCount += parsed.learnings.length;
                             } catch(e){}
                         }
                     }
@@ -21277,7 +21279,7 @@ window.moveWtbTask = moveWtbTask;
             }
         }
 
-        return { payload, totalKeys, taskCount, habitCount, dayCount };
+        return { payload, totalKeys, taskCount, habitCount, learningCount, dayCount };
     }
 
     function advanceKeyTimestamp(k, ts) {
@@ -21317,7 +21319,7 @@ window.moveWtbTask = moveWtbTask;
             const stats = collectCurrentSnapshotPayload();
 
             // Zero-Data Shield: do not snapshot an empty or uninitialized database!
-            if (stats.totalKeys < 2 || stats.taskCount < 1) {
+            if (stats.totalKeys < 2 || (stats.taskCount < 1 && stats.learningCount < 1)) {
                 if (autoSnapRetries < 3) {
                     autoSnapRetries++;
                     setTimeout(captureDailyAutoSnapshot, 5000);
@@ -21334,13 +21336,14 @@ window.moveWtbTask = moveWtbTask;
                 totalKeys: stats.totalKeys,
                 taskCount: stats.taskCount,
                 habitCount: stats.habitCount,
+                learningCount: stats.learningCount,
                 dayCount: stats.dayCount,
                 payload: stats.payload
             };
 
             await saveSnapshotRecord(record);
             localStorage.setItem('tp_last_snapshot_date', today);
-            console.log('[TimeMachine] Daily auto-snapshot captured for', today, 'with', stats.taskCount, 'tasks');
+            console.log('[TimeMachine] Daily auto-snapshot captured for', today, 'with', stats.taskCount, 'tasks,', stats.learningCount, 'learnings');
         } catch(err) {
             console.warn('[TimeMachine] Auto-snapshot skipped:', err);
         }
@@ -21418,7 +21421,7 @@ window.moveWtbTask = moveWtbTask;
                             ${typeLabel}
                         </div>
                         <div style="font-size:0.75rem; color:var(--text-secondary);">
-                            <strong>${s.taskCount || 0}</strong> tasks &middot; <strong>${s.dayCount || 0}</strong> days
+                            <strong>${s.taskCount || 0}</strong> tasks &middot; <strong>${s.learningCount || 0}</strong> learnings &middot; <strong>${s.dayCount || 0}</strong> days
                         </div>
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 2px; flex-wrap:wrap; gap:6px;">
@@ -21475,13 +21478,20 @@ window.moveWtbTask = moveWtbTask;
         visibleDates.forEach(k => {
             const ds = k.slice(3);
             let tasksSummary = '';
+            let learningsSummary = '';
             try {
                 const parsed = JSON.parse(s.payload[k]);
                 const tasks = parsed.tasks || [];
                 const firstFew = tasks.slice(0, 3).map(t => (t.text || '').split('\n')[0]).filter(Boolean);
                 tasksSummary = tasks.length + ' task(s): ' + (firstFew.join(', ') || 'No tasks');
+                const learnings = parsed.learnings || [];
+                if (learnings.length > 0) {
+                    const firstFewLearnings = learnings.slice(0, 2).map(l => (l.content || l.title || '').split('\n')[0]).filter(Boolean);
+                    learningsSummary = ' · ' + learnings.length + ' learning(s): ' + (firstFewLearnings.join(', ') || 'No title');
+                }
             } catch(e){}
-            previewHtml += `<div style="margin-bottom:4px; padding-left:8px; border-left:2px solid var(--accent, #0284c7);"><strong style="color:var(--text);">${ds}:</strong> <span style="color:var(--text-secondary);">${previewHtmlEscape(tasksSummary)}</span></div>`;
+            const daySummaryText = tasksSummary + (learningsSummary || '');
+            previewHtml += `<div style="margin-bottom:4px; padding-left:8px; border-left:2px solid var(--accent, #0284c7);"><strong style="color:var(--text);">${ds}:</strong> <span style="color:var(--text-secondary);">${previewHtmlEscape(daySummaryText)}</span></div>`;
         });
         if (dateKeys.length > 5) {
             previewHtml += `<div style="color:var(--text-secondary); margin-top:4px;">+ ${dateKeys.length - 5} more dates</div>`;
@@ -21510,6 +21520,7 @@ window.moveWtbTask = moveWtbTask;
                 totalKeys: stats.totalKeys,
                 taskCount: stats.taskCount,
                 habitCount: stats.habitCount,
+                learningCount: stats.learningCount,
                 dayCount: stats.dayCount,
                 payload: stats.payload
             };
@@ -21550,6 +21561,7 @@ window.moveWtbTask = moveWtbTask;
                 totalKeys: currentStats.totalKeys,
                 taskCount: currentStats.taskCount,
                 habitCount: currentStats.habitCount,
+                learningCount: currentStats.learningCount,
                 dayCount: currentStats.dayCount,
                 payload: currentStats.payload
             });
@@ -21635,6 +21647,7 @@ window.moveWtbTask = moveWtbTask;
                 totalKeys: currentStats.totalKeys,
                 taskCount: currentStats.taskCount,
                 habitCount: currentStats.habitCount,
+                learningCount: currentStats.learningCount,
                 dayCount: currentStats.dayCount,
                 payload: currentStats.payload
             });
