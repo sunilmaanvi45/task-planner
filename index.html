@@ -6926,7 +6926,7 @@ function renderHabitMiniCalendar() {
     }function handleLearningsGridClick(e){
         const sb=e.target.closest('.learning-select-box');
         if(sb){e.stopPropagation();toggleLearningSelection(sb.dataset.selectLearning,sb.dataset.selectSource);return}
-        if(e.target.closest('.learning-tile-drag'))return;
+        if(e.target.closest('.learning-tile-drag'))return;if(e.target.closest('a'))return;
         const tile=e.target.closest('.learning-tile');
         if(!tile)return;
         if(anySelectionActive()){
