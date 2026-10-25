@@ -7314,6 +7314,9 @@ function renderHabitMiniCalendar() {
         if(l.deck&&String(l.deck).trim()){
             b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">Deck:</span> <span class="deck-badge">&#128218; ${escapeHtml(l.deck)}</span></div>`;
         }
+        if(l.duration&&!isNaN(l.duration)&&Number(l.duration)>0){
+            b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">Duration:</span> <span class="task-meta-pill">&#9201; ${l.duration} min</span></div>`;
+        }
         b+=`<div class="learning-modal-srs"><span class="learning-modal-srs-label">Status:</span> <span class="srs-badge srs-${srs.status}">${srs.label}</span>`;
         if(l.currentDate)b+=` <small style="color:var(--text-secondary)">(due: ${l.currentDate})</small>`;
         b+='</div>';
