@@ -16985,12 +16985,17 @@ window.moveWtbTask = moveWtbTask;
             if(kind==='delete'){if(confirm('Delete this learning?'))deleteLearning(id,source);return}
             if(kind==='edit'){openEditLearningModal(id,source);return}
         });
-        function updateLearningDuration(id, sourceDate, mins){
+        function updateLearningDuration(id, sourceDate, mins, skipRender){
             let val = mins;
             let sDate = sourceDate;
-            if (mins === undefined) {
+            let noRender = skipRender;
+            if (typeof sourceDate === 'number' || (typeof sourceDate === 'string' && mins === undefined)) {
                 val = sourceDate;
                 sDate = null;
+                noRender = mins;
+            }
+            if (typeof mins === 'boolean') {
+                noRender = mins;
             }
             const found = (sDate ? { dateStr: sDate, learning: (getData(sDate)?.learnings?.find(x => x.id === id)) } : null) || findLearningById(id);
             if(!found || !found.dateStr) return;
@@ -17002,7 +17007,10 @@ window.moveWtbTask = moveWtbTask;
             if(isNaN(p) || p <= 0) l.duration = null;
             else l.duration = p;
             saveData(found.dateStr, data);
-            renderLearningsSection();
+            if(!noRender){
+                renderLearningsSection();
+                refreshDetailAfterLearningChange(found.dateStr);
+            }
         }
 
         learningsToolbar.addEventListener('input',e=>{
@@ -17034,12 +17042,36 @@ window.moveWtbTask = moveWtbTask;
                 const val=e.target.value.trim();
                 const id=key.slice(0,idx);
                 const sd=key.slice(idx+1);
-                updateLearningDuration(id, sd, val);
+                updateLearningDuration(id, sd, val, true);
             }
         });
         learningsToolbar.addEventListener('change',e=>{
             if(e.target.id==='ltDuration'||e.target.id==='ltVotes'){
                 flushDebounced();
+            }
+            if(e.target.id==='ltDuration'){
+                const keys=Array.from(selectedLearningKeys);
+                if(keys.length!==1)return;
+                const key=keys[0];
+                const idx=key.lastIndexOf('|');
+                if(idx<0)return;
+                updateLearningDuration(key.slice(0,idx),key.slice(idx+1),e.target.value.trim(),false);
+            }
+        });
+        learningsToolbar.addEventListener('blur',e=>{
+            if(e.target.id==='ltDuration'){
+                const keys=Array.from(selectedLearningKeys);
+                if(keys.length!==1)return;
+                const key=keys[0];
+                const idx=key.lastIndexOf('|');
+                if(idx<0)return;
+                updateLearningDuration(key.slice(0,idx),key.slice(idx+1),e.target.value.trim(),false);
+            }
+        },true);
+        learningsToolbar.addEventListener('keydown',e=>{
+            if(e.target.id==='ltDuration'&&e.key==='Enter'){
+                e.preventDefault();
+                e.target.blur();
             }
         });
         learningsToolbar.addEventListener('change',e=>{
