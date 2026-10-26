@@ -3310,6 +3310,25 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   gap: 3px;
   flex-shrink: 0;
 }
+.habit-reorder-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-muted, #888);
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 3px 4px;
+  line-height: 1;
+  transition: all 0.15s ease;
+}
+.habit-reorder-btn:hover:not(:disabled) {
+  background: var(--surface-3, #333);
+  color: var(--accent, #3b82f6);
+  border-color: var(--border, #555);
+}
+.habit-reorder-btn:disabled {
+  pointer-events: none;
+}
 .habit-manage-btn,
 .habit-delete-btn {
   background: transparent;
@@ -3331,6 +3350,17 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
   background: rgba(239, 68, 68, 0.15);
   color: #ef4444;
   border-color: rgba(239, 68, 68, 0.3);
+}
+
+.habit-mini-cell {
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.15s ease;
+  user-select: none;
+}
+.habit-mini-cell:hover {
+  transform: scale(1.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  z-index: 2;
 }
 
 /* Habit Add Bar */
@@ -4559,10 +4589,10 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     </div>
     <div class="task-list" id="taskList"></div>
     <div class="pj-daily-section" id="pjDailySection"></div>
-    <div class="habits-section daily-only" id="habitsSection">
+                <div class="habits-section daily-only" id="habitsSection">
         <div class="habits-header">
             <div class="habits-title-wrap">
-                <span class="habits-title-icon">🎯</span>
+                <span class="habits-title-icon">ðŸŽ¯</span>
                 <span class="habits-title-text">Habits & Routines</span>
                 <span class="habits-progress-pill">0/0 Done</span>
             </div>
@@ -6337,6 +6367,55 @@ function getHabitDetailedStats(name) {
     return { currentStreak, bestStreak, totalCompletions, monthRate };
 }
 
+function getHabitNextDueText(h, curDate) {
+    if (!h) return 'Rest day';
+    const interval = getHabitIntervalDays(h);
+    if (interval <= 1) return 'Due tomorrow';
+    for (let offset = 1; offset <= 60; offset++) {
+        const futureDate = addDaysToDateStr(curDate, offset);
+        if (isHabitDueOnDate(h, futureDate)) {
+            if (offset === 1) return 'Rest (Due tomorrow)';
+            return `Rest (Due in ${offset}d)`;
+        }
+    }
+    return 'Rest day';
+}
+
+function moveHabit(hName, direction) {
+    let hs = loadHabits();
+    if (!hs || hs.length < 2) return;
+    const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
+    const sc = getHabitCompletions(curDate);
+
+    // Reconstruct the visual order displayed to the user
+    const sorted = hs.slice().sort((a, b) => {
+        const aDone = sc.includes(a.name) ? 1 : 0;
+        const bDone = sc.includes(b.name) ? 1 : 0;
+        if (aDone !== bDone) return aDone - bDone;
+        const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
+        const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
+        if (aDue !== bDue) return aDue - bDue;
+        return 0;
+    });
+
+    const dispIdx = sorted.findIndex(x => x.name === hName);
+    if (dispIdx === -1) return;
+    const targetDispIdx = direction === 'up' ? dispIdx - 1 : dispIdx + 1;
+    if (targetDispIdx < 0 || targetDispIdx >= sorted.length) return;
+
+    const targetHabit = sorted[targetDispIdx];
+    const i1 = hs.findIndex(x => x.name === hName);
+    const i2 = hs.findIndex(x => x.name === targetHabit.name);
+    if (i1 === -1 || i2 === -1 || i1 === i2) return;
+
+    const temp = hs[i1];
+    hs[i1] = hs[i2];
+    hs[i2] = temp;
+
+    saveHabitsToStorage(hs);
+    renderHabits();
+}
+
 function renderHabits() {
     const hs = loadHabits();
     const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
@@ -6358,12 +6437,24 @@ function renderHabits() {
         `;
     }
 
-    // List rendering
+    // List rendering with Smart Dynamic Sorting (Due First -> Rest Days -> Completed Sink to Bottom)
     let html = '';
     if (hs.length === 0) {
         html = '<div class="learnings-empty" style="padding:12px;text-align:center;">No habits defined yet. Add your first habit below!</div>';
     } else {
-        hs.forEach(h => {
+        const sortedHabits = hs.slice().sort((a, b) => {
+            const aDone = sc.includes(a.name) ? 1 : 0;
+            const bDone = sc.includes(b.name) ? 1 : 0;
+            if (aDone !== bDone) return aDone - bDone;
+
+            const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
+            const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
+            if (aDue !== bDue) return aDue - bDue;
+
+            return 0; // Stable sort preserves base order within each bucket!
+        });
+
+        sortedHabits.forEach((h, dispIdx) => {
             const ic = sc.includes(h.name);
             const st = getHabitStreak(h.name, curDate);
             const ia = selectedHabit === h.name;
@@ -6378,7 +6469,13 @@ function renderHabits() {
             } else if (isDue) {
                 statusText = 'Due today';
                 statusClass = 'status-due';
+            } else {
+                statusText = getHabitNextDueText(h, curDate);
+                statusClass = 'status-rest';
             }
+
+            const isFirst = (dispIdx === 0);
+            const isLast = (dispIdx === sortedHabits.length - 1);
 
             html += `
                 <div class="habit-card ${ic ? 'is-completed' : ''} ${isDue ? 'is-due' : 'is-rest'}" data-habit="${escapeHtml(h.name)}" data-habit-id="${h.id || escapeHtml(h.name)}">
@@ -6398,6 +6495,8 @@ function renderHabits() {
                             ${st > 0 ? `<div class="habit-flame-pill habit-streak-pill" title="Current streak: ${st}">🔥 <span class="streak-count">${st}</span></div>` : `<div class="habit-flame-pill habit-streak-pill empty" title="No active streak">○ 0</div>`}
                         </div>
                         <div class="habit-card-actions">
+                            <button type="button" class="habit-reorder-btn habit-move-up" data-move-habit-up="${escapeHtml(h.name)}" title="Move habit up" ${isFirst ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▲</button>
+                            <button type="button" class="habit-reorder-btn habit-move-down" data-move-habit-down="${escapeHtml(h.name)}" title="Move habit down" ${isLast ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▼</button>
                             <button type="button" class="habit-manage-btn" data-manage-habit="${escapeHtml(h.name)}" title="Manage streak and frequency">⚙️</button>
                             <button type="button" class="habit-delete-btn" data-delete-habit="${escapeHtml(h.name)}" title="Delete habit">✕</button>
                         </div>
@@ -6415,9 +6514,25 @@ function handleHabitClick(e) {
     const toggleBtn = e.target.closest('.habit-toggle-btn');
     const manageBtn = e.target.closest('[data-manage-habit]');
     const deleteBtn = e.target.closest('[data-delete-habit]');
+    const moveUpBtn = e.target.closest('[data-move-habit-up]:not(:disabled)');
+    const moveDownBtn = e.target.closest('[data-move-habit-down]:not(:disabled)');
     const nameEl = e.target.closest('[data-habit-name]');
 
     const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
+
+    if (moveUpBtn) {
+        e.stopPropagation();
+        const hName = moveUpBtn.dataset.moveHabitUp;
+        if (hName) moveHabit(hName, 'up');
+        return;
+    }
+
+    if (moveDownBtn) {
+        e.stopPropagation();
+        const hName = moveDownBtn.dataset.moveHabitDown;
+        if (hName) moveHabit(hName, 'down');
+        return;
+    }
 
     if (toggleBtn) {
         e.stopPropagation();
@@ -6811,20 +6926,38 @@ function renderHabitMiniCalendar() {
             const c = getHabitCompletions(ds);
             const dn = c.includes(selectedHabit);
             const it = ds === todayStr;
-            html += `<div class="habit-mini-cell${it ? ' today' : ''}${dn ? ' done' : ''}" title="${getFormattedDate(ds)}: ${dn ? 'Completed' : 'Not completed'}">${day}</div>`;
+            html += `<div class="habit-mini-cell${it ? ' today' : ''}${dn ? ' done' : ''}" data-habit-cell-date="${ds}" title="${getFormattedDate(ds)}: ${dn ? 'Completed' : 'Not completed'} (Click to toggle)">${day}</div>`;
         }
     }
 
     html += '</div></div>';
-    if (habitMiniCalendarContainer) habitMiniCalendarContainer.innerHTML = html;
-
-    const db = document.getElementById('habitCalendarDeselect');
-    if (db) {
-        db.addEventListener('click', () => {
-            selectedHabit = null;
-            renderHabitMiniCalendar();
-            renderHabits();
-        });
+    if (habitMiniCalendarContainer) {
+        habitMiniCalendarContainer.innerHTML = html;
+        habitMiniCalendarContainer.onclick = e => {
+            const db = e.target.closest('#habitCalendarDeselect');
+            if (db) {
+                selectedHabit = null;
+                renderHabitMiniCalendar();
+                renderHabits();
+                return;
+            }
+            const cell = e.target.closest('[data-habit-cell-date]');
+            if (cell && selectedHabit) {
+                const ds = cell.dataset.habitCellDate;
+                if (!ds) return;
+                flushDebounced();
+                const comps = getHabitCompletions(ds);
+                const isDone = comps.includes(selectedHabit);
+                setHabitCompletion(ds, selectedHabit, !isDone);
+                if (currentDataCache && selectedDateStr === ds) {
+                    const d = getData(ds);
+                    if (d) currentDataCache.habits = [...(d.habits || [])];
+                }
+                showSaved();
+                renderHabitMiniCalendar();
+                renderHabits();
+            }
+        };
     }
 }
 
@@ -14803,7 +14936,7 @@ function deleteTask(id){
         QUADRANT_KEYS.forEach(k=>{
             html+=`<button type="button" class="eisen-inbox-quad-btn" data-inbox-quad="${k}">${escapeHtml(tpl.quadrants[k].label)}</button>`;
         });
-        html+=`<button type="button" class="eisen-inbox-quad-btn" data-inbox-move-date="1" style="background:var(--surface-3);color:var(--accent);">📅 Date…</button></div><button type="button" class="eisen-inbox-clear" data-inbox-clear="1">✕ Clear selection</button>`;
+        html+=`</div><button type="button" class="eisen-inbox-clear" data-inbox-clear="1">✕ Clear selection</button>`;
         eisenInboxBar.innerHTML=html;
     }
 
@@ -17292,6 +17425,7 @@ window.moveWtbTask = moveWtbTask;
         getHabitCompletions,
         setHabitCompletion,
         getHabitStreak,
+        moveHabit: typeof moveHabit === 'function' ? moveHabit : undefined,
                 closeEisenModal,
                 applyEisenPreset,
                 applyEisenFilterPreset,
@@ -17409,6 +17543,7 @@ window.moveWtbTask = moveWtbTask;
         getHabitCompletions,
         setHabitCompletion,
         getHabitStreak,
+        moveHabit: typeof moveHabit === 'function' ? moveHabit : undefined,
                 closeEisenModal,
                 applyEisenPreset,
                 applyEisenFilterPreset,
@@ -19505,7 +19640,7 @@ window.moveWtbTask = moveWtbTask;
     <div class="eisen-move-modal-overlay" id="eisenMoveDateOverlay" style="display:none;">
         <div class="eisen-move-modal" id="eisenMoveDateModal" role="dialog" aria-modal="true">
             <div class="eisen-move-header">
-                <div class="eisen-move-title">📅 Move to Date</div>
+                <div class="eisen-move-title">ðŸ“… Move to Date</div>
                 <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">&#10005;</button>
             </div>
             <div class="eisen-move-body">
@@ -19537,7 +19672,7 @@ window.moveWtbTask = moveWtbTask;
     <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;">
         <div class="habit-manage-modal" id="habitManageModal" role="dialog" aria-modal="true">
             <div class="habit-manage-header">
-                <div class="habit-manage-title">⚙️ Manage Habit & Streak</div>
+                <div class="habit-manage-title">âš™ï¸ Manage Habit & Streak</div>
                 <button type="button" class="habit-modal-close" id="btnHabitManageClose" title="Close">&#10005;</button>
             </div>
             <div class="habit-manage-body" id="habitManageBody"></div>
