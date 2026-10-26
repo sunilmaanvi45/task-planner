@@ -6300,6 +6300,7 @@ function initEisenMoveDateModal() {
    2. ADVANCED HABIT TRACKING SYSTEM (Frequency, Streaks, UI)
    ------------------------------------------------------------- */
 let currentManagingHabitName = null;
+let currentManagingHabitId = null;
 let habitFilter = 'all'; // 'all' | 'forming' | 'established'
 
 function loadHabits() {
@@ -7009,15 +7010,26 @@ function addNewHabit() {
 /* -------------------------------------------------------------
    3. MANAGE HABIT & STREAK MODAL
    ------------------------------------------------------------- */
+function closeHabitManageModal() {
+    const overlay = document.getElementById('habitManageOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        overlay.classList.remove('active');
+    }
+    currentManagingHabitName = null;
+    currentManagingHabitId = null;
+}
+
 function openHabitManageModal(hOrName) {
     const habits = loadHabits();
     const h = (typeof hOrName === 'object' && hOrName)
-        ? (habits.find(x => x.name === hOrName.name || x.id === hOrName.id) || hOrName)
+        ? (habits.find(x => (hOrName.id && x.id === hOrName.id) || x.name === hOrName.name) || hOrName)
         : habits.find(x => x.name === hOrName || x.id === hOrName);
     if (!h) return;
 
     const habitName = h.name;
     currentManagingHabitName = habitName;
+    currentManagingHabitId = h.id || null;
     const overlay = document.getElementById('habitManageOverlay');
     const body = document.getElementById('habitManageBody');
     if (!overlay || !body) return;
@@ -7139,10 +7151,10 @@ function openHabitManageModal(hOrName) {
     body.querySelectorAll('[data-step], [data-streak-adjust]').forEach(btn => {
         btn.onclick = () => {
             const step = btn.dataset.step || btn.dataset.streakAdjust;
-            let currentAdj = parseInt(adjInput.value, 10) || 0;
+            let currentAdj = parseInt(adjInput ? adjInput.value : 0, 10) || 0;
             if (step === 'reset') currentAdj = 0;
             else currentAdj += parseInt(step, 10);
-            adjInput.value = currentAdj;
+            if (adjInput) adjInput.value = currentAdj;
             const updated = Math.max(0, stats.currentStreak - (h.streakAdjustment || 0) + currentAdj);
             if (streakDisplay) streakDisplay.textContent = '\uD83D\uDD25 ' + updated;
         };
@@ -7172,20 +7184,25 @@ function openHabitManageModal(hOrName) {
         };
     });
 
+    // Wire modal header & footer buttons directly whenever modal opens
+    const closeBtn = document.getElementById('btnHabitManageClose');
+    const saveBtn = document.getElementById('btnHabitSaveInModal');
+    const deleteBtn = document.getElementById('btnHabitDeleteInModal');
+    if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } closeHabitManageModal(); };
+    if (saveBtn) saveBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } saveHabitManageModal(); };
+    if (deleteBtn) deleteBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } deleteHabitFromManageModal(); };
+    if (overlay) {
+        overlay.onclick = (e) => {
+            if (e.target === overlay) closeHabitManageModal();
+        };
+    }
+
     overlay.style.display = 'flex';
     overlay.classList.add('active');
 }
-function closeHabitManageModal() {
-    const overlay = document.getElementById('habitManageOverlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        overlay.classList.remove('active');
-    }
-    currentManagingHabitName = null;
-}
 
 function saveHabitManageModal() {
-    if (!currentManagingHabitName) return;
+    if (!currentManagingHabitName && !currentManagingHabitId) return;
 
     const nameInput = document.getElementById('habitManageName');
     const freqSelect = document.getElementById('habitManageFreq');
@@ -7200,11 +7217,18 @@ function saveHabitManageModal() {
     }
 
     let habits = loadHabits();
-    const h = habits.find(x => x.name === currentManagingHabitName);
-    if (!h) return;
+    let h = habits.find(x => (currentManagingHabitId && x.id === currentManagingHabitId) || x.name === currentManagingHabitName);
+    if (!h && currentManagingHabitName) {
+        h = habits.find(x => x.name.toLowerCase() === currentManagingHabitName.toLowerCase());
+    }
+    if (!h) {
+        closeHabitManageModal();
+        return;
+    }
 
     // Check name collision
-    if (newName.toLowerCase() !== currentManagingHabitName.toLowerCase() && habits.some(x => x.name.toLowerCase() === newName.toLowerCase())) {
+    const targetIdentifier = currentManagingHabitName || h.name;
+    if (newName.toLowerCase() !== targetIdentifier.toLowerCase() && habits.some(x => x.name.toLowerCase() === newName.toLowerCase())) {
         alert('A habit with that name already exists.');
         return;
     }
@@ -7216,10 +7240,10 @@ function saveHabitManageModal() {
     if (h.frequency === 'alternate') h.intervalDays = 2;
     else if (h.frequency === 'gap2') h.intervalDays = 3;
     else if (h.frequency === 'weekly') h.intervalDays = 7;
-    else if (h.frequency === 'custom') h.intervalDays = Math.max(1, parseInt(intervalInput.value, 10) || 1);
+    else if (h.frequency === 'custom') h.intervalDays = Math.max(1, parseInt(intervalInput ? intervalInput.value : 1, 10) || 1);
     else h.intervalDays = 1;
 
-    h.streakAdjustment = parseInt(adjInput.value, 10) || 0;
+    h.streakAdjustment = parseInt(adjInput ? adjInput.value : 0, 10) || 0;
     h.streakFrozen = freezeCheckbox ? freezeCheckbox.checked : false;
     h.frozen = h.streakFrozen;
 
@@ -7251,21 +7275,24 @@ function saveHabitManageModal() {
     saveHabitsToStorage(habits);
     closeHabitManageModal();
     renderHabits();
-    showToast(`Saved changes for "${newName}"`);
+    if (typeof showToast === 'function') showToast(`Saved changes for "${newName}"`);
+    else if (typeof showSaved === 'function') showSaved();
 }
 
 function deleteHabitFromManageModal() {
-    if (!currentManagingHabitName) return;
-    if (!confirm(`Delete habit "${currentManagingHabitName}"?`)) return;
+    if (!currentManagingHabitName && !currentManagingHabitId) return;
+    const targetName = currentManagingHabitName || 'this habit';
+    if (!confirm(`Delete habit "${targetName}"?`)) return;
 
     let habits = loadHabits();
-    habits = habits.filter(x => x.name !== currentManagingHabitName);
+    habits = habits.filter(x => (currentManagingHabitId ? x.id !== currentManagingHabitId : x.name !== currentManagingHabitName));
     saveHabitsToStorage(habits);
 
     if (selectedHabit === currentManagingHabitName) selectedHabit = null;
     closeHabitManageModal();
     renderHabits();
-    showToast('Habit deleted');
+    if (typeof showToast === 'function') showToast('Habit deleted');
+    else if (typeof showSaved === 'function') showSaved();
 }
 
 function initHabitManageModal() {
@@ -7282,6 +7309,47 @@ function initHabitManageModal() {
         overlay.onclick = e => {
             if (e.target === overlay) closeHabitManageModal();
         };
+    }
+
+    // Delegated click listener so buttons always work even if DOM re-renders
+    document.addEventListener('click', e => {
+        if (e.target.closest('#btnHabitManageClose')) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeHabitManageModal();
+        } else if (e.target.closest('#btnHabitSaveInModal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            saveHabitManageModal();
+        } else if (e.target.closest('#btnHabitDeleteInModal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            deleteHabitFromManageModal();
+        }
+    });
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            const ov = document.getElementById('habitManageOverlay');
+            if (ov && (ov.style.display === 'flex' || ov.classList.contains('active'))) {
+                e.preventDefault();
+                closeHabitManageModal();
+            }
+        }
+    });
+}
+
+// Global window bindings for inline HTML onclick attributes
+window.openHabitManageModal = openHabitManageModal;
+window.closeHabitManageModal = closeHabitManageModal;
+window.saveHabitManageModal = saveHabitManageModal;
+window.deleteHabitFromManageModal = deleteHabitFromManageModal;
+
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initHabitManageModal);
+    } else {
+        initHabitManageModal();
     }
 }
 
@@ -20215,7 +20283,7 @@ window.moveWtbTask = moveWtbTask;
         </div>
     </div>
     <!-- Manage Habit & Streak Modal -->
-    <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;">
+    <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;" onclick="if(event.target===this)(window.closeHabitManageModal?window.closeHabitManageModal():null)">
         <div class="habit-manage-modal" id="habitManageModal" role="dialog" aria-modal="true">
             <div class="habit-manage-header">
                 <div class="habit-manage-title">&#9881;&#65039; Manage Habit &amp; Streak</div>
@@ -20223,8 +20291,8 @@ window.moveWtbTask = moveWtbTask;
             </div>
             <div class="habit-manage-body" id="habitManageBody"></div>
             <div class="habit-manage-footer">
-                <button type="button" class="btn-habit-danger" id="btnHabitDeleteInModal">Delete Habit</button>
-                <button type="button" class="btn-habit-primary" id="btnHabitSaveInModal">Save Changes</button>
+                <button type="button" class="btn-habit-danger" id="btnHabitDeleteInModal" onclick="if(window.deleteHabitFromManageModal)window.deleteHabitFromManageModal();">Delete Habit</button>
+                <button type="button" class="btn-habit-primary" id="btnHabitSaveInModal" onclick="if(window.saveHabitManageModal)window.saveHabitManageModal();">Save Changes</button>
             </div>
         </div>
     </div>
