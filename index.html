@@ -883,6 +883,15 @@ body{
 }
 .learnings-deck-filter.active{border-color:var(--accent-border);background:var(--accent-light);color:var(--accent)}
 .learnings-deck-filter:focus{outline:none;border-color:var(--accent-border);box-shadow:var(--focus-ring)}
+.quick-learning-input{
+  padding:4px 10px;border-radius:var(--r-full);border:1px solid var(--border);
+  background:var(--card-bg);color:var(--text);font-size:var(--fs-2xs);
+  font-weight:500;font-family:inherit;outline:none;width:190px;min-width:140px;
+  transition:border-color var(--dur-fast) var(--ease-in-out),box-shadow var(--dur-fast) var(--ease-out),width var(--dur-fast) var(--ease-out);
+}
+.quick-learning-input:focus{border-color:var(--accent-border);box-shadow:var(--focus-ring);width:240px;}
+.quick-learning-input::placeholder{color:var(--text-secondary);opacity:.75;}
+@media (max-width:600px){.quick-learning-input{width:140px;}.quick-learning-input:focus{width:180px;}}
 .learnings-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:var(--sp-3);max-height:290px;overflow-y:auto;padding:2px;scrollbar-gutter:stable}
 .learnings-empty{text-align:center;color:var(--text-secondary);font-size:var(--fs-xs);padding:var(--sp-5);opacity:.7}
 .learning-tile{background:var(--learning-tile-bg);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:var(--sp-3);cursor:pointer;display:flex;flex-direction:column;gap:var(--sp-2);min-height:112px;position:relative;overflow:hidden;transition:border-color var(--dur-base) var(--ease-in-out),box-shadow var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out)}
@@ -4524,6 +4533,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         <div class="ui-section-header learnings-header">
             <div class="ui-section-title learnings-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>🧠 Learnings <span class="learnings-count" id="learningsCount"></span></span></div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <input type="text" class="quick-learning-input" id="quickLearningInput" placeholder="Quick add: title;duration;link" title="Quick add: title;duration;link (e.g. Docker Basics;25;https://docker.com)" autocomplete="off" />
                 <select class="learnings-deck-filter" id="deckFilterSelect" title="Filter by deck"></select>
                 <button class="btn-oldest-due" id="btnOldestDue">⏳ Oldest Due</button>
                 <button class="btn-add-learning" id="btnAddLearning">+ Add</button>
@@ -5299,6 +5309,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     const btnAddLearning=document.getElementById('btnAddLearning');
     const btnOldestDue=document.getElementById('btnOldestDue');
     const deckFilterSelect=document.getElementById('deckFilterSelect');
+    const quickLearningInput=document.getElementById('quickLearningInput');
     const learningModalOverlay=document.getElementById('learningModalOverlay');
     const learningModal=document.getElementById('learningModal');
     const learningModalTitle=document.getElementById('learningModalTitle');
@@ -7652,6 +7663,101 @@ function renderHabitMiniCalendar() {
     }
     function closeLearningModal(){learningModalOverlay.classList.remove('active');learningModal.classList.remove('completed');learningModalBody.innerHTML='';editingLearningInfo=null}
     function handleModalClick(e){const rb=null;const db=e.target.closest('[data-action="modal-delete"]');const dn=e.target.closest('[data-action="modal-done"]');const eb=e.target.closest('[data-action="modal-edit"]');const df=e.target.closest('[data-action="modal-defer"]');if(db){if(confirm('Delete this learning?')){deleteLearning(db.dataset.id,db.dataset.source);closeLearningModal()}return}if(dn){markLearningDone(dn.dataset.id,dn.dataset.source);closeLearningModal();return}if(eb){const id=eb.dataset.id;const source=eb.dataset.source;closeLearningModal();openEditLearningModal(id,source);return}if(df){const days=parseInt(df.dataset.days,10);deferLearning(df.dataset.id,days,df.dataset.source);return}}
+    function handleQuickLearningSubmit(){
+        const input=document.getElementById('quickLearningInput');
+        if(!input)return;
+        const raw=input.value.trim();
+        if(!raw)return;
+        const parts=raw.split(';').map(p=>p.trim());
+        let title='';
+        let duration=null;
+        let link='';
+
+        if(parts.length===1){
+            const t=parts[0];
+            if(/^(https?:\/\/|www\.)/i.test(t)||/^(youtube\.com|youtu\.be)/i.test(t)){
+                link=t;
+            }else{
+                title=t;
+            }
+        }else if(parts.length===2){
+            title=parts[0];
+            const t2=parts[1];
+            if(/^\d+(\.\d+)?$/.test(t2)){
+                duration=parseFloat(t2);
+            }else if(/^(https?:\/\/|www\.)/i.test(t2)||/^(youtube\.com|youtu\.be)/i.test(t2)){
+                link=t2;
+            }else{
+                const maybeNum=parseFloat(t2);
+                if(!isNaN(maybeNum)&&maybeNum>0){
+                    duration=maybeNum;
+                }else{
+                    link=t2;
+                }
+            }
+        }else{
+            title=parts[0];
+            const durToken=parts[1];
+            if(durToken&&/^\d+(\.\d+)?$/.test(durToken)){
+                duration=parseFloat(durToken);
+            }
+            link=parts.slice(2).join(';').trim();
+        }
+
+        if(link&&!/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//i.test(link)&&!link.startsWith('/')){
+            if(/^(www\.|youtube\.com|youtu\.be)/i.test(link)){
+                link='https://'+link;
+            }
+        }
+
+        const isYt=/youtube\.com|youtu\.be/i.test(link);
+        const type=link?(isYt?'youtube':'link'):'text';
+
+        let finalTitle=title;
+        if(!finalTitle){
+            if(link){
+                try{
+                    const u=new URL(link.startsWith('http')?link:'https://'+link);
+                    finalTitle=u.hostname.replace(/^www\./,'')+(u.pathname&&u.pathname!=='/'?u.pathname:'');
+                }catch(e){
+                    finalTitle=isYt?'YouTube':'Link';
+                }
+            }else{
+                finalTitle='Note';
+            }
+        }
+
+        const deck=((typeof deckFilter==='string'&&deckFilter&&deckFilter!=='__none__')?deckFilter:(deckFilterSelect&&deckFilterSelect.value&&deckFilterSelect.value!=='__none__'?deckFilterSelect.value:''))||'';
+
+        let td;
+        if(selectionMode==='daily'&&selectedDateStr)td=selectedDateStr;
+        else if(selectionMode==='weekly'&&selectedWeekId){
+            const w=computeWeeksForMonth(currentYear,currentMonth);
+            const wk=w.find(x=>x.id===selectedWeekId);
+            td=wk?wk.days[0]:getTodayStr();
+        }else td=getTodayStr();
+
+        const l={
+            id:generateLearningId(),
+            type,
+            title:finalTitle,
+            content:link||'',
+            filePath:'',
+            duration:(duration!==null&&!isNaN(duration)&&Number(duration)>0)?Number(duration):null,
+            votes:0,
+            createdAt:Date.now(),
+            deck
+        };
+
+        pushUndo('Quick add learning');
+        addLearningToDate(td,l);
+        renderLearningsSection();
+        renderCalendar();
+        refreshDetailAfterLearningChange(td);
+
+        input.value='';
+    }
+
     function goToOldestDue(){const todayStr=getTodayStr();let od=null;for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);const data=getData(ds);if(data&&data.learnings){data.learnings.forEach(l=>{if(l.completed)return;const cur=l.currentDate;if(cur&&cur<=todayStr){if(!od||cur<od)od=cur}})}}}if(!od){alert('No due learnings found.');return}const[y,m]=od.split('-').map(Number);flushDebounced();if(currentYear!==y||currentMonth!==m){currentYear=y;currentMonth=m;renderCalendar({animate:true})}selectDate(od)}
 
     function getCurrentData(){
@@ -14674,7 +14780,7 @@ function deleteTask(id){
                     presets.splice(toIdx, 0, moved);
                     saveStoredEisenPresets(presets);
                     renderEisenPresetList();
-                    showToast('â†• Presets reordered');
+                    showToast('Ã¢â€ â€¢ Presets reordered');
                 }
                 draggedPresetId = null;
                 setTimeout(() => { isDraggingPreset = false; }, 100);
@@ -16733,6 +16839,21 @@ window.moveWtbTask = moveWtbTask;
         btnAddLearning.addEventListener('click',openAddLearningModal);
         btnOldestDue.addEventListener('click',goToOldestDue);
         if(deckFilterSelect){deckFilterSelect.addEventListener('click',e=>e.stopPropagation());deckFilterSelect.addEventListener('mousedown',e=>e.stopPropagation());deckFilterSelect.addEventListener('pointerdown',e=>e.stopPropagation());deckFilterSelect.addEventListener('change',()=>{deckFilter=deckFilterSelect.value;renderLearningsSection()});}
+        if(quickLearningInput){
+            quickLearningInput.addEventListener('click',e=>e.stopPropagation());
+            quickLearningInput.addEventListener('mousedown',e=>e.stopPropagation());
+            quickLearningInput.addEventListener('pointerdown',e=>e.stopPropagation());
+            quickLearningInput.addEventListener('keydown',e=>{
+                e.stopPropagation();
+                if(e.key==='Enter'){
+                    e.preventDefault();
+                    handleQuickLearningSubmit();
+                }else if(e.key==='Escape'){
+                    quickLearningInput.value='';
+                    quickLearningInput.blur();
+                }
+            });
+        }
         learningsGrid.addEventListener('click',handleLearningsGridClick);
         learningsGrid.addEventListener('dragstart',handleLearningDragStart);
         learningsGrid.addEventListener('dragend',handleLearningDragEnd);
@@ -17417,6 +17538,7 @@ window.moveWtbTask = moveWtbTask;
         saveHabitManageModal,
         getHabitDetailedStats,
         updateLearningDuration: typeof updateLearningDuration === 'function' ? updateLearningDuration : undefined,
+        handleQuickLearningSubmit: typeof handleQuickLearningSubmit === 'function' ? handleQuickLearningSubmit : undefined,
         isHabitDueOnDate,
         loadHabits,
         saveHabitsToStorage,
@@ -17535,6 +17657,7 @@ window.moveWtbTask = moveWtbTask;
         saveHabitManageModal,
         getHabitDetailedStats,
         updateLearningDuration: typeof updateLearningDuration === 'function' ? updateLearningDuration : undefined,
+        handleQuickLearningSubmit: typeof handleQuickLearningSubmit === 'function' ? handleQuickLearningSubmit : undefined,
         isHabitDueOnDate,
         loadHabits,
         saveHabitsToStorage,
