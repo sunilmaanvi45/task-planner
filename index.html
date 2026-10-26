@@ -6354,19 +6354,40 @@ function loadHabits() {
 }
 
 function saveHabitsToStorage(habits) {
+    if (typeof habitCompletionsCache !== 'undefined' && habitCompletionsCache) habitCompletionsCache.clear();
     appStorage.setItem(HABITS_KEY, JSON.stringify(habits));
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush(200);
 }
 
+const habitCompletionsCache = new Map();
+
+function getStoredHabitsForDate(d) {
+    if (habitCompletionsCache.has(d)) return habitCompletionsCache.get(d);
+    const raw = appStorage.getItem(STORAGE_PREFIX + d);
+    if (!raw || !raw.includes('"habits"')) {
+        habitCompletionsCache.set(d, []);
+        return [];
+    }
+    try {
+        const p = JSON.parse(raw);
+        const arr = (p && Array.isArray(p.habits)) ? p.habits : [];
+        habitCompletionsCache.set(d, arr);
+        return arr;
+    } catch (e) {
+        habitCompletionsCache.set(d, []);
+        return [];
+    }
+}
+
 function getHabitCompletions(d, optionalHabits) {
-    const data = getData(d);
-    const dayComps = (data && Array.isArray(data.habits)) ? data.habits : [];
+    const dayComps = getStoredHabitsForDate(d);
     const hs = optionalHabits || loadHabits();
     const historyComps = hs.filter(h => Array.isArray(h.history) && h.history.includes(d)).map(h => h.name);
     return Array.from(new Set([...dayComps, ...historyComps]));
 }
 
 function setHabitCompletion(d, n, c) {
+    if (typeof habitCompletionsCache !== 'undefined' && habitCompletionsCache) habitCompletionsCache.clear();
     let data = getData(d);
     if (!data) data = { tasks: [], notes: '', dayTitle: '', holiday: false, attachments: [], learnings: [], habits: [] };
     if (!Array.isArray(data.habits)) data.habits = [];
@@ -6427,7 +6448,7 @@ function isHabitDueOnDate(hOrName, targetDateStr, optionalHabits) {
 
     // Search back up to 60 days to find last completed date
     let lastCompletedDate = null;
-    let cursor = new Date(targetDateStr + 'T00:00:00');
+    let cursor = new Date(targetDateStr + 'T12:00:00');
     cursor.setDate(cursor.getDate() - 1);
     const createdDate = h.createdDate || '2020-01-01';
     for (let i = 0; i < 60; i++) {
@@ -6442,11 +6463,11 @@ function isHabitDueOnDate(hOrName, targetDateStr, optionalHabits) {
 
     if (!lastCompletedDate) {
         const start = h.createdDate || getTodayStr();
-        const diffDays = Math.round((new Date(targetDateStr + 'T00:00:00') - new Date(start + 'T00:00:00')) / 86400000);
+        const diffDays = Math.round((new Date(targetDateStr + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
         return diffDays % interval === 0;
     }
 
-    const daysSince = Math.round((new Date(targetDateStr + 'T00:00:00') - new Date(lastCompletedDate + 'T00:00:00')) / 86400000);
+    const daysSince = Math.round((new Date(targetDateStr + 'T12:00:00') - new Date(lastCompletedDate + 'T12:00:00')) / 86400000);
     return daysSince >= interval;
 }
 
@@ -6463,7 +6484,7 @@ function getHabitStreak(nameOrHabit, refDateStr, optionalHabits) {
     const createdDate = h.createdDate || '2020-01-01';
 
     const n = name;
-    let dt = new Date(refDateStr + 'T00:00:00');
+    let dt = new Date(refDateStr + 'T12:00:00');
     let ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
     let c = getHabitCompletions(ds, habits);
     const todayStr = getTodayStr();
@@ -6489,7 +6510,7 @@ function getHabitStreak(nameOrHabit, refDateStr, optionalHabits) {
 
         if (isDone) {
             if (lastDone) {
-                const gap = Math.round((new Date(lastDone + 'T00:00:00') - new Date(ds + 'T00:00:00')) / 86400000);
+                const gap = Math.round((new Date(lastDone + 'T12:00:00') - new Date(ds + 'T12:00:00')) / 86400000);
                 if (gap > interval && !isFrozen) {
                     break;
                 }
@@ -6529,50 +6550,84 @@ function getHabitDetailedStats(name, optionalHabit, optionalHabits) {
         h.history.forEach(d => { if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) completedDatesSet.add(d); });
     }
     const keys = (typeof getCachedKeys === 'function') ? getCachedKeys() : null;
-    if (keys && Array.isArray(keys)) {
-        keys.forEach(k => {
-            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
-                const ds = k.slice(STORAGE_PREFIX.length);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
-                    const data = getData(ds);
-                    if (data && Array.isArray(data.habits) && data.habits.includes(name)) {
-                        completedDatesSet.add(ds);
-                    }
-                }
-            }
-        });
-    } else {
+    const allKeys = (keys && Array.isArray(keys)) ? keys : [];
+    if (!allKeys.length) {
         for (let i = 0; i < appStorage.length; i++) {
             const k = appStorage.key(i);
-            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
-                const ds = k.slice(STORAGE_PREFIX.length);
-                if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
-                    const data = getData(ds);
-                    if (data && Array.isArray(data.habits) && data.habits.includes(name)) {
+            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) allKeys.push(k);
+        }
+    }
+    allKeys.forEach(k => {
+        if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
+            const ds = k.slice(STORAGE_PREFIX.length);
+            if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
+                const raw = appStorage.getItem(k);
+                if (raw && raw.includes(name)) {
+                    const comps = getStoredHabitsForDate(ds);
+                    if (comps.includes(name)) {
                         completedDatesSet.add(ds);
                     }
                 }
             }
         }
-    }
+    });
     const completedDates = Array.from(completedDatesSet).sort();
-
     const totalCompletions = completedDates.length;
-    const currentStreak = getHabitStreak(h, todayStr, habits);
+
+    // Fast Current Streak: using completedDatesSet lookup in O(1) memory
+    let currentStreak = 0;
+    const isFrozen = h.streakFrozen === true;
+    const createdDate = h.createdDate || '2020-01-01';
+    let dt = new Date(todayStr + 'T12:00:00');
+    let ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+
+    if (!completedDatesSet.has(ds)) {
+        dt.setDate(dt.getDate() - 1);
+        ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+    }
+
+    let lastDone = null;
+    let daysSinceLast = 0;
+    for (let step = 0; step <= 365; step++) {
+        if (ds < createdDate) break;
+        const isDone = completedDatesSet.has(ds);
+        if (isDone) {
+            if (lastDone) {
+                const gap = Math.round((new Date(lastDone + 'T12:00:00') - new Date(ds + 'T12:00:00')) / 86400000);
+                if (gap > interval && !isFrozen) {
+                    break;
+                }
+            }
+            currentStreak++;
+            lastDone = ds;
+            daysSinceLast = 0;
+        } else {
+            daysSinceLast++;
+            if (daysSinceLast >= interval && !isFrozen) {
+                break;
+            }
+            if (daysSinceLast > 60) {
+                break;
+            }
+        }
+        dt.setDate(dt.getDate() - 1);
+        ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+    }
+    currentStreak = Math.max(0, currentStreak + manualAdj);
 
     let best = 0;
     let run = 0;
     let prev = null;
-    completedDates.forEach(ds => {
+    completedDates.forEach(dStr => {
         if (!prev) {
             run = 1;
         } else {
-            const gap = Math.round((new Date(ds + 'T00:00:00') - new Date(prev + 'T00:00:00')) / 86400000);
+            const gap = Math.round((new Date(dStr + 'T12:00:00') - new Date(prev + 'T12:00:00')) / 86400000);
             if (gap <= interval) run++;
             else run = 1;
         }
         if (run > best) best = run;
-        prev = ds;
+        prev = dStr;
     });
     const bestStreak = Math.max(best + manualAdj, currentStreak);
 
@@ -6580,7 +6635,7 @@ function getHabitDetailedStats(name, optionalHabit, optionalHabits) {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const thirtyStr = formatDateStr(thirtyDaysAgo.getFullYear(), thirtyDaysAgo.getMonth() + 1, thirtyDaysAgo.getDate());
-    completedDates.forEach(ds => { if (ds >= thirtyStr && ds <= todayStr) last30Count++; });
+    completedDates.forEach(dStr => { if (dStr >= thirtyStr && dStr <= todayStr) last30Count++; });
 
     const expectedIn30 = Math.max(1, Math.round(30 / interval));
     const monthRate = Math.min(100, Math.round((last30Count / expectedIn30) * 100));
@@ -6592,14 +6647,33 @@ function getHabitNextDueText(h, curDate, optionalHabits) {
     if (!h) return 'Rest day';
     const interval = getHabitIntervalDays(h);
     if (interval <= 1) return 'Due tomorrow';
-    for (let offset = 1; offset <= 60; offset++) {
-        const futureDate = addDaysToDateStr(curDate, offset);
-        if (isHabitDueOnDate(h, futureDate, optionalHabits)) {
-            if (offset === 1) return 'Rest (Due tomorrow)';
-            return `Rest (Due in ${offset}d)`;
+
+    const hs = optionalHabits || loadHabits();
+    let lastCompletedDate = null;
+    let cursor = new Date(curDate + 'T12:00:00');
+    const createdDate = h.createdDate || '2020-01-01';
+    for (let i = 0; i < 60; i++) {
+        const ds = formatDateStr(cursor.getFullYear(), cursor.getMonth() + 1, cursor.getDate());
+        if (ds < createdDate) break;
+        if (getHabitCompletions(ds, hs).includes(h.name)) {
+            lastCompletedDate = ds;
+            break;
         }
+        cursor.setDate(cursor.getDate() - 1);
     }
-    return 'Rest day';
+
+    let daysSince = 0;
+    if (lastCompletedDate) {
+        daysSince = Math.round((new Date(curDate + 'T12:00:00') - new Date(lastCompletedDate + 'T12:00:00')) / 86400000);
+    } else {
+        const start = h.createdDate || curDate;
+        const diff = Math.round((new Date(curDate + 'T12:00:00') - new Date(start + 'T12:00:00')) / 86400000);
+        daysSince = diff >= 0 ? (diff % interval) : 0;
+    }
+
+    const daysRemaining = Math.max(1, interval - daysSince);
+    if (daysRemaining === 1) return 'Rest (Due tomorrow)';
+    return 'Rest (Due in ' + daysRemaining + 'd)';
 }
 
 function moveHabit(hName, direction) {
@@ -6636,21 +6710,25 @@ function moveHabit(hName, direction) {
     saveHabitsToStorage(hs);
     renderHabits();
 }
+
 function sortHabitsForDisplay(arr, sc, curDate, optionalHabits) {
     const hs = optionalHabits || arr;
+    const dueMap = new Map();
+    arr.forEach(h => {
+        dueMap.set(h.name || h.id, isHabitDueOnDate(h, curDate, hs));
+    });
     return arr.slice().sort((a, b) => {
         const aDone = sc.includes(a.name) ? 1 : 0;
         const bDone = sc.includes(b.name) ? 1 : 0;
         if (aDone !== bDone) return aDone - bDone;
 
-        const aDue = isHabitDueOnDate(a, curDate, hs) ? 0 : 1;
-        const bDue = isHabitDueOnDate(b, curDate, hs) ? 0 : 1;
+        const aDue = dueMap.get(a.name || a.id) ? 0 : 1;
+        const bDue = dueMap.get(b.name || b.id) ? 0 : 1;
         if (aDue !== bDue) return aDue - bDue;
 
         return 0; // Stable sort preserves base order within each bucket!
     });
 }
-
 function renderHabitsCardList(arr, sc, curDate, allHs) {
     let out = '';
     arr.forEach((h, dispIdx) => {
@@ -6958,7 +7036,7 @@ function openHabitManageModal(hOrName) {
 
     bubbleDates.forEach(ds => {
         const isDone = getHabitCompletions(ds, habits).includes(habitName);
-        const dObj = new Date(ds + 'T00:00:00');
+        const dObj = new Date(ds + 'T12:00:00');
         const dayLetter = ['S', 'M', 'T', 'W', 'T', 'F', 'S'][dObj.getDay()];
         const dayNum = dObj.getDate();
         bubbleHTML += `
@@ -7150,15 +7228,19 @@ function saveHabitManageModal() {
 
     // If renamed, update completions in storage
     if (newName !== oldName) {
+        if (typeof habitCompletionsCache !== 'undefined' && habitCompletionsCache) habitCompletionsCache.clear();
         for (let i = 0; i < appStorage.length; i++) {
             const k = appStorage.key(i);
             if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
                 const ds = k.slice(STORAGE_PREFIX.length);
                 if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
-                    let d = getData(ds);
-                    if (d && Array.isArray(d.habits) && d.habits.includes(oldName)) {
-                        d.habits = d.habits.map(x => (x === oldName ? newName : x));
-                        saveData(ds, d);
+                    const raw = appStorage.getItem(k);
+                    if (raw && raw.includes(oldName)) {
+                        let d = getData(ds);
+                        if (d && Array.isArray(d.habits) && d.habits.includes(oldName)) {
+                            d.habits = d.habits.map(x => (x === oldName ? newName : x));
+                            saveData(ds, d);
+                        }
                     }
                 }
             }
