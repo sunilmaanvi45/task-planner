@@ -5831,8 +5831,16 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 const toData=getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
                 toData.tasks=toData.tasks||[];
                 toData.tasks=toData.tasks.filter(t=>t.id!==taskId);
+                task.dateStr=toDate;
+                task.updatedAt=Date.now();
+                task.movedAt=Date.now();
+                if(typeof recordTaskLocation==='function')recordTaskLocation(taskId,toDate,Date.now());
                 toData.tasks.push(task);
                 saveData(toDate,toData);
+                if(typeof setLocalKeyTimestamp==='function'){
+                    setLocalKeyTimestamp('td_'+fromDate,Date.now());
+                    setLocalKeyTimestamp('td_'+toDate,Date.now());
+                }
 
                 pruneEisenItemGlobal('task',taskId,toDate);
 
@@ -5935,8 +5943,15 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 toData.learnings = toData.learnings || [];
                 toData.learnings=toData.learnings.filter(x=>x.id!==learningId);
                 l.currentDate = toDate;
+                l.dateStr = toDate;
+                l.updatedAt = Date.now();
+                l.movedAt = Date.now();
                 toData.learnings.push(l);
                 saveData(toDate, toData);
+                if(typeof setLocalKeyTimestamp==='function'){
+                    setLocalKeyTimestamp('td_'+(fromDate||originDate),Date.now());
+                    setLocalKeyTimestamp('td_'+toDate,Date.now());
+                }
 
                 pruneEisenItemGlobal('learning',learningId,toDate);
 
@@ -6133,6 +6148,10 @@ function executeEisenMoveToDate(target, keepQuadrant) {
                         }
                     }
                     if (task) {
+                        task.dateStr = target;
+                        task.updatedAt = Date.now();
+                        task.movedAt = Date.now();
+                        if (typeof recordTaskLocation === 'function') recordTaskLocation(task.id, target, Date.now());
                         toData.tasks = toData.tasks.filter(t => t.id !== task.id);
                         toData.tasks.push(task);
                         movedCount++;
@@ -6180,6 +6199,10 @@ function executeEisenMoveToDate(target, keepQuadrant) {
                     if (taskIdx !== -1) {
                         const task = fromData.tasks[taskIdx];
                         fromData.tasks.splice(taskIdx, 1);
+                        task.dateStr = target;
+                        task.updatedAt = Date.now();
+                        task.movedAt = Date.now();
+                        if (typeof recordTaskLocation === 'function') recordTaskLocation(task.id, target, Date.now());
                         toData.tasks = toData.tasks.filter(t => t.id !== task.id);
                         toData.tasks.push(task);
                         movedCount++;
@@ -7845,7 +7868,7 @@ function renderHabitMiniCalendar() {
                 if(selectedTaskIds.has(t.id)){moved.push(t);return false}
                 return true;
             });
-            moved.forEach(t=>targetData.tasks.push(t));
+            moved.forEach(t=>{t.dateStr=targetDate;t.updatedAt=Date.now();t.movedAt=Date.now();if(typeof recordTaskLocation==='function')recordTaskLocation(t.id,targetDate,Date.now());targetData.tasks.push(t);});
             saveData(targetDate,targetData);ids.forEach(id=>pruneEisenItemGlobal('task',id,targetDate));
             if(ids.indexOf(activeTaskId)!==-1)activeTaskId=null;
             selectedTaskIds.clear();
@@ -8290,7 +8313,7 @@ function renderHabitMiniCalendar() {
         currentDataCache=JSON.parse(JSON.stringify(data));saveCurrentData(data);
         let tds;if(selectionMode==='daily'&&selectedDateStr)tds=addDaysToDateStr(selectedDateStr,days);else tds=addDaysToDateStr(getTodayStr(),days);
         const td=getData(tds)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-        td.tasks=td.tasks||[];td.tasks.push(task);saveData(tds,td);pruneEisenItemGlobal('task',taskId,tds);
+        td.tasks=td.tasks||[];td.tasks=td.tasks.filter(t=>t.id!==taskId);task.dateStr=tds;task.updatedAt=Date.now();task.movedAt=Date.now();if(typeof recordTaskLocation==='function')recordTaskLocation(taskId,tds,Date.now());td.tasks.push(task);saveData(tds,td);pruneEisenItemGlobal('task',taskId,tds);if(typeof setLocalKeyTimestamp==='function'){setLocalKeyTimestamp('td_'+(selectedDateStr||getTodayStr()),Date.now());setLocalKeyTimestamp('td_'+tds,Date.now());}
         if(activeTaskId===taskId)activeTaskId=null;
         renderTaskList(data.tasks);updateProgressViz(data);renderCalendar();renderLearningsSection();
         if(selectionMode==='daily'&&selectedDateStr){updateSingleCell(selectedDateStr,{pop:true});updateSingleCell(tds,{pop:true})}
@@ -16271,9 +16294,14 @@ function renderWeekTimeblocksModal(wid) {
 
     let weekObj = getWeekObjById(wid);
     if (!weekObj) {
-        const [y, m] = wid.split('-').map(Number);
-        const ws = computeWeeksForMonth(y || currentYear, m || currentMonth);
-        weekObj = ws[0];
+        if (typeof wid === 'string' && wid.includes('-')) {
+            const [y, m] = wid.split('-').map(Number);
+            const ws = computeWeeksForMonth(y || currentYear, m || currentMonth);
+            weekObj = ws[0];
+        } else {
+            const ws = computeWeeksForMonth(currentYear, currentMonth);
+            weekObj = ws[0];
+        }
     }
     if (!weekObj) return;
 
@@ -16495,10 +16523,15 @@ function moveWtbTask(taskId, fromDate, toDate, targetBlockId, targetTaskId, drop
     // Extract task from source
     const [task] = fromData.tasks.splice(taskIdx, 1);
 
-    // Update timeblock tag in task text
+    // Update timeblock tag in task text & attach location metadata
     task.text = applyTaskTimeblock(task.text, targetBlockId);
+    task.dateStr = toDate;
+    task.updatedAt = Date.now();
+    task.movedAt = Date.now();
+    if (typeof recordTaskLocation === 'function') recordTaskLocation(taskId, toDate, Date.now());
 
     // Insert into destination tasks array
+    toData.tasks = toData.tasks.filter(t => t.id !== taskId);
     if (targetTaskId && targetTaskId !== taskId) {
         const targetIdx = toData.tasks.findIndex(t => t.id === targetTaskId);
         if (targetIdx !== -1) {
@@ -16515,6 +16548,26 @@ function moveWtbTask(taskId, fromDate, toDate, targetBlockId, targetTaskId, drop
     saveData(fromDate, fromData);
     if (fromDate !== toDate) {
         saveData(toDate, toData);
+        // Prune any rogue duplicates of this task on other dates
+        for (let i = 0; i < appStorage.length; i++) {
+            const k = appStorage.key(i);
+            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
+                const ds = k.slice(STORAGE_PREFIX.length);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(ds) && ds !== toDate && ds !== fromDate) {
+                    const otherData = getData(ds);
+                    if (otherData && Array.isArray(otherData.tasks) && otherData.tasks.some(x => x.id === taskId)) {
+                        otherData.tasks = otherData.tasks.filter(x => x.id !== taskId);
+                        const sc = otherData.tasks.length > 0 || otherData.notes?.trim() || otherData.dayTitle?.trim() || otherData.holiday || otherData.attachments?.length || otherData.learnings?.length || otherData.habits?.length || otherData.textCalendar?.length;
+                        if (sc) saveData(ds, otherData); else deleteData(ds);
+                    }
+                }
+            }
+        }
+    }
+
+    if (typeof setLocalKeyTimestamp === 'function') {
+        setLocalKeyTimestamp('td_' + fromDate, Date.now());
+        if (fromDate !== toDate) setLocalKeyTimestamp('td_' + toDate, Date.now());
     }
 
     // If currently selected date is fromDate or toDate, synchronize detail panel & task list immediately
@@ -16533,8 +16586,10 @@ function moveWtbTask(taskId, fromDate, toDate, targetBlockId, targetTaskId, drop
         renderCalendar();
     }
 
-    // Refresh modal view instantly
-    renderWeekTimeblocksModal(currentWtbWeekId);
+    // Refresh modal view instantly if active
+    if (currentWtbWeekId) {
+        renderWeekTimeblocksModal(currentWtbWeekId);
+    }
 
     if (typeof showSaved === 'function') showSaved();
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush(100);
@@ -16956,7 +17011,7 @@ window.moveWtbTask = moveWtbTask;
     async function exportPDF(){flushDebounced();const b=document.getElementById('btnExportPdf');const oh=b.innerHTML;b.style.pointerEvents='none';b.innerHTML='...';try{const el=document.querySelector('.app-container');const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--bg')});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:canvas.width>canvas.height?'landscape':'portrait',unit:'px',format:[canvas.width,canvas.height]});pdf.addImage(img,'PNG',0,0,canvas.width,canvas.height);pdf.save(`todo-planner-${new Date().toISOString().slice(0,10)}.pdf`)}catch(e){alert('PDF export failed.')}finally{b.style.pointerEvents='auto';b.innerHTML=oh}}
 
     function init(){
-        initTheme();initStatsCollapse();initPertCollapse();
+        initTheme();initStatsCollapse();initPertCollapse();if(typeof deduplicateAllStorage==='function')deduplicateAllStorage();
         if(pathPrefixInput) pathPrefixInput.value=filePathPrefix;
         const ts=getTodayStr();
         const[y,m]=ts.split('-').map(Number);
@@ -16969,6 +17024,7 @@ window.moveWtbTask = moveWtbTask;
         initDestinationTime();
         window.dispatchEvent(new CustomEvent('td-date-changed',{detail:{date:ts}}));
         function refreshOnIdbReady(){
+            if(typeof deduplicateAllStorage === 'function') deduplicateAllStorage();
             renderCalendar();
             renderLearningsSection();
             renderHabits();
@@ -20881,6 +20937,39 @@ window.moveWtbTask = moveWtbTask;
     } catch(e){}
         }
 
+        const TASK_LOCATIONS_KEY = 'tp_task_locations';
+
+        function getTaskLocations(){
+    try {
+        const raw = (window.appStorage && typeof window.appStorage.getItem === 'function')
+            ? window.appStorage.getItem(TASK_LOCATIONS_KEY)
+            : (window.localStorage ? window.localStorage.getItem(TASK_LOCATIONS_KEY) : null);
+        return raw ? JSON.parse(raw) : {};
+    } catch(e){
+        return {};
+    }
+        }
+
+        function recordTaskLocation(taskId, dateStr, ts){
+    if(!taskId || !dateStr) return;
+    try {
+        const locs = getTaskLocations();
+        locs[taskId] = { dateStr: dateStr, ts: ts || Date.now() };
+        const keys = Object.keys(locs);
+        if(keys.length > 2000){
+            keys.sort((a,b) => (locs[a]?.ts || 0) - (locs[b]?.ts || 0));
+            for(let i = 0; i < keys.length - 1500; i++){
+                delete locs[keys[i]];
+            }
+        }
+        const json = JSON.stringify(locs);
+        if(window.appStorage && typeof window.appStorage.setItem === 'function') window.appStorage.setItem(TASK_LOCATIONS_KEY, json);
+        if(window.localStorage) { try { window.localStorage.setItem(TASK_LOCATIONS_KEY, json); } catch(e){} }
+    } catch(e){}
+        }
+        window.getTaskLocations = getTaskLocations;
+        window.recordTaskLocation = recordTaskLocation;
+
         function isSyncableKey(k){
     if(!k || typeof k !== 'string') return false;
     if(k.startsWith('_')) return false;
@@ -20889,7 +20978,8 @@ window.moveWtbTask = moveWtbTask;
     if(k.startsWith('td_') || k.startsWith('tdw_')) return true;
     if(k.startsWith('tp_contacts') || k.startsWith('tp_people_meta')) return true;
     if(k.startsWith('tp_eisen_presets') || k.startsWith('tp_habits_list')) return true;
-    if(k === 'tp_deleted_task_ids') return true;
+    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations') return true;
+    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations') return true;
     return false;
         }
 
@@ -21291,6 +21381,25 @@ window.moveWtbTask = moveWtbTask;
             } catch(e){}
         }
 
+        // Intelligent union-merge for task locations
+        if(k === 'tp_task_locations'){
+            try {
+                const localLocMap = curLocalVal ? JSON.parse(curLocalVal) : {};
+                const remoteLocMap = remoteStrVal ? JSON.parse(remoteStrVal) : {};
+                const mergedLocMap = Object.assign({}, remoteLocMap);
+                for(const tid in localLocMap){
+                    if(!mergedLocMap[tid] || (localLocMap[tid].ts || 0) >= (mergedLocMap[tid].ts || 0)){
+                        mergedLocMap[tid] = localLocMap[tid];
+                    }
+                }
+                const mergedLocStr = JSON.stringify(mergedLocMap);
+                if(storage) storage.setItem(k, mergedLocStr);
+                mergedItems[k] = mergedLocStr;
+                mergedTimestamps[k] = Math.max(localTs, remoteTs, Date.now());
+                continue;
+            } catch(e){}
+        }
+
         // Filter out deleted tasks from daily and weekly records before merge
         if(k.startsWith('td_') || k.startsWith('tdw_')){
             try {
@@ -21347,7 +21456,7 @@ window.moveWtbTask = moveWtbTask;
         }
 
         // Intelligent entity-level union merge for daily and weekly records (td_YYYY-MM-DD / tdw_YYYY-Wxx)
-        // Prevents PC vs Mobile overwriting each other's tasks, learnings, and habits on the same date
+        // Directional recency + Anti-Cross-Date Guard prevents duplicates when moving tasks between dates
         if((/^td_\d{4}-\d{2}-\d{2}$/.test(k) || /^tdw_\d{4}-W\d{2}$/.test(k)) && curLocalVal !== null && curLocalVal !== undefined && remoteStrVal !== null && remoteStrVal !== undefined){
             try {
                 const localDay = JSON.parse(curLocalVal);
@@ -21360,57 +21469,169 @@ window.moveWtbTask = moveWtbTask;
                         if(rawDel) delTaskMap = (typeof rawDel === 'object') ? rawDel : JSON.parse(rawDel);
                     } catch(e){}
 
-                    // 1. Union Merge Tasks by ID (with anti-resurrection tombstone guard)
+                    // Load recorded task locations
+                    let taskLocMap = {};
+                    try {
+                        const rawLoc = (localPayload && localPayload['tp_task_locations']) || (storage ? storage.getItem('tp_task_locations') : null) || (remotePayload && remotePayload['tp_task_locations']);
+                        if(rawLoc) taskLocMap = (typeof rawLoc === 'object') ? rawLoc : JSON.parse(rawLoc);
+                    } catch(e){}
+
+                    const curDateStr = k.startsWith('td_') ? k.slice(3) : k.slice(4);
+
+                    const isTaskMovedElsewhere = (tid) => {
+                        if(!tid) return false;
+                        const loc = taskLocMap[tid];
+                        if(loc && loc.dateStr && loc.dateStr !== curDateStr) return true;
+                        return false;
+                    };
+
+                    const isTaskOnOtherDate = (tid, payload) => {
+                        if(!tid || !payload) return false;
+                        for(const pk in payload){
+                            if(pk !== k && (pk.startsWith('td_') || pk.startsWith('tdw_')) && !pk.startsWith('td_pj_') && !pk.startsWith('td_pert_')){
+                                try {
+                                    const pVal = payload[pk];
+                                    const pObj = (typeof pVal === 'string') ? JSON.parse(pVal) : pVal;
+                                    if(pObj && Array.isArray(pObj.tasks) && pObj.tasks.some(t => t && t.id === tid)){
+                                        return true;
+                                    }
+                                } catch(e){}
+                            }
+                        }
+                        return false;
+                    };
+
+                    // 1. Merge Tasks by ID (with directional recency & anti-cross-date guard)
                     const localTasks = Array.isArray(localDay.tasks) ? localDay.tasks : [];
                     const remoteTasks = Array.isArray(remoteDay.tasks) ? remoteDay.tasks : [];
                     const taskMap = new Map();
 
-                    localTasks.forEach(t => {
-                        if(t && t.id && !delTaskMap[t.id]){
-                            taskMap.set(t.id, t);
-                        }
-                    });
-
-                    remoteTasks.forEach(rt => {
-                        if(!rt || !rt.id || delTaskMap[rt.id]) return;
-                        if(!taskMap.has(rt.id)){
+                    if(remoteTs > localTs + 500){
+                        // Remote is newer save: remoteTasks are authoritative
+                        remoteTasks.forEach(rt => {
+                            if(!rt || !rt.id || delTaskMap[rt.id] || isTaskMovedElsewhere(rt.id)) return;
                             taskMap.set(rt.id, rt);
-                        } else {
-                            // If both devices have the task, pick properties from the newer save
-                            const lt = taskMap.get(rt.id);
-                            if(remoteTs > localTs + 500){
-                                taskMap.set(rt.id, { ...lt, ...rt });
+                        });
+                        localTasks.forEach(lt => {
+                            if(!lt || !lt.id || delTaskMap[lt.id] || isTaskMovedElsewhere(lt.id)) return;
+                            if(taskMap.has(lt.id)){
+                                taskMap.set(lt.id, { ...lt, ...taskMap.get(lt.id) });
                             } else {
-                                taskMap.set(rt.id, { ...rt, ...lt });
+                                if(isTaskOnOtherDate(lt.id, remotePayload)) return;
+                                if((lt.updatedAt || localTs) > remoteTs){
+                                    taskMap.set(lt.id, lt);
+                                }
                             }
-                        }
-                    });
+                        });
+                    } else if(localTs > remoteTs + 500){
+                        // Local is newer save: localTasks are authoritative
+                        localTasks.forEach(lt => {
+                            if(!lt || !lt.id || delTaskMap[lt.id] || isTaskMovedElsewhere(lt.id)) return;
+                            taskMap.set(lt.id, lt);
+                        });
+                        remoteTasks.forEach(rt => {
+                            if(!rt || !rt.id || delTaskMap[rt.id] || isTaskMovedElsewhere(rt.id)) return;
+                            if(taskMap.has(rt.id)){
+                                taskMap.set(rt.id, { ...rt, ...taskMap.get(rt.id) });
+                            } else {
+                                if(isTaskOnOtherDate(rt.id, localPayload)) return;
+                                if((rt.updatedAt || remoteTs) > localTs){
+                                    taskMap.set(rt.id, rt);
+                                }
+                            }
+                        });
+                    } else {
+                        // Concurrent save within 500ms
+                        localTasks.forEach(lt => {
+                            if(!lt || !lt.id || delTaskMap[lt.id] || isTaskMovedElsewhere(lt.id)) return;
+                            if(!isTaskOnOtherDate(lt.id, remotePayload)){
+                                taskMap.set(lt.id, lt);
+                            }
+                        });
+                        remoteTasks.forEach(rt => {
+                            if(!rt || !rt.id || delTaskMap[rt.id] || isTaskMovedElsewhere(rt.id)) return;
+                            if(taskMap.has(rt.id)){
+                                const lt = taskMap.get(rt.id);
+                                taskMap.set(rt.id, remoteTs > localTs ? { ...lt, ...rt } : { ...rt, ...lt });
+                            } else {
+                                if(!isTaskOnOtherDate(rt.id, localPayload)){
+                                    taskMap.set(rt.id, rt);
+                                }
+                            }
+                        });
+                    }
                     const mergedTasks = Array.from(taskMap.values());
 
-                    // 2. Union Merge Learnings by ID
+                    // 2. Merge Learnings by ID (with directional recency & anti-cross-date guard)
                     const localLearnings = Array.isArray(localDay.learnings) ? localDay.learnings : [];
                     const remoteLearnings = Array.isArray(remoteDay.learnings) ? remoteDay.learnings : [];
                     const learningMap = new Map();
 
-                    localLearnings.forEach(l => {
-                        if(l && l.id){
-                            learningMap.set(l.id, l);
-                        }
-                    });
-
-                    remoteLearnings.forEach(rl => {
-                        if(!rl || !rl.id) return;
-                        if(!learningMap.has(rl.id)){
-                            learningMap.set(rl.id, rl);
-                        } else {
-                            const ll = learningMap.get(rl.id);
-                            if(remoteTs > localTs + 500){
-                                learningMap.set(rl.id, { ...ll, ...rl });
-                            } else {
-                                learningMap.set(rl.id, { ...rl, ...ll });
+                    const isLearningOnOtherDate = (lid, payload) => {
+                        if(!lid || !payload) return false;
+                        for(const pk in payload){
+                            if(pk !== k && (pk.startsWith('td_') || pk.startsWith('tdw_')) && !pk.startsWith('td_pj_') && !pk.startsWith('td_pert_')){
+                                try {
+                                    const pVal = payload[pk];
+                                    const pObj = (typeof pVal === 'string') ? JSON.parse(pVal) : pVal;
+                                    if(pObj && Array.isArray(pObj.learnings) && pObj.learnings.some(l => l && l.id === lid)){
+                                        return true;
+                                    }
+                                } catch(e){}
                             }
                         }
-                    });
+                        return false;
+                    };
+
+                    if(remoteTs > localTs + 500){
+                        remoteLearnings.forEach(rl => {
+                            if(!rl || !rl.id) return;
+                            learningMap.set(rl.id, rl);
+                        });
+                        localLearnings.forEach(ll => {
+                            if(!ll || !ll.id) return;
+                            if(learningMap.has(ll.id)){
+                                learningMap.set(ll.id, { ...ll, ...learningMap.get(ll.id) });
+                            } else {
+                                if(!isLearningOnOtherDate(ll.id, remotePayload) && (ll.updatedAt || localTs) > remoteTs){
+                                    learningMap.set(ll.id, ll);
+                                }
+                            }
+                        });
+                    } else if(localTs > remoteTs + 500){
+                        localLearnings.forEach(ll => {
+                            if(!ll || !ll.id) return;
+                            learningMap.set(ll.id, ll);
+                        });
+                        remoteLearnings.forEach(rl => {
+                            if(!rl || !rl.id) return;
+                            if(learningMap.has(rl.id)){
+                                learningMap.set(rl.id, { ...rl, ...learningMap.get(rl.id) });
+                            } else {
+                                if(!isLearningOnOtherDate(rl.id, localPayload) && (rl.updatedAt || remoteTs) > localTs){
+                                    learningMap.set(rl.id, rl);
+                                }
+                            }
+                        });
+                    } else {
+                        localLearnings.forEach(ll => {
+                            if(!ll || !ll.id) return;
+                            if(!isLearningOnOtherDate(ll.id, remotePayload)){
+                                learningMap.set(ll.id, ll);
+                            }
+                        });
+                        remoteLearnings.forEach(rl => {
+                            if(!rl || !rl.id) return;
+                            if(learningMap.has(rl.id)){
+                                const ll = learningMap.get(rl.id);
+                                learningMap.set(rl.id, remoteTs > localTs ? { ...ll, ...rl } : { ...rl, ...ll });
+                            } else {
+                                if(!isLearningOnOtherDate(rl.id, localPayload)){
+                                    learningMap.set(rl.id, rl);
+                                }
+                            }
+                        });
+                    }
                     const mergedLearnings = Array.from(learningMap.values());
 
                     // 3. Union Merge Habits
@@ -21476,8 +21697,7 @@ window.moveWtbTask = moveWtbTask;
                 console.error('Error in daily union merge for ' + k, e);
             }
         }
-
-        if(remoteStrVal !== null && curLocalVal !== null && curLocalVal !== undefined){
+                    if(remoteStrVal !== null && curLocalVal !== null && curLocalVal !== undefined){
             if(remoteTs > localTs + 500){
                 if(curLocalVal !== remoteStrVal){
                     if(storage) storage.setItem(k, remoteStrVal);
@@ -21505,6 +21725,24 @@ window.moveWtbTask = moveWtbTask;
         }
     }
 
+    // MASTER CROSS-DATE TASK & LEARNING DEDUPLICATION SWEEP
+    let taskLocMap = {};
+    try {
+        const rawLoc = (localPayload && localPayload['tp_task_locations']) || (storage ? storage.getItem('tp_task_locations') : null) || (remotePayload && remotePayload['tp_task_locations']);
+        if(rawLoc) taskLocMap = (typeof rawLoc === 'object') ? rawLoc : JSON.parse(rawLoc);
+    } catch(e){}
+
+    let delTaskMap = {};
+    try {
+        const rawDel = (localPayload && localPayload['tp_deleted_task_ids']) || (storage ? storage.getItem('tp_deleted_task_ids') : null) || (remotePayload && remotePayload['tp_deleted_task_ids']);
+        if(rawDel) delTaskMap = (typeof rawDel === 'object') ? rawDel : JSON.parse(rawDel);
+    } catch(e){}
+
+    const dupCleaned = deduplicateTasksAndLearnings(mergedItems, mergedTimestamps, taskLocMap, delTaskMap, storage);
+    if(dupCleaned) {
+        localAppliedRemoteChanges = true;
+    }
+
     try {
         window.localStorage.setItem(KEY_TIMESTAMPS_KEY, JSON.stringify(mergedTimestamps));
         window.localStorage.setItem(KEY_DELETED_KEY, JSON.stringify(mergedDeleted));
@@ -21519,6 +21757,145 @@ window.moveWtbTask = moveWtbTask;
         localAppliedRemoteChanges
     };
         }
+
+        function deduplicateTasksAndLearnings(items, timestamps, taskLocMap, delTaskMap, storage){
+    const taskOccurrences = new Map();
+    const learningOccurrences = new Map();
+
+    for(const k in items){
+        if(!k.startsWith('td_') && !k.startsWith('tdw_')) continue;
+        if(k.startsWith('td_pj_') || k.startsWith('td_pert_')) continue;
+        const curDateStr = k.startsWith('td_') ? k.slice(3) : k.slice(4);
+        const raw = items[k];
+        if(!raw) continue;
+        let dayObj = null;
+        try { dayObj = (typeof raw === 'string') ? JSON.parse(raw) : raw; } catch(e){}
+        if(!dayObj) continue;
+
+        const dateTs = timestamps ? (timestamps[k] || 0) : 0;
+
+        if(Array.isArray(dayObj.tasks)){
+            dayObj.tasks.forEach(t => {
+                if(!t || !t.id) return;
+                if(!taskOccurrences.has(t.id)) taskOccurrences.set(t.id, []);
+                taskOccurrences.get(t.id).push({ dateKey: k, task: t, ts: dateTs, dateStr: curDateStr });
+            });
+        }
+
+        if(Array.isArray(dayObj.learnings)){
+            dayObj.learnings.forEach(l => {
+                if(!l || !l.id) return;
+                if(!learningOccurrences.has(l.id)) learningOccurrences.set(l.id, []);
+                learningOccurrences.get(l.id).push({ dateKey: k, learning: l, ts: dateTs, dateStr: curDateStr });
+            });
+        }
+    }
+
+    let anyCleaned = false;
+
+    // Deduplicate Tasks across dates
+    for(const [tid, list] of taskOccurrences.entries()){
+        if(list.length <= 1) continue;
+        anyCleaned = true;
+        let winner = null;
+        const recorded = taskLocMap ? taskLocMap[tid] : null;
+        if(recorded && recorded.dateStr){
+            winner = list.find(x => x.dateStr === recorded.dateStr);
+        }
+        if(!winner){
+            winner = list.find(x => x.task.dateStr === x.dateStr);
+        }
+        if(!winner){
+            list.sort((a,b) => {
+                const maA = a.task.movedAt || a.task.updatedAt || 0;
+                const maB = b.task.movedAt || b.task.updatedAt || 0;
+                if(maA !== maB) return maB - maA;
+                if(a.ts !== b.ts) return b.ts - a.ts;
+                return b.dateStr.localeCompare(a.dateStr);
+            });
+            winner = list[0];
+        }
+
+        if(winner && typeof recordTaskLocation === 'function'){
+            recordTaskLocation(tid, winner.dateStr, Date.now());
+        }
+
+        list.forEach(item => {
+            if(item.dateKey !== winner.dateKey){
+                const raw = items[item.dateKey];
+                try {
+                    const d = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+                    if(d && Array.isArray(d.tasks)){
+                        d.tasks = d.tasks.filter(t => t.id !== tid);
+                        items[item.dateKey] = JSON.stringify(d);
+                        if(storage) storage.setItem(item.dateKey, items[item.dateKey]);
+                    }
+                } catch(e){}
+            }
+        });
+    }
+
+    // Deduplicate Learnings across dates
+    for(const [lid, list] of learningOccurrences.entries()){
+        if(list.length <= 1) continue;
+        anyCleaned = true;
+        list.sort((a,b) => {
+            const maA = a.learning.movedAt || a.learning.updatedAt || 0;
+            const maB = b.learning.movedAt || b.learning.updatedAt || 0;
+            if(maA !== maB) return maB - maA;
+            if(a.ts !== b.ts) return b.ts - a.ts;
+            return b.dateStr.localeCompare(a.dateStr);
+        });
+        const winner = list[0];
+        list.forEach(item => {
+            if(item.dateKey !== winner.dateKey){
+                const raw = items[item.dateKey];
+                try {
+                    const d = (typeof raw === 'string') ? JSON.parse(raw) : raw;
+                    if(d && Array.isArray(d.learnings)){
+                        d.learnings = d.learnings.filter(l => l.id !== lid);
+                        items[item.dateKey] = JSON.stringify(d);
+                        if(storage) storage.setItem(item.dateKey, items[item.dateKey]);
+                    }
+                } catch(e){}
+            }
+        });
+    }
+
+    return anyCleaned;
+        }
+
+        function deduplicateAllStorage(){
+    const storage = (window.appStorage && typeof window.appStorage.getItem === 'function') ? window.appStorage : window.localStorage;
+    if(!storage) return false;
+    const items = {};
+    const timestamps = {};
+    let tsMap = {};
+    try { tsMap = JSON.parse(window.localStorage ? window.localStorage.getItem('tp_key_timestamps') : '{}') || {}; } catch(e){}
+    const locMap = typeof getTaskLocations === 'function' ? getTaskLocations() : {};
+    const delMap = typeof getDeletedTaskIds === 'function' ? getDeletedTaskIds() : {};
+
+    const len = storage.length;
+    for(let i=0; i<len; i++){
+        const k = storage.key(i);
+        if(k && (k.startsWith('td_') || k.startsWith('tdw_')) && !k.startsWith('td_pj_') && !k.startsWith('td_pert_')){
+            const v = storage.getItem(k);
+            if(v){
+                items[k] = v;
+                timestamps[k] = tsMap[k] || 0;
+            }
+        }
+    }
+
+    const modified = deduplicateTasksAndLearnings(items, timestamps, locMap, delMap, storage);
+    if(modified){
+        if(typeof scheduleCloudPush === 'function') scheduleCloudPush(150);
+        return true;
+    }
+    return false;
+        }
+        window.deduplicateAllStorage = deduplicateAllStorage;
+        window.deduplicateTasksAndLearnings = deduplicateTasksAndLearnings;
 
         async function pushToCloud(){
     if(!supabaseClient || isApplyingRemoteUpdate || isTabResuming) return;
@@ -21929,6 +22306,10 @@ window.moveWtbTask = moveWtbTask;
     window.__taskPlannerAppBridge.pushToCloud = pushToCloud;
     window.__taskPlannerAppBridge.pullFromCloud = pullFromCloud;
     window.__taskPlannerAppBridge.scheduleCloudPush = scheduleCloudPush;
+    window.__taskPlannerAppBridge.deduplicateAllStorage = deduplicateAllStorage;
+    window.__taskPlannerAppBridge.deduplicateTasksAndLearnings = deduplicateTasksAndLearnings;
+    window.__taskPlannerAppBridge.recordTaskLocation = recordTaskLocation;
+    window.__taskPlannerAppBridge.getTaskLocations = getTaskLocations;
         }
         if('serviceWorker' in navigator){
     window.addEventListener('load', function(){
