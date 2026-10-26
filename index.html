@@ -4232,11 +4232,40 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 .wtb-tb-badge {
   font-size: 0.62rem;
   font-weight: 700;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: var(--r-full, 999px);
   background: rgba(59, 130, 246, 0.15);
   color: #2563eb;
   line-height: 1.2;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wtb-tb-badge:hover {
+  background: rgba(59, 130, 246, 0.28);
+  color: #1d4ed8;
+  transform: scale(1.08);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+.wtb-tb-badge:active,
+.wtb-tb-badge.wtb-badge-dragging {
+  cursor: grabbing;
+  opacity: 0.5;
+  transform: scale(0.95);
+  box-shadow: 0 0 0 2px #2563eb;
+}
+
+.wtb-timeblock-tile.wtb-tile-source-dragging {
+  opacity: 0.6;
+  border-style: dashed !important;
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05) !important;
 }
 
 /* Small Task Chips Container */
@@ -16368,7 +16397,8 @@ function renderWeekTimeblocksModal(wid) {
                 });
             }
 
-            const badgeHTML = hasTasks ? `<span class="wtb-tb-badge">${bTasks.length}</span>` : '';
+            const taskIdsAttr = hasTasks ? bTasks.map(t => t.id).join(',') : '';
+            const badgeHTML = hasTasks ? `<span class="wtb-tb-badge" draggable="true" title="Drag all ${bTasks.length} tasks" data-date="${ds}" data-block-id="${bDef.id}" data-task-ids="${taskIdsAttr}" data-task-count="${bTasks.length}">${bTasks.length}</span>` : '';
 
             dayBlocksHTML += `
                 <div class="${tileClass}" data-date="${ds}" data-block-id="${bDef.id}">
@@ -16436,7 +16466,7 @@ function renderWeekTimeblocksModal(wid) {
                     <div class="wtb-timeblock-tile has-tasks" data-week="${weekObj.id}">
                         <div class="wtb-tb-header">
                             <span class="wtb-tb-label">Weekly Goals</span>
-                            <span class="wtb-tb-badge">${weekTasks.length}</span>
+                            <span class="wtb-tb-badge" draggable="true" title="Drag all ${weekTasks.length} weekly tasks" data-week="${weekObj.id}" data-task-ids="${weekTasks.map(t => t.id).join(',')}" data-task-count="${weekTasks.length}">${weekTasks.length}</span>
                         </div>
                         <div class="wtb-chips-container">
                             ${weekChipsHTML}
@@ -16596,6 +16626,130 @@ function moveWtbTask(taskId, fromDate, toDate, targetBlockId, targetTaskId, drop
     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
 }
 
+function moveWtbBatchBlock(taskIds, fromDate, fromWeek, targetDate, targetWeek, targetBlockId) {
+    if (!Array.isArray(taskIds) || !taskIds.length) return;
+    if (fromDate && targetDate && fromDate === targetDate && targetBlockId === 'same_block') return;
+
+    if (typeof flushDebounced === 'function') flushDebounced();
+
+    const taskIdSet = new Set(taskIds);
+    const now = Date.now();
+
+    // 1. Fetch fromData
+    let fromData = null;
+    if (fromDate) {
+        fromData = getData(fromDate);
+    } else if (fromWeek) {
+        fromData = getWeekData(fromWeek);
+    }
+    if (!fromData || !Array.isArray(fromData.tasks)) return;
+
+    // Extract tasks to move
+    const tasksToMove = fromData.tasks.filter(t => t && taskIdSet.has(t.id));
+    if (!tasksToMove.length) return;
+
+    // 2. Fetch toData
+    let toData = null;
+    if (targetDate) {
+        toData = (fromDate === targetDate) ? fromData : (getData(targetDate) || { tasks: [], notes: '', dayTitle: '', holiday: false, attachments: [], learnings: [], habits: [] });
+        if (!Array.isArray(toData.tasks)) toData.tasks = [];
+    } else if (targetWeek) {
+        toData = (fromWeek === targetWeek) ? fromData : (getWeekData(targetWeek) || { tasks: [], notes: '' });
+        if (!Array.isArray(toData.tasks)) toData.tasks = [];
+    }
+    if (!toData) return;
+
+    if (typeof pushUndo === 'function') {
+        pushUndo('Move ' + tasksToMove.length + ' task' + (tasksToMove.length === 1 ? '' : 's'));
+    }
+
+    // 3. Remove from source
+    fromData.tasks = fromData.tasks.filter(t => !taskIdSet.has(t.id));
+
+    // 4. Update task metadata and timeblocks
+    tasksToMove.forEach(task => {
+        if (targetDate) {
+            task.text = applyTaskTimeblock(task.text, targetBlockId || 'unscheduled');
+            task.dateStr = targetDate;
+            task.updatedAt = now;
+            task.movedAt = now;
+            if (typeof recordTaskLocation === 'function') {
+                recordTaskLocation(task.id, targetDate, now);
+            }
+        } else if (targetWeek) {
+            task.text = applyTaskTimeblock(task.text, 'unscheduled');
+            delete task.dateStr;
+            task.updatedAt = now;
+            task.movedAt = now;
+        }
+    });
+
+    // 5. Add to destination
+    toData.tasks = toData.tasks.filter(t => !taskIdSet.has(t.id));
+    toData.tasks.push(...tasksToMove);
+
+    // 6. Save source and destination
+    if (fromDate) {
+        saveData(fromDate, fromData);
+        if (typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('td_' + fromDate, now);
+    } else if (fromWeek) {
+        saveWeekData(fromWeek, fromData);
+        if (typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('tdw_' + fromWeek, now);
+    }
+
+    if (targetDate && targetDate !== fromDate) {
+        saveData(targetDate, toData);
+        if (typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('td_' + targetDate, now);
+
+        // Prune rogue duplicates across other daily storage records
+        for (let i = 0; i < appStorage.length; i++) {
+            const k = appStorage.key(i);
+            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
+                const ds = k.slice(STORAGE_PREFIX.length);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(ds) && ds !== targetDate && ds !== fromDate) {
+                    const otherData = getData(ds);
+                    if (otherData && Array.isArray(otherData.tasks) && otherData.tasks.some(x => taskIdSet.has(x.id))) {
+                        otherData.tasks = otherData.tasks.filter(x => !taskIdSet.has(x.id));
+                        const sc = otherData.tasks.length > 0 || otherData.notes?.trim() || otherData.dayTitle?.trim() || otherData.holiday || otherData.attachments?.length || otherData.learnings?.length || otherData.habits?.length || otherData.textCalendar?.length;
+                        if (sc) saveData(ds, otherData); else deleteData(ds);
+                    }
+                }
+            }
+        }
+    } else if (targetWeek && targetWeek !== fromWeek) {
+        saveWeekData(targetWeek, toData);
+        if (typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('tdw_' + targetWeek, now);
+    }
+
+    // 7. Synchronize detail panel if currently active
+    if (typeof selectedDateStr === 'string' && (selectedDateStr === fromDate || selectedDateStr === targetDate)) {
+        const curData = getData(selectedDateStr);
+        currentDataCache = JSON.parse(JSON.stringify(curData));
+        if (typeof renderTaskList === 'function') renderTaskList(curData.tasks);
+        if (typeof renderTaskToolbar === 'function') renderTaskToolbar();
+    } else if (typeof selectedWeekId === 'string' && (selectedWeekId === fromWeek || selectedWeekId === targetWeek)) {
+        const curWData = getWeekData(selectedWeekId);
+        if (typeof updateDetailPanelWeek === 'function') updateDetailPanelWeek(curWData, selectedWeekId);
+    }
+
+    // 8. Refresh calendar counters
+    if (typeof updateSingleCell === 'function') {
+        if (fromDate) updateSingleCell(fromDate, { pop: true });
+        if (targetDate && targetDate !== fromDate) updateSingleCell(targetDate, { pop: true });
+    } else if (typeof renderCalendar === 'function') {
+        renderCalendar();
+    }
+
+    // 9. Instantly refresh the week modal view
+    if (currentWtbWeekId) {
+        renderWeekTimeblocksModal(currentWtbWeekId);
+    }
+
+    if (typeof showSaved === 'function') showSaved();
+    if (typeof scheduleCloudPush === 'function') scheduleCloudPush(100);
+    window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+}
+
 /* ============================================================
    Event Binding & Delegation
    ============================================================ */
@@ -16656,6 +16810,12 @@ function ensureWtbListenersBound() {
             return;
         }
 
+        // 4b. Badge click guard (prevent propagation)
+        if (e.target.closest('.wtb-tb-badge')) {
+            e.stopPropagation();
+            return;
+        }
+
         // 5. Task Chip click (Navigation)
         const chip = e.target.closest('.wtb-task-chip');
         if (chip && !wtbDragState) {
@@ -16702,12 +16862,61 @@ function ensureWtbListenersBound() {
 
     // Delegated Drag and Drop handlers on overlay
     overlay.addEventListener('dragstart', e => {
+        // 1. Batch Badge Drag (task count badge in top-right of block)
+        const badge = e.target.closest('.wtb-tb-badge');
+        if (badge && (badge.dataset.date || badge.dataset.week)) {
+            const fromDate = badge.dataset.date || null;
+            const fromWeek = badge.dataset.week || null;
+            const fromBlockId = badge.dataset.blockId || 'unscheduled';
+
+            let taskIds = [];
+            if (badge.dataset.taskIds) {
+                taskIds = badge.dataset.taskIds.split(',').filter(Boolean);
+            } else if (fromDate) {
+                const dayData = getData(fromDate) || {};
+                const tasks = Array.isArray(dayData.tasks) ? dayData.tasks : [];
+                taskIds = tasks.filter(t => parseTaskTimeblock(t.text) === fromBlockId).map(t => t.id);
+            } else if (fromWeek) {
+                const weekData = getWeekData(fromWeek) || {};
+                const tasks = Array.isArray(weekData.tasks) ? weekData.tasks : [];
+                taskIds = tasks.map(t => t.id);
+            }
+
+            if (!taskIds.length) {
+                e.preventDefault();
+                return;
+            }
+
+            wtbDragState = {
+                isBatch: true,
+                taskIds: taskIds,
+                fromDate: fromDate,
+                fromWeek: fromWeek,
+                fromBlockId: fromBlockId,
+                count: taskIds.length
+            };
+
+            try {
+                e.dataTransfer.setData('text/plain', JSON.stringify(wtbDragState));
+                e.dataTransfer.setData('application/json', JSON.stringify(wtbDragState));
+                e.dataTransfer.effectAllowed = 'move';
+            } catch(err) {}
+
+            badge.classList.add('wtb-badge-dragging');
+            const tile = badge.closest('.wtb-timeblock-tile');
+            if (tile) tile.classList.add('wtb-tile-source-dragging');
+            return;
+        }
+
+        // 2. Single Task Chip Drag
         const chip = e.target.closest('.wtb-task-chip');
-        if (!chip || !chip.dataset.taskId || !chip.dataset.date) return;
+        if (!chip || !chip.dataset.taskId) return;
 
         wtbDragState = {
+            isBatch: false,
             taskId: chip.dataset.taskId,
-            fromDate: chip.dataset.date,
+            fromDate: chip.dataset.date || null,
+            fromWeek: chip.dataset.week || null,
             fromBlockId: chip.dataset.blockId || 'unscheduled'
         };
 
@@ -16721,15 +16930,19 @@ function ensureWtbListenersBound() {
     });
 
     overlay.addEventListener('dragend', e => {
+        const badge = e.target.closest('.wtb-tb-badge');
+        if (badge) badge.classList.remove('wtb-badge-dragging');
         const chip = e.target.closest('.wtb-task-chip');
         if (chip) chip.classList.remove('wtb-chip-dragging');
-        wtbDragState = null;
+        overlay.querySelectorAll('.wtb-tile-source-dragging').forEach(t => t.classList.remove('wtb-tile-source-dragging'));
         overlay.querySelectorAll('.wtb-tile-dragover').forEach(t => t.classList.remove('wtb-tile-dragover'));
+        wtbDragState = null;
     });
 
     overlay.addEventListener('dragover', e => {
         const tile = e.target.closest('.wtb-timeblock-tile');
-        if (!tile || !tile.dataset.date || !tile.dataset.blockId) return;
+        const dayCol = e.target.closest('.wtb-day-col');
+        if (!tile && !dayCol) return;
 
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -16737,7 +16950,7 @@ function ensureWtbListenersBound() {
         overlay.querySelectorAll('.wtb-tile-dragover').forEach(t => {
             if (t !== tile) t.classList.remove('wtb-tile-dragover');
         });
-        tile.classList.add('wtb-tile-dragover');
+        if (tile) tile.classList.add('wtb-tile-dragover');
     });
 
     overlay.addEventListener('dragleave', e => {
@@ -16748,10 +16961,23 @@ function ensureWtbListenersBound() {
     });
 
     overlay.addEventListener('drop', e => {
-        const tile = e.target.closest('.wtb-timeblock-tile');
         overlay.querySelectorAll('.wtb-tile-dragover').forEach(t => t.classList.remove('wtb-tile-dragover'));
+        overlay.querySelectorAll('.wtb-tile-source-dragging').forEach(t => t.classList.remove('wtb-tile-source-dragging'));
 
-        if (!tile || !tile.dataset.date || !tile.dataset.blockId) return;
+        let tile = e.target.closest('.wtb-timeblock-tile');
+        let targetDate = tile ? tile.dataset.date : null;
+        let targetWeek = tile ? tile.dataset.week : null;
+        let targetBlockId = tile ? tile.dataset.blockId : null;
+
+        if (!targetDate && !targetWeek) {
+            const dayCol = e.target.closest('.wtb-day-col');
+            if (dayCol) {
+                targetDate = dayCol.dataset.date || null;
+                targetWeek = dayCol.dataset.week || null;
+            }
+        }
+
+        if (!targetDate && !targetWeek) return;
         e.preventDefault();
 
         let payload = wtbDragState;
@@ -16760,18 +16986,33 @@ function ensureWtbListenersBound() {
                 payload = JSON.parse(e.dataTransfer.getData('application/json'));
             } catch(err) {}
         }
-
-        if (!payload || !payload.taskId || !payload.fromDate) return;
-
-        const targetDate = tile.dataset.date;
-        const targetBlockId = tile.dataset.blockId;
-
-        const targetChip = e.target.closest('.wtb-task-chip');
-        const targetTaskId = targetChip ? targetChip.dataset.taskId : null;
-        const dropPos = targetChip ? ((e.offsetY < targetChip.offsetHeight / 2) ? 'before' : 'after') : null;
-
         wtbDragState = null;
-        moveWtbTask(payload.taskId, payload.fromDate, targetDate, targetBlockId, targetTaskId, dropPos);
+        if (!payload) return;
+
+        // Default target block to source block if dropped on day column header/blank space
+        if (!targetBlockId) {
+            targetBlockId = payload.fromBlockId || 'unscheduled';
+        }
+
+        // Case A: Batch Move (dragging the task count badge)
+        if (payload.isBatch && Array.isArray(payload.taskIds) && payload.taskIds.length > 0) {
+            if (payload.fromDate && targetDate && payload.fromDate === targetDate && payload.fromBlockId === targetBlockId) {
+                return;
+            }
+            if (payload.fromWeek && targetWeek && payload.fromWeek === targetWeek) {
+                return;
+            }
+            moveWtbBatchBlock(payload.taskIds, payload.fromDate, payload.fromWeek, targetDate, targetWeek, targetBlockId);
+            return;
+        }
+
+        // Case B: Single Task Move (dragging a task chip)
+        if (payload.taskId && payload.fromDate) {
+            const targetChip = e.target.closest('.wtb-task-chip');
+            const targetTaskId = targetChip ? targetChip.dataset.taskId : null;
+            const dropPos = targetChip ? ((e.offsetY < targetChip.offsetHeight / 2) ? 'before' : 'after') : null;
+            moveWtbTask(payload.taskId, payload.fromDate, targetDate, targetBlockId, targetTaskId, dropPos);
+        }
     });
 }
 
@@ -16783,6 +17024,7 @@ window.openWeekTimeblocksModal = openWeekTimeblocksModal;
 window.closeWeekTimeblocksModal = closeWeekTimeblocksModal;
 window.renderWeekTimeblocksModal = renderWeekTimeblocksModal;
 window.moveWtbTask = moveWtbTask;
+window.moveWtbBatchBlock = moveWtbBatchBlock;
 
     function initGenericCollapsibles(){
         const states=getUiSectionStates();
@@ -18059,6 +18301,7 @@ window.moveWtbTask = moveWtbTask;
         moveWtbTask,
         recordDeletedTaskId,
         getDeletedTaskIds,
+        moveWtbBatchBlock,
         getUiSectionStates,
         setUiSectionState,
         renderLearningsSection,
@@ -18181,6 +18424,7 @@ window.moveWtbTask = moveWtbTask;
         moveWtbTask,
         recordDeletedTaskId,
         getDeletedTaskIds,
+        moveWtbBatchBlock,
         getUiSectionStates,
         setUiSectionState,
         renderLearningsSection,
