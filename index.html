@@ -3671,6 +3671,174 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 }
 
 /* ============================================================
+   Habit Formation & 21-Day System Styling
+   ============================================================ */
+.habits-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.habit-filter-tabs {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.habit-filter-btn {
+  padding: 3px 8px;
+  border-radius: var(--r-full, 9999px);
+  border: 1px solid var(--border, #3a3a3a);
+  background: var(--surface-1, #1e1e1e);
+  color: var(--text-secondary, #aaa);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.habit-filter-btn:hover {
+  background: var(--surface-2, #2a2a2a);
+  color: var(--text, #eee);
+  border-color: var(--border-strong, #555);
+}
+.habit-filter-btn.active {
+  background: var(--accent-light, rgba(59, 130, 246, 0.15));
+  color: var(--accent, #3b82f6);
+  border-color: var(--accent, #3b82f6);
+}
+
+/* Subgroup Headers */
+.habit-subgroup-title {
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary, #888);
+  padding: 6px 2px 2px 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.habit-subgroup-hint {
+  font-size: 0.65rem;
+  font-weight: 500;
+  text-transform: none;
+  opacity: 0.75;
+}
+
+/* Badges & Progress Bars */
+.habit-forming-badge {
+  background: rgba(16, 185, 129, 0.12) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+.habit-established-badge {
+  background: rgba(245, 158, 11, 0.12) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+.habit-formation-track {
+  width: 100%;
+  max-width: 180px;
+  height: 4px;
+  background: var(--surface-3, rgba(255, 255, 255, 0.08));
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+.habit-formation-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+.habit-streak-pill.established {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+  background: rgba(245, 158, 11, 0.1) !important;
+  color: #f59e0b !important;
+}
+
+/* 21-Day Pathway Roadmap */
+.habit-pathway-card {
+  background: var(--surface-1, #1e1e1e);
+  border: 1px solid var(--border, #333);
+  border-radius: var(--r-md, 8px);
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.habit-pathway-header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 8px;
+}
+.habit-pathway-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text, #eee);
+}
+.habit-pathway-pct {
+  font-size: 0.72rem;
+  color: #10b981;
+  font-weight: 600;
+}
+.habit-pathway-phases {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  color: var(--text-secondary, #888);
+  flex-wrap: wrap;
+}
+.habit-pathway-phases .phase-lbl.active {
+  color: var(--accent, #3b82f6);
+  font-weight: 700;
+}
+.habit-pathway-phases .phase-sep {
+  opacity: 0.4;
+}
+.habit-pathway-track {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.pathway-pip {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-2, #2a2a2a);
+  border: 1px solid var(--border, #444);
+  color: var(--text-secondary, #777);
+  font-size: 0.58rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.pathway-pip.done {
+  background: #10b981;
+  border-color: #059669;
+  color: #fff;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.35);
+}
+.pathway-pip.next {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  box-shadow: 0 0 5px rgba(59, 130, 246, 0.4);
+  animation: pulsePip 1.5s infinite;
+}
+@keyframes pulsePip {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
    Step 6s: Week 3-Hour Time Blocks Modal & Chips Styling
    ============================================================ */
 .wtb-modal-overlay {
@@ -6132,6 +6300,7 @@ function initEisenMoveDateModal() {
    2. ADVANCED HABIT TRACKING SYSTEM (Frequency, Streaks, UI)
    ------------------------------------------------------------- */
 let currentManagingHabitName = null;
+let habitFilter = 'all'; // 'all' | 'forming' | 'established'
 
 function loadHabits() {
     const raw = appStorage.getItem(HABITS_KEY);
@@ -6149,6 +6318,7 @@ function loadHabits() {
                     createdDate: getTodayStr(),
                     frequency: 'daily',
                     intervalDays: 1,
+                    formationTarget: 21,
                     streakAdjustment: 0,
                     streakFrozen: false,
                     notes: ''
@@ -6163,6 +6333,10 @@ function loadHabits() {
                     else if (item.frequency === 'gap2') item.intervalDays = 3;
                     else if (item.frequency === 'weekly') item.intervalDays = 7;
                     else item.intervalDays = 1;
+                    modified = true;
+                }
+                if (item.formationTarget === undefined || isNaN(item.formationTarget) || item.formationTarget < 1) {
+                    item.formationTarget = 21;
                     modified = true;
                 }
                 if (item.streakAdjustment === undefined) { item.streakAdjustment = 0; modified = true; }
@@ -6208,6 +6382,14 @@ function setHabitCompletion(d, n, c) {
         if (c && hi === -1) h.history.push(d);
         else if (!c && hi !== -1) h.history.splice(hi, 1);
         saveHabitsToStorage(hs);
+    }
+
+    if (c && h) {
+        const target = h.formationTarget || 21;
+        const newStreak = getHabitStreak(h, d);
+        if (newStreak === target) {
+            showToast(`🎉 Milestone Reached: "${n}" reached ${target} days and graduated into an Established Routine!`);
+        }
     }
 }
 
@@ -6427,94 +6609,176 @@ function moveHabit(hName, direction) {
     renderHabits();
 }
 
+function sortHabitsForDisplay(arr, sc, curDate) {
+    return arr.slice().sort((a, b) => {
+        const aDone = sc.includes(a.name) ? 1 : 0;
+        const bDone = sc.includes(b.name) ? 1 : 0;
+        if (aDone !== bDone) return aDone - bDone;
+
+        const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
+        const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
+        if (aDue !== bDue) return aDue - bDue;
+
+        return 0; // Stable sort preserves base order within each bucket!
+    });
+}
+
+function renderHabitsCardList(arr, sc, curDate, allHs) {
+    let out = '';
+    arr.forEach((h, dispIdx) => {
+        const ic = sc.includes(h.name);
+        const st = getHabitStreak(h.name, curDate);
+        const ia = selectedHabit === h.name;
+        const isDue = isHabitDueOnDate(h, curDate);
+        const freqLabel = getHabitFrequencyLabel(h.frequency, h.intervalDays);
+        const target = h.formationTarget || 21;
+        const isEstablished = st >= target;
+        const pct = Math.min(100, Math.round((st / target) * 100));
+
+        let statusText = 'Rest day';
+        let statusClass = 'status-rest';
+        if (ic) {
+            statusText = 'Done today';
+            statusClass = 'status-done';
+        } else if (isDue) {
+            statusText = 'Due today';
+            statusClass = 'status-due';
+        } else {
+            statusText = getHabitNextDueText(h, curDate);
+            statusClass = 'status-rest';
+        }
+
+        const isFirst = (dispIdx === 0);
+        const isLast = (dispIdx === arr.length - 1);
+
+        const badgeHtml = isEstablished
+            ? `<span class="habit-badge habit-established-badge" title="Established Routine! (${st} days streak)">⭐ Established</span>`
+            : `<span class="habit-badge habit-forming-badge" title="Habit formation progress: ${st} of ${target} days (${pct}%)">🌱 Day ${st}/${target}</span>`;
+
+        const streakPillHtml = isEstablished
+            ? `<div class="habit-flame-pill habit-streak-pill established" title="Master streak: ${st} days!">🔥 <span class="streak-count">${st}</span></div>`
+            : (st > 0 ? `<div class="habit-flame-pill habit-streak-pill" title="Formation streak: ${st} of ${target} days">🌱 <span class="streak-count">${st}d</span></div>` : `<div class="habit-flame-pill habit-streak-pill empty" title="No active streak">○ 0</div>`);
+
+        const progressBarHtml = !isEstablished
+            ? `<div class="habit-formation-track" title="Formation: ${st}/${target} days (${pct}%)"><div class="habit-formation-bar" style="width:${pct}%;"></div></div>`
+            : '';
+
+        out += `
+            <div class="habit-card ${ic ? 'is-completed' : ''} ${isDue ? 'is-due' : 'is-rest'} ${isEstablished ? 'is-established' : 'is-forming'}" data-habit="${escapeHtml(h.name)}" data-habit-id="${h.id || escapeHtml(h.name)}">
+                <div class="habit-card-main">
+                    <button type="button" class="habit-toggle-btn ${ic ? 'checked' : ''}" data-habit="${escapeHtml(h.name)}" title="${ic ? 'Mark as incomplete' : 'Mark as complete'}">
+                        <span class="habit-check-icon">&#10003;</span>
+                    </button>
+                    <div class="habit-info" data-habit-name="${escapeHtml(h.name)}" title="Click to view month calendar history & 21-day pathway">
+                        <div class="habit-name habit-card-name ${ia ? 'active' : ''}">${escapeHtml(h.name)}</div>
+                        <div class="habit-badges">
+                            <span class="habit-badge habit-freq-badge">${escapeHtml(freqLabel)}</span>
+                            <span class="habit-badge habit-status-badge ${statusClass}">${statusText}</span>
+                            ${badgeHtml}
+                            ${h.streakFrozen ? `<span class="habit-badge habit-frozen-badge">❄️ Frozen</span>` : ''}
+                        </div>
+                        ${progressBarHtml}
+                    </div>
+                    <div class="habit-streak-wrap">
+                        ${streakPillHtml}
+                    </div>
+                    <div class="habit-card-actions">
+                        <button type="button" class="habit-reorder-btn habit-move-up" data-move-habit-up="${escapeHtml(h.name)}" title="Move habit up" ${isFirst ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▲</button>
+                        <button type="button" class="habit-reorder-btn habit-move-down" data-move-habit-down="${escapeHtml(h.name)}" title="Move habit down" ${isLast ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▼</button>
+                        <button type="button" class="habit-manage-btn" data-manage-habit="${escapeHtml(h.name)}" title="Manage streak, frequency, and formation goal">⚙️</button>
+                        <button type="button" class="habit-delete-btn" data-delete-habit="${escapeHtml(h.name)}" title="Delete habit">✕</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    return out;
+}
+
 function renderHabits() {
     const hs = loadHabits();
     const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
     const sc = getHabitCompletions(curDate);
 
     let completedTodayCount = 0;
-    hs.forEach(h => { if (sc.includes(h.name)) completedTodayCount++; });
+    let formingCount = 0;
+    let establishedCount = 0;
 
-    // Header update
+    hs.forEach(h => {
+        if (sc.includes(h.name)) completedTodayCount++;
+        const st = getHabitStreak(h.name, curDate);
+        const target = h.formationTarget || 21;
+        if (st >= target) establishedCount++;
+        else formingCount++;
+    });
+
+    // Header update with 21-Day View Switcher
     const headerEl = habitsSection ? habitsSection.querySelector('.habits-header') : null;
     if (headerEl) {
         const allDone = hs.length > 0 && completedTodayCount === hs.length;
         headerEl.innerHTML = `
-            <div class="habits-title-wrap">
-                <span class="habits-title-icon">🎯</span>
-                <span class="habits-title-text">Habits & Routines</span>
-                <span class="habits-progress-pill ${allDone ? 'all-done' : ''}">${completedTodayCount}/${hs.length} Done</span>
+            <div class="habits-header-main" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;width:100%;">
+                <div class="habits-title-wrap">
+                    <span class="habits-title-icon">🎯</span>
+                    <span class="habits-title-text">Habits & Routines</span>
+                    <span class="habits-progress-pill ${allDone ? 'all-done' : ''}">${completedTodayCount}/${hs.length} Done</span>
+                </div>
+                <div class="habit-filter-tabs" id="habitFilterTabs">
+                    <button type="button" class="habit-filter-btn ${habitFilter === 'all' ? 'active' : ''}" data-habit-filter="all">All (${hs.length})</button>
+                    <button type="button" class="habit-filter-btn ${habitFilter === 'forming' ? 'active' : ''}" data-habit-filter="forming">🌱 Forming (${formingCount})</button>
+                    <button type="button" class="habit-filter-btn ${habitFilter === 'established' ? 'active' : ''}" data-habit-filter="established">⭐ Established (${establishedCount})</button>
+                </div>
             </div>
         `;
+        const tabsEl = headerEl.querySelector('#habitFilterTabs');
+        if (tabsEl) {
+            tabsEl.onclick = e => {
+                const btn = e.target.closest('[data-habit-filter]');
+                if (!btn) return;
+                e.stopPropagation();
+                habitFilter = btn.dataset.habitFilter || 'all';
+                renderHabits();
+            };
+        }
     }
 
-    // List rendering with Smart Dynamic Sorting (Due First -> Rest Days -> Completed Sink to Bottom)
+    // List rendering with Habit Formation Grouping & Smart Dynamic Sorting
     let html = '';
     if (hs.length === 0) {
         html = '<div class="learnings-empty" style="padding:12px;text-align:center;">No habits defined yet. Add your first habit below!</div>';
     } else {
-        const sortedHabits = hs.slice().sort((a, b) => {
-            const aDone = sc.includes(a.name) ? 1 : 0;
-            const bDone = sc.includes(b.name) ? 1 : 0;
-            if (aDone !== bDone) return aDone - bDone;
+        let filteredHabits = hs;
+        if (habitFilter === 'forming') {
+            filteredHabits = hs.filter(h => getHabitStreak(h.name, curDate) < (h.formationTarget || 21));
+        } else if (habitFilter === 'established') {
+            filteredHabits = hs.filter(h => getHabitStreak(h.name, curDate) >= (h.formationTarget || 21));
+        }
 
-            const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
-            const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
-            if (aDue !== bDue) return aDue - bDue;
+        if (filteredHabits.length === 0) {
+            const emptyMsg = habitFilter === 'forming'
+                ? 'No habits currently in formation. All active habits are established!'
+                : 'No established habits yet. Complete a habit for 21 consecutive days to establish it!';
+            html = `<div class="learnings-empty" style="padding:12px;text-align:center;">${emptyMsg}</div>`;
+        } else if (habitFilter !== 'all') {
+            const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate);
+            html = renderHabitsCardList(sorted, sc, curDate, hs);
+        } else {
+            const formingList = hs.filter(h => getHabitStreak(h.name, curDate) < (h.formationTarget || 21));
+            const establishedList = hs.filter(h => getHabitStreak(h.name, curDate) >= (h.formationTarget || 21));
 
-            return 0; // Stable sort preserves base order within each bucket!
-        });
+            if (formingList.length > 0 && establishedList.length > 0) {
+                const sortedForming = sortHabitsForDisplay(formingList, sc, curDate);
+                const sortedEstablished = sortHabitsForDisplay(establishedList, sc, curDate);
 
-        sortedHabits.forEach((h, dispIdx) => {
-            const ic = sc.includes(h.name);
-            const st = getHabitStreak(h.name, curDate);
-            const ia = selectedHabit === h.name;
-            const isDue = isHabitDueOnDate(h, curDate);
-            const freqLabel = getHabitFrequencyLabel(h.frequency, h.intervalDays);
-
-            let statusText = 'Rest day';
-            let statusClass = 'status-rest';
-            if (ic) {
-                statusText = 'Done today';
-                statusClass = 'status-done';
-            } else if (isDue) {
-                statusText = 'Due today';
-                statusClass = 'status-due';
+                html += `<div class="habit-subgroup-title">🌱 In Formation (${formingList.length}) <span class="habit-subgroup-hint">• Target: 21 Days</span></div>`;
+                html += renderHabitsCardList(sortedForming, sc, curDate, hs);
+                html += `<div class="habit-subgroup-title" style="margin-top:12px;">⭐ Established Routines (${establishedList.length}) <span class="habit-subgroup-hint">• Mastered 21+ Days</span></div>`;
+                html += renderHabitsCardList(sortedEstablished, sc, curDate, hs);
             } else {
-                statusText = getHabitNextDueText(h, curDate);
-                statusClass = 'status-rest';
+                const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate);
+                html = renderHabitsCardList(sorted, sc, curDate, hs);
             }
-
-            const isFirst = (dispIdx === 0);
-            const isLast = (dispIdx === sortedHabits.length - 1);
-
-            html += `
-                <div class="habit-card ${ic ? 'is-completed' : ''} ${isDue ? 'is-due' : 'is-rest'}" data-habit="${escapeHtml(h.name)}" data-habit-id="${h.id || escapeHtml(h.name)}">
-                    <div class="habit-card-main">
-                        <button type="button" class="habit-toggle-btn ${ic ? 'checked' : ''}" data-habit="${escapeHtml(h.name)}" title="${ic ? 'Mark as incomplete' : 'Mark as complete'}">
-                            <span class="habit-check-icon">&#10003;</span>
-                        </button>
-                        <div class="habit-info" data-habit-name="${escapeHtml(h.name)}" title="Click to view month calendar history">
-                            <div class="habit-name habit-card-name ${ia ? 'active' : ''}">${escapeHtml(h.name)}</div>
-                            <div class="habit-badges">
-                                <span class="habit-badge habit-freq-badge">${escapeHtml(freqLabel)}</span>
-                                <span class="habit-badge habit-status-badge ${statusClass}">${statusText}</span>
-                                ${h.streakFrozen ? `<span class="habit-badge habit-frozen-badge">❄️ Frozen</span>` : ''}
-                            </div>
-                        </div>
-                        <div class="habit-streak-wrap">
-                            ${st > 0 ? `<div class="habit-flame-pill habit-streak-pill" title="Current streak: ${st}">🔥 <span class="streak-count">${st}</span></div>` : `<div class="habit-flame-pill habit-streak-pill empty" title="No active streak">○ 0</div>`}
-                        </div>
-                        <div class="habit-card-actions">
-                            <button type="button" class="habit-reorder-btn habit-move-up" data-move-habit-up="${escapeHtml(h.name)}" title="Move habit up" ${isFirst ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▲</button>
-                            <button type="button" class="habit-reorder-btn habit-move-down" data-move-habit-down="${escapeHtml(h.name)}" title="Move habit down" ${isLast ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▼</button>
-                            <button type="button" class="habit-manage-btn" data-manage-habit="${escapeHtml(h.name)}" title="Manage streak and frequency">⚙️</button>
-                            <button type="button" class="habit-delete-btn" data-delete-habit="${escapeHtml(h.name)}" title="Delete habit">✕</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
+        }
     }
 
     if (habitList) habitList.innerHTML = html;
@@ -6621,6 +6885,7 @@ function addNewHabit() {
         createdDate: getTodayStr(),
         frequency: freq,
         intervalDays: interval,
+        formationTarget: 21,
         streakAdjustment: 0,
         streakFrozen: false,
         notes: ''
@@ -6697,6 +6962,14 @@ function openHabitManageModal(hOrName) {
         <div class="habit-m-group" id="habitManageCustomWrap" style="display:${h.frequency === 'custom' ? 'flex' : 'none'};">
             <label class="habit-m-label" for="habitManageInterval">Days Between Cycles</label>
             <input type="number" id="habitManageInterval" class="habit-m-input" min="1" max="90" value="${h.intervalDays || 1}" />
+        </div>
+
+        <div class="habit-m-group">
+            <label class="habit-m-label" for="habitManageTarget">Habit Formation Goal</label>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <input type="number" id="habitManageTarget" class="habit-m-input" min="7" max="365" value="${h.formationTarget || 21}" style="width:85px;" />
+                <span style="font-size:0.75rem;color:var(--text-secondary,#aaa);">consecutive days (Standard: 21 days)</span>
+            </div>
         </div>
 
         <div class="habit-streak-box">
@@ -6846,6 +7119,9 @@ function saveHabitManageModal() {
     h.streakFrozen = freezeCheckbox ? freezeCheckbox.checked : false;
     h.frozen = h.streakFrozen;
 
+    const targetInput = document.getElementById('habitManageTarget');
+    h.formationTarget = Math.max(1, parseInt(targetInput ? targetInput.value : 21, 10) || 21);
+
     // If renamed, update completions in storage
     if (newName !== oldName) {
         for (let i = 0; i < appStorage.length; i++) {
@@ -6915,6 +7191,44 @@ function renderHabitMiniCalendar() {
     const h = hs.find(x => x.name === selectedHabit);
     const stats = getHabitDetailedStats(selectedHabit);
     const freqLbl = h ? getHabitFrequencyLabel(h.frequency, h.intervalDays) : 'Daily';
+    const target = h ? (h.formationTarget || 21) : 21;
+    const currentStreak = stats.currentStreak;
+    const isEstablished = currentStreak >= target;
+    const pct = Math.min(100, Math.round((currentStreak / target) * 100));
+
+    // 21-Day Formation Pathway Pips
+    let pathwayPipsHTML = '';
+    const numPips = Math.min(target, 42);
+    for (let day = 1; day <= numPips; day++) {
+        const isDone = day <= currentStreak;
+        const isNext = (day === currentStreak + 1);
+        pathwayPipsHTML += `
+            <div class="pathway-pip ${isDone ? 'done' : (isNext ? 'next' : '')}" title="Day ${day}${isDone ? ' (Completed)' : (isNext ? ' (Next milestone)' : '')}">
+                ${isDone ? '✓' : day}
+            </div>
+        `;
+    }
+
+    const pathwayHTML = `
+        <div class="habit-pathway-card">
+            <div class="habit-pathway-header">
+                <div class="habit-pathway-title">
+                    <span>${isEstablished ? '⭐ Routine Established!' : '🌱 21-Day Habit Pathway'}</span>
+                    <span class="habit-pathway-pct">${currentStreak}/${target} Days (${pct}%)</span>
+                </div>
+                <div class="habit-pathway-phases">
+                    <span class="phase-lbl ${currentStreak < 7 ? 'active' : ''}">Phase 1: Initiation (D1-7)</span>
+                    <span class="phase-sep">•</span>
+                    <span class="phase-lbl ${currentStreak >= 7 && currentStreak < 14 ? 'active' : ''}">Phase 2: Transition (D8-14)</span>
+                    <span class="phase-sep">•</span>
+                    <span class="phase-lbl ${currentStreak >= 14 && currentStreak < 21 ? 'active' : ''}">Phase 3: Integration (D15-21)</span>
+                </div>
+            </div>
+            <div class="habit-pathway-track">
+                ${pathwayPipsHTML}
+            </div>
+        </div>
+    `;
 
     let html = `
         <div class="habit-calendar-section" style="margin-top:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;">
@@ -6922,6 +7236,7 @@ function renderHabitMiniCalendar() {
                 <span style="font-weight:700;font-size:0.85rem;color:var(--text, #14161b);">📅 ${escapeHtml(selectedHabit)} <span style="font-size:0.7rem;font-weight:600;color:var(--accent);margin-left:6px;">(${escapeHtml(freqLbl)} • Streak: 🔥${stats.currentStreak} • Best: ⭐${stats.bestStreak})</span></span>
                 <button class="habit-calendar-deselect" id="habitCalendarDeselect" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:0.7rem;padding:2px 6px;cursor:pointer;">✕ Close</button>
             </div>
+            ${pathwayHTML}
             <div class="habit-mini-grid">
     `;
 
