@@ -4770,8 +4770,8 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 <div class="habits-section daily-only" id="habitsSection">
         <div class="habits-header">
             <div class="habits-title-wrap">
-                <span class="habits-title-icon">ðŸŽ¯</span>
-                <span class="habits-title-text">Habits & Routines</span>
+                <span class="habits-title-icon">&#127919;</span>
+                <span class="habits-title-text">Habits &amp; Routines</span>
                 <span class="habits-progress-pill">0/0 Done</span>
             </div>
         </div>
@@ -6040,7 +6040,7 @@ function openEisenMoveDateModal() {
     const totalSelected = nQuad + nInbox;
 
     if (totalSelected === 0) {
-        showToast('⚠️ No items selected to move');
+        showToast('\u26A0\uFE0F No items selected to move');
         return;
     }
 
@@ -6235,7 +6235,7 @@ function executeEisenMoveToDate(target, keepQuadrant) {
 
     closeEisenMoveDateModal();
     window.dispatchEvent(new CustomEvent('td-tasks-changed'));
-    showToast(`📅 Moved ${movedCount} item(s) to ${getShortDate(target)}`);
+    showToast(`\uD83D\uDCC5 Moved ${movedCount} item(s) to ${getShortDate(target)}`);
 }
 
 function initEisenMoveDateModal() {
@@ -6358,10 +6358,10 @@ function saveHabitsToStorage(habits) {
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush(200);
 }
 
-function getHabitCompletions(d) {
+function getHabitCompletions(d, optionalHabits) {
     const data = getData(d);
     const dayComps = (data && Array.isArray(data.habits)) ? data.habits : [];
-    const hs = loadHabits();
+    const hs = optionalHabits || loadHabits();
     const historyComps = hs.filter(h => Array.isArray(h.history) && h.history.includes(d)).map(h => h.name);
     return Array.from(new Set([...dayComps, ...historyComps]));
 }
@@ -6386,9 +6386,9 @@ function setHabitCompletion(d, n, c) {
 
     if (c && h) {
         const target = h.formationTarget || 21;
-        const newStreak = getHabitStreak(h, d);
+        const newStreak = getHabitStreak(h, d, hs);
         if (newStreak === target) {
-            showToast(`🎉 Milestone Reached: "${n}" reached ${target} days and graduated into an Established Routine!`);
+            showToast(`\uD83C\uDF89 Milestone Reached: "${n}" reached ${target} days and graduated into an Established Routine!`);
         }
     }
 }
@@ -6414,23 +6414,26 @@ function getHabitIntervalDays(h) {
     return Math.max(1, parseInt(h.intervalDays, 10) || 1);
 }
 
-function isHabitDueOnDate(hOrName, targetDateStr) {
-    const h = (typeof hOrName === 'string') ? (loadHabits().find(x => x.name === hOrName || x.id === hOrName)) : hOrName;
+function isHabitDueOnDate(hOrName, targetDateStr, optionalHabits) {
+    const hs = optionalHabits || loadHabits();
+    const h = (typeof hOrName === 'string') ? (hs.find(x => x.name === hOrName || x.id === hOrName)) : hOrName;
     if (!h) return false;
     const interval = getHabitIntervalDays(h);
     if (interval <= 1) return true; // Daily is due every day
 
     // If completed on targetDateStr, it's considered done
-    const completions = getHabitCompletions(targetDateStr);
+    const completions = getHabitCompletions(targetDateStr, hs);
     if (completions.includes(h.name)) return true;
 
     // Search back up to 60 days to find last completed date
     let lastCompletedDate = null;
     let cursor = new Date(targetDateStr + 'T00:00:00');
     cursor.setDate(cursor.getDate() - 1);
+    const createdDate = h.createdDate || '2020-01-01';
     for (let i = 0; i < 60; i++) {
         const ds = formatDateStr(cursor.getFullYear(), cursor.getMonth() + 1, cursor.getDate());
-        if (getHabitCompletions(ds).includes(h.name)) {
+        if (ds < createdDate) break;
+        if (getHabitCompletions(ds, hs).includes(h.name)) {
             lastCompletedDate = ds;
             break;
         }
@@ -6447,9 +6450,9 @@ function isHabitDueOnDate(hOrName, targetDateStr) {
     return daysSince >= interval;
 }
 
-function getHabitStreak(nameOrHabit, refDateStr) {
+function getHabitStreak(nameOrHabit, refDateStr, optionalHabits) {
     const name = (typeof nameOrHabit === 'object' && nameOrHabit && nameOrHabit.name) ? nameOrHabit.name : nameOrHabit;
-    const habits = loadHabits();
+    const habits = optionalHabits || loadHabits();
     let h = (typeof nameOrHabit === 'object' && nameOrHabit) ? nameOrHabit : habits.find(x => x.name === name || x.id === name);
     if (!h) h = habits.find(x => x.name === name || x.id === name);
     if (!h) return 0;
@@ -6457,29 +6460,31 @@ function getHabitStreak(nameOrHabit, refDateStr) {
     const interval = getHabitIntervalDays(h);
     const manualAdj = parseInt(h.streakAdjustment, 10) || 0;
     const isFrozen = h.streakFrozen === true;
+    const createdDate = h.createdDate || '2020-01-01';
 
     const n = name;
     let dt = new Date(refDateStr + 'T00:00:00');
     let ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-    let c = getHabitCompletions(ds);
+    let c = getHabitCompletions(ds, habits);
     const todayStr = getTodayStr();
 
     // Ongoing streak check: if today or future is not yet checked, check from yesterday
     if(ds>=todayStr&&!c.includes(n)){
         dt.setDate(dt.getDate() - 1);
         ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-        c = getHabitCompletions(ds);
+        c = getHabitCompletions(ds, habits);
     } else if (ds === refDateStr && !c.includes(n)) {
         dt.setDate(dt.getDate() - 1);
         ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-        c = getHabitCompletions(ds);
+        c = getHabitCompletions(ds, habits);
     }
 
     let streak = 0;
     let lastDone = null;
     let daysSinceLast = 0;
 
-    for (let step = 0; step <= 3650; step++) {
+    for (let step = 0; step <= 365; step++) {
+        if (ds < createdDate) break;
         const isDone = c && c.includes(n);
 
         if (isDone) {
@@ -6497,40 +6502,63 @@ function getHabitStreak(nameOrHabit, refDateStr) {
             if (daysSinceLast >= interval && !isFrozen) {
                 break;
             }
+            if (daysSinceLast > 60) {
+                break;
+            }
         }
 
         dt.setDate(dt.getDate() - 1);
         ds = formatDateStr(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
-        c = getHabitCompletions(ds);
+        c = getHabitCompletions(ds, habits);
     }
 
     return Math.max(0, streak + manualAdj);
 }
 
-function getHabitDetailedStats(name) {
-    const habits = loadHabits();
-    const h = habits.find(x => x.name === name);
+function getHabitDetailedStats(name, optionalHabit, optionalHabits) {
+    const habits = optionalHabits || loadHabits();
+    const h = optionalHabit || habits.find(x => x.name === name);
     if (!h) return { currentStreak: 0, bestStreak: 0, totalCompletions: 0, monthRate: 0 };
 
     const interval = getHabitIntervalDays(h);
     const manualAdj = parseInt(h.streakAdjustment, 10) || 0;
     const todayStr = getTodayStr();
 
-    const completedDates = [];
-    for (let i = 0; i < appStorage.length; i++) {
-        const k = appStorage.key(i);
-        if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
-            const ds = k.slice(STORAGE_PREFIX.length);
-            if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
-                const c = getHabitCompletions(ds);
-                if (c && c.includes(name)) completedDates.push(ds);
+    const completedDatesSet = new Set();
+    if (Array.isArray(h.history)) {
+        h.history.forEach(d => { if (typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)) completedDatesSet.add(d); });
+    }
+    const keys = (typeof getCachedKeys === 'function') ? getCachedKeys() : null;
+    if (keys && Array.isArray(keys)) {
+        keys.forEach(k => {
+            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
+                const ds = k.slice(STORAGE_PREFIX.length);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
+                    const data = getData(ds);
+                    if (data && Array.isArray(data.habits) && data.habits.includes(name)) {
+                        completedDatesSet.add(ds);
+                    }
+                }
+            }
+        });
+    } else {
+        for (let i = 0; i < appStorage.length; i++) {
+            const k = appStorage.key(i);
+            if (k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)) {
+                const ds = k.slice(STORAGE_PREFIX.length);
+                if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
+                    const data = getData(ds);
+                    if (data && Array.isArray(data.habits) && data.habits.includes(name)) {
+                        completedDatesSet.add(ds);
+                    }
+                }
             }
         }
     }
-    completedDates.sort();
+    const completedDates = Array.from(completedDatesSet).sort();
 
     const totalCompletions = completedDates.length;
-    const currentStreak = getHabitStreak(name, todayStr);
+    const currentStreak = getHabitStreak(h, todayStr, habits);
 
     let best = 0;
     let run = 0;
@@ -6560,13 +6588,13 @@ function getHabitDetailedStats(name) {
     return { currentStreak, bestStreak, totalCompletions, monthRate };
 }
 
-function getHabitNextDueText(h, curDate) {
+function getHabitNextDueText(h, curDate, optionalHabits) {
     if (!h) return 'Rest day';
     const interval = getHabitIntervalDays(h);
     if (interval <= 1) return 'Due tomorrow';
     for (let offset = 1; offset <= 60; offset++) {
         const futureDate = addDaysToDateStr(curDate, offset);
-        if (isHabitDueOnDate(h, futureDate)) {
+        if (isHabitDueOnDate(h, futureDate, optionalHabits)) {
             if (offset === 1) return 'Rest (Due tomorrow)';
             return `Rest (Due in ${offset}d)`;
         }
@@ -6578,15 +6606,15 @@ function moveHabit(hName, direction) {
     let hs = loadHabits();
     if (!hs || hs.length < 2) return;
     const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
-    const sc = getHabitCompletions(curDate);
+    const sc = getHabitCompletions(curDate, hs);
 
     // Reconstruct the visual order displayed to the user
     const sorted = hs.slice().sort((a, b) => {
         const aDone = sc.includes(a.name) ? 1 : 0;
         const bDone = sc.includes(b.name) ? 1 : 0;
         if (aDone !== bDone) return aDone - bDone;
-        const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
-        const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
+        const aDue = isHabitDueOnDate(a, curDate, hs) ? 0 : 1;
+        const bDue = isHabitDueOnDate(b, curDate, hs) ? 0 : 1;
         if (aDue !== bDue) return aDue - bDue;
         return 0;
     });
@@ -6608,15 +6636,15 @@ function moveHabit(hName, direction) {
     saveHabitsToStorage(hs);
     renderHabits();
 }
-
-function sortHabitsForDisplay(arr, sc, curDate) {
+function sortHabitsForDisplay(arr, sc, curDate, optionalHabits) {
+    const hs = optionalHabits || arr;
     return arr.slice().sort((a, b) => {
         const aDone = sc.includes(a.name) ? 1 : 0;
         const bDone = sc.includes(b.name) ? 1 : 0;
         if (aDone !== bDone) return aDone - bDone;
 
-        const aDue = isHabitDueOnDate(a, curDate) ? 0 : 1;
-        const bDue = isHabitDueOnDate(b, curDate) ? 0 : 1;
+        const aDue = isHabitDueOnDate(a, curDate, hs) ? 0 : 1;
+        const bDue = isHabitDueOnDate(b, curDate, hs) ? 0 : 1;
         if (aDue !== bDue) return aDue - bDue;
 
         return 0; // Stable sort preserves base order within each bucket!
@@ -6627,9 +6655,9 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
     let out = '';
     arr.forEach((h, dispIdx) => {
         const ic = sc.includes(h.name);
-        const st = getHabitStreak(h.name, curDate);
+        const st = getHabitStreak(h, curDate, allHs);
         const ia = selectedHabit === h.name;
-        const isDue = isHabitDueOnDate(h, curDate);
+        const isDue = isHabitDueOnDate(h, curDate, allHs);
         const freqLabel = getHabitFrequencyLabel(h.frequency, h.intervalDays);
         const target = h.formationTarget || 21;
         const isEstablished = st >= target;
@@ -6644,7 +6672,7 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
             statusText = 'Due today';
             statusClass = 'status-due';
         } else {
-            statusText = getHabitNextDueText(h, curDate);
+            statusText = getHabitNextDueText(h, curDate, allHs);
             statusClass = 'status-rest';
         }
 
@@ -6652,12 +6680,12 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
         const isLast = (dispIdx === arr.length - 1);
 
         const badgeHtml = isEstablished
-            ? `<span class="habit-badge habit-established-badge" title="Established Routine! (${st} days streak)">⭐ Established</span>`
-            : `<span class="habit-badge habit-forming-badge" title="Habit formation progress: ${st} of ${target} days (${pct}%)">🌱 Day ${st}/${target}</span>`;
+            ? `<span class="habit-badge habit-established-badge" title="Established Routine! (${st} days streak)">&#11088; Established</span>`
+            : `<span class="habit-badge habit-forming-badge" title="Habit formation progress: ${st} of ${target} days (${pct}%)">&#127793; Day ${st}/${target}</span>`;
 
         const streakPillHtml = isEstablished
-            ? `<div class="habit-flame-pill habit-streak-pill established" title="Master streak: ${st} days!">🔥 <span class="streak-count">${st}</span></div>`
-            : (st > 0 ? `<div class="habit-flame-pill habit-streak-pill" title="Formation streak: ${st} of ${target} days">🌱 <span class="streak-count">${st}d</span></div>` : `<div class="habit-flame-pill habit-streak-pill empty" title="No active streak">○ 0</div>`);
+            ? `<div class="habit-flame-pill habit-streak-pill established" title="Master streak: ${st} days!">&#128293; <span class="streak-count">${st}</span></div>`
+            : (st > 0 ? `<div class="habit-flame-pill habit-streak-pill" title="Formation streak: ${st} of ${target} days">&#127793; <span class="streak-count">${st}d</span></div>` : `<div class="habit-flame-pill habit-streak-pill empty" title="No active streak">&#9675; 0</div>`);
 
         const progressBarHtml = !isEstablished
             ? `<div class="habit-formation-track" title="Formation: ${st}/${target} days (${pct}%)"><div class="habit-formation-bar" style="width:${pct}%;"></div></div>`
@@ -6675,7 +6703,7 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
                             <span class="habit-badge habit-freq-badge">${escapeHtml(freqLabel)}</span>
                             <span class="habit-badge habit-status-badge ${statusClass}">${statusText}</span>
                             ${badgeHtml}
-                            ${h.streakFrozen ? `<span class="habit-badge habit-frozen-badge">❄️ Frozen</span>` : ''}
+                            ${h.streakFrozen ? `<span class="habit-badge habit-frozen-badge">&#10052;&#65039; Frozen</span>` : ''}
                         </div>
                         ${progressBarHtml}
                     </div>
@@ -6683,10 +6711,10 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
                         ${streakPillHtml}
                     </div>
                     <div class="habit-card-actions">
-                        <button type="button" class="habit-reorder-btn habit-move-up" data-move-habit-up="${escapeHtml(h.name)}" title="Move habit up" ${isFirst ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▲</button>
-                        <button type="button" class="habit-reorder-btn habit-move-down" data-move-habit-down="${escapeHtml(h.name)}" title="Move habit down" ${isLast ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>▼</button>
-                        <button type="button" class="habit-manage-btn" data-manage-habit="${escapeHtml(h.name)}" title="Manage streak, frequency, and formation goal">⚙️</button>
-                        <button type="button" class="habit-delete-btn" data-delete-habit="${escapeHtml(h.name)}" title="Delete habit">✕</button>
+                        <button type="button" class="habit-reorder-btn habit-move-up" data-move-habit-up="${escapeHtml(h.name)}" title="Move habit up" ${isFirst ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>&#9650;</button>
+                        <button type="button" class="habit-reorder-btn habit-move-down" data-move-habit-down="${escapeHtml(h.name)}" title="Move habit down" ${isLast ? 'disabled style="opacity:0.25;cursor:default;"' : ''}>&#9660;</button>
+                        <button type="button" class="habit-manage-btn" data-manage-habit="${escapeHtml(h.name)}" title="Manage streak, frequency, and formation goal">&#9881;&#65039;</button>
+                        <button type="button" class="habit-delete-btn" data-delete-habit="${escapeHtml(h.name)}" title="Delete habit">&#10005;</button>
                     </div>
                 </div>
             </div>
@@ -6698,7 +6726,7 @@ function renderHabitsCardList(arr, sc, curDate, allHs) {
 function renderHabits() {
     const hs = loadHabits();
     const curDate = (selectionMode === 'daily' && selectedDateStr) ? selectedDateStr : getTodayStr();
-    const sc = getHabitCompletions(curDate);
+    const sc = getHabitCompletions(curDate, hs);
 
     let completedTodayCount = 0;
     let formingCount = 0;
@@ -6706,7 +6734,7 @@ function renderHabits() {
 
     hs.forEach(h => {
         if (sc.includes(h.name)) completedTodayCount++;
-        const st = getHabitStreak(h.name, curDate);
+        const st = getHabitStreak(h, curDate, hs);
         const target = h.formationTarget || 21;
         if (st >= target) establishedCount++;
         else formingCount++;
@@ -6719,14 +6747,14 @@ function renderHabits() {
         headerEl.innerHTML = `
             <div class="habits-header-main" style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;width:100%;">
                 <div class="habits-title-wrap">
-                    <span class="habits-title-icon">🎯</span>
-                    <span class="habits-title-text">Habits & Routines</span>
+                    <span class="habits-title-icon">&#127919;</span>
+                    <span class="habits-title-text">Habits &amp; Routines</span>
                     <span class="habits-progress-pill ${allDone ? 'all-done' : ''}">${completedTodayCount}/${hs.length} Done</span>
                 </div>
                 <div class="habit-filter-tabs" id="habitFilterTabs">
                     <button type="button" class="habit-filter-btn ${habitFilter === 'all' ? 'active' : ''}" data-habit-filter="all">All (${hs.length})</button>
-                    <button type="button" class="habit-filter-btn ${habitFilter === 'forming' ? 'active' : ''}" data-habit-filter="forming">🌱 Forming (${formingCount})</button>
-                    <button type="button" class="habit-filter-btn ${habitFilter === 'established' ? 'active' : ''}" data-habit-filter="established">⭐ Established (${establishedCount})</button>
+                    <button type="button" class="habit-filter-btn ${habitFilter === 'forming' ? 'active' : ''}" data-habit-filter="forming">&#127793; Forming (${formingCount})</button>
+                    <button type="button" class="habit-filter-btn ${habitFilter === 'established' ? 'active' : ''}" data-habit-filter="established">&#11088; Established (${establishedCount})</button>
                 </div>
             </div>
         `;
@@ -6749,9 +6777,9 @@ function renderHabits() {
     } else {
         let filteredHabits = hs;
         if (habitFilter === 'forming') {
-            filteredHabits = hs.filter(h => getHabitStreak(h.name, curDate) < (h.formationTarget || 21));
+            filteredHabits = hs.filter(h => getHabitStreak(h, curDate, hs) < (h.formationTarget || 21));
         } else if (habitFilter === 'established') {
-            filteredHabits = hs.filter(h => getHabitStreak(h.name, curDate) >= (h.formationTarget || 21));
+            filteredHabits = hs.filter(h => getHabitStreak(h, curDate, hs) >= (h.formationTarget || 21));
         }
 
         if (filteredHabits.length === 0) {
@@ -6760,22 +6788,22 @@ function renderHabits() {
                 : 'No established habits yet. Complete a habit for 21 consecutive days to establish it!';
             html = `<div class="learnings-empty" style="padding:12px;text-align:center;">${emptyMsg}</div>`;
         } else if (habitFilter !== 'all') {
-            const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate);
+            const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate, hs);
             html = renderHabitsCardList(sorted, sc, curDate, hs);
         } else {
-            const formingList = hs.filter(h => getHabitStreak(h.name, curDate) < (h.formationTarget || 21));
-            const establishedList = hs.filter(h => getHabitStreak(h.name, curDate) >= (h.formationTarget || 21));
+            const formingList = hs.filter(h => getHabitStreak(h, curDate, hs) < (h.formationTarget || 21));
+            const establishedList = hs.filter(h => getHabitStreak(h, curDate, hs) >= (h.formationTarget || 21));
 
             if (formingList.length > 0 && establishedList.length > 0) {
-                const sortedForming = sortHabitsForDisplay(formingList, sc, curDate);
-                const sortedEstablished = sortHabitsForDisplay(establishedList, sc, curDate);
+                const sortedForming = sortHabitsForDisplay(formingList, sc, curDate, hs);
+                const sortedEstablished = sortHabitsForDisplay(establishedList, sc, curDate, hs);
 
-                html += `<div class="habit-subgroup-title">🌱 In Formation (${formingList.length}) <span class="habit-subgroup-hint">• Target: 21 Days</span></div>`;
+                html += `<div class="habit-subgroup-title">&#127793; In Formation (${formingList.length}) <span class="habit-subgroup-hint">&#8226; Target: 21 Days</span></div>`;
                 html += renderHabitsCardList(sortedForming, sc, curDate, hs);
-                html += `<div class="habit-subgroup-title" style="margin-top:12px;">⭐ Established Routines (${establishedList.length}) <span class="habit-subgroup-hint">• Mastered 21+ Days</span></div>`;
+                html += `<div class="habit-subgroup-title" style="margin-top:12px;">&#11088; Established Routines (${establishedList.length}) <span class="habit-subgroup-hint">&#8226; Mastered 21+ Days</span></div>`;
                 html += renderHabitsCardList(sortedEstablished, sc, curDate, hs);
             } else {
-                const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate);
+                const sorted = sortHabitsForDisplay(filteredHabits, sc, curDate, hs);
                 html = renderHabitsCardList(sorted, sc, curDate, hs);
             }
         }
@@ -6784,7 +6812,6 @@ function renderHabits() {
     if (habitList) habitList.innerHTML = html;
     renderHabitMiniCalendar();
 }
-
 function handleHabitClick(e) {
     const toggleBtn = e.target.closest('.habit-toggle-btn');
     const manageBtn = e.target.closest('[data-manage-habit]');
@@ -6917,7 +6944,7 @@ function openHabitManageModal(hOrName) {
     const body = document.getElementById('habitManageBody');
     if (!overlay || !body) return;
 
-    const stats = getHabitDetailedStats(habitName);
+    const stats = getHabitDetailedStats(habitName, h, habits);
 
     // Generate 14-day history trail
     let bubbleHTML = '';
@@ -6930,14 +6957,14 @@ function openHabitManageModal(hOrName) {
     }
 
     bubbleDates.forEach(ds => {
-        const isDone = getHabitCompletions(ds).includes(habitName);
+        const isDone = getHabitCompletions(ds, habits).includes(habitName);
         const dObj = new Date(ds + 'T00:00:00');
         const dayLetter = ['S', 'M', 'T', 'W', 'T', 'F', 'S'][dObj.getDay()];
         const dayNum = dObj.getDate();
         bubbleHTML += `
             <div class="habit-bubble-item ${isDone ? 'checked' : ''}" data-bubble-date="${ds}" title="${getFormattedDate(ds)}: ${isDone ? 'Done' : 'Not done'} (Click to toggle)">
                 <span class="habit-bubble-day">${dayLetter} ${dayNum}</span>
-                <span class="habit-bubble-state">${isDone ? '✓' : '○'}</span>
+                <span class="habit-bubble-state">${isDone ? '&#10003;' : '&#9675;'}</span>
             </div>
         `;
     });
@@ -6975,7 +7002,7 @@ function openHabitManageModal(hOrName) {
         <div class="habit-streak-box">
             <div class="habit-streak-display">
                 <span class="habit-m-label">Current Streak</span>
-                <span class="habit-streak-val" id="habitManageStreakVal">🔥 ${stats.currentStreak}</span>
+                <span class="habit-streak-val" id="habitManageStreakVal">&#128293; ${stats.currentStreak}</span>
             </div>
             <div style="font-size:0.75rem;color:var(--text-secondary,#aaa);">
                 Manual Streak Offset / Adjustment:
@@ -6991,7 +7018,7 @@ function openHabitManageModal(hOrName) {
             <div style="margin-top:6px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.8rem;color:var(--text-secondary,#ddd);">
                     <input type="checkbox" id="habitManageFreeze" name="habitFreezeStreak" ${h.streakFrozen ? 'checked' : ''} />
-                    <span>❄️ Freeze Streak (Preserve streak during sick days / vacation)</span>
+                    <span>&#10052;&#65039; Freeze Streak (Preserve streak during sick days / vacation)</span>
                 </label>
             </div>
         </div>
@@ -7005,15 +7032,15 @@ function openHabitManageModal(hOrName) {
 
         <div class="habit-m-stats">
             <div class="habit-stat-tile">
-                <span class="habit-stat-num">⭐ ${stats.bestStreak}</span>
+                <span class="habit-stat-num">&#11088; ${stats.bestStreak}</span>
                 <span class="habit-stat-lbl">Best Streak</span>
             </div>
             <div class="habit-stat-tile">
-                <span class="habit-stat-num">✓ ${stats.totalCompletions}</span>
+                <span class="habit-stat-num">&#10003; ${stats.totalCompletions}</span>
                 <span class="habit-stat-lbl">Total Done</span>
             </div>
             <div class="habit-stat-tile">
-                <span class="habit-stat-num">📈 ${stats.monthRate}%</span>
+                <span class="habit-stat-num">&#128200; ${stats.monthRate}%</span>
                 <span class="habit-stat-lbl">30d Rate</span>
             </div>
         </div>
@@ -7039,7 +7066,7 @@ function openHabitManageModal(hOrName) {
             else currentAdj += parseInt(step, 10);
             adjInput.value = currentAdj;
             const updated = Math.max(0, stats.currentStreak - (h.streakAdjustment || 0) + currentAdj);
-            if (streakDisplay) streakDisplay.textContent = '🔥 ' + updated;
+            if (streakDisplay) streakDisplay.textContent = '\uD83D\uDD25 ' + updated;
         };
     });
 
@@ -7047,7 +7074,7 @@ function openHabitManageModal(hOrName) {
         adjInput.oninput = () => {
             const currentAdj = parseInt(adjInput.value, 10) || 0;
             const updated = Math.max(0, stats.currentStreak - (h.streakAdjustment || 0) + currentAdj);
-            if (streakDisplay) streakDisplay.textContent = '🔥 ' + updated;
+            if (streakDisplay) streakDisplay.textContent = '\uD83D\uDD25 ' + updated;
         };
     }
 
@@ -7059,18 +7086,17 @@ function openHabitManageModal(hOrName) {
             setHabitCompletion(targetDate, habitName, !isChecked);
             bubble.classList.toggle('checked', !isChecked);
             const stateEl = bubble.querySelector('.habit-bubble-state');
-            if (stateEl) stateEl.textContent = !isChecked ? '✓' : '○';
+            if (stateEl) stateEl.textContent = !isChecked ? '\u2713' : '\u25CB';
 
             // Recalculate streak
-            const newStreak = getHabitStreak(habitName, getTodayStr());
-            if (streakDisplay) streakDisplay.textContent = '🔥 ' + newStreak;
+            const newStreak = getHabitStreak(h, getTodayStr(), habits);
+            if (streakDisplay) streakDisplay.textContent = '\uD83D\uDD25 ' + newStreak;
         };
     });
 
     overlay.style.display = 'flex';
     overlay.classList.add('active');
 }
-
 function closeHabitManageModal() {
     const overlay = document.getElementById('habitManageOverlay');
     if (overlay) {
@@ -7189,7 +7215,7 @@ function renderHabitMiniCalendar() {
 
     const hs = loadHabits();
     const h = hs.find(x => x.name === selectedHabit);
-    const stats = getHabitDetailedStats(selectedHabit);
+    const stats = getHabitDetailedStats(selectedHabit, h, hs);
     const freqLbl = h ? getHabitFrequencyLabel(h.frequency, h.intervalDays) : 'Daily';
     const target = h ? (h.formationTarget || 21) : 21;
     const currentStreak = stats.currentStreak;
@@ -7204,7 +7230,7 @@ function renderHabitMiniCalendar() {
         const isNext = (day === currentStreak + 1);
         pathwayPipsHTML += `
             <div class="pathway-pip ${isDone ? 'done' : (isNext ? 'next' : '')}" title="Day ${day}${isDone ? ' (Completed)' : (isNext ? ' (Next milestone)' : '')}">
-                ${isDone ? '✓' : day}
+                ${isDone ? '&#10003;' : day}
             </div>
         `;
     }
@@ -7213,14 +7239,14 @@ function renderHabitMiniCalendar() {
         <div class="habit-pathway-card">
             <div class="habit-pathway-header">
                 <div class="habit-pathway-title">
-                    <span>${isEstablished ? '⭐ Routine Established!' : '🌱 21-Day Habit Pathway'}</span>
+                    <span>${isEstablished ? '&#11088; Routine Established!' : '&#127793; 21-Day Habit Pathway'}</span>
                     <span class="habit-pathway-pct">${currentStreak}/${target} Days (${pct}%)</span>
                 </div>
                 <div class="habit-pathway-phases">
                     <span class="phase-lbl ${currentStreak < 7 ? 'active' : ''}">Phase 1: Initiation (D1-7)</span>
-                    <span class="phase-sep">•</span>
+                    <span class="phase-sep">&#8226;</span>
                     <span class="phase-lbl ${currentStreak >= 7 && currentStreak < 14 ? 'active' : ''}">Phase 2: Transition (D8-14)</span>
-                    <span class="phase-sep">•</span>
+                    <span class="phase-sep">&#8226;</span>
                     <span class="phase-lbl ${currentStreak >= 14 && currentStreak < 21 ? 'active' : ''}">Phase 3: Integration (D15-21)</span>
                 </div>
             </div>
@@ -7233,8 +7259,8 @@ function renderHabitMiniCalendar() {
     let html = `
         <div class="habit-calendar-section" style="margin-top:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px;">
             <div class="habit-calendar-title" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                <span style="font-weight:700;font-size:0.85rem;color:var(--text, #14161b);">📅 ${escapeHtml(selectedHabit)} <span style="font-size:0.7rem;font-weight:600;color:var(--accent);margin-left:6px;">(${escapeHtml(freqLbl)} • Streak: 🔥${stats.currentStreak} • Best: ⭐${stats.bestStreak})</span></span>
-                <button class="habit-calendar-deselect" id="habitCalendarDeselect" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:0.7rem;padding:2px 6px;cursor:pointer;">✕ Close</button>
+                <span style="font-weight:700;font-size:0.85rem;color:var(--text, #14161b);">&#128197; ${escapeHtml(selectedHabit)} <span style="font-size:0.7rem;font-weight:600;color:var(--accent);margin-left:6px;">(${escapeHtml(freqLbl)} &#8226; Streak: &#128293;${stats.currentStreak} &#8226; Best: &#11088;${stats.bestStreak})</span></span>
+                <button class="habit-calendar-deselect" id="habitCalendarDeselect" style="background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text-secondary);font-size:0.7rem;padding:2px 6px;cursor:pointer;">&#10005; Close</button>
             </div>
             ${pathwayHTML}
             <div class="habit-mini-grid">
@@ -7249,7 +7275,7 @@ function renderHabitMiniCalendar() {
         } else {
             const day = i - off + 1;
             const ds = formatDateStr(currentYear, currentMonth, day);
-            const c = getHabitCompletions(ds);
+            const c = getHabitCompletions(ds, hs);
             const dn = c.includes(selectedHabit);
             const it = ds === todayStr;
             html += `<div class="habit-mini-cell${it ? ' today' : ''}${dn ? ' done' : ''}" data-habit-cell-date="${ds}" title="${getFormattedDate(ds)}: ${dn ? 'Completed' : 'Not completed'} (Click to toggle)">${day}</div>`;
@@ -15095,7 +15121,7 @@ function deleteTask(id){
                     presets.splice(toIdx, 0, moved);
                     saveStoredEisenPresets(presets);
                     renderEisenPresetList();
-                    showToast('Ã¢â€ â€¢ Presets reordered');
+                    showToast('\u2728 Presets reordered');
                 }
                 draggedPresetId = null;
                 setTimeout(() => { isDraggingPreset = false; }, 100);
@@ -20078,7 +20104,7 @@ window.moveWtbTask = moveWtbTask;
     <div class="eisen-move-modal-overlay" id="eisenMoveDateOverlay" style="display:none;">
         <div class="eisen-move-modal" id="eisenMoveDateModal" role="dialog" aria-modal="true">
             <div class="eisen-move-header">
-                <div class="eisen-move-title">ðŸ“… Move to Date</div>
+                <div class="eisen-move-title">&#128197; Move to Date</div>
                 <button type="button" class="eisen-move-close" id="btnEisenMoveCancelTop" title="Close">&#10005;</button>
             </div>
             <div class="eisen-move-body">
@@ -20110,7 +20136,7 @@ window.moveWtbTask = moveWtbTask;
     <div class="habit-manage-overlay" id="habitManageOverlay" style="display:none;">
         <div class="habit-manage-modal" id="habitManageModal" role="dialog" aria-modal="true">
             <div class="habit-manage-header">
-                <div class="habit-manage-title">âš™ï¸ Manage Habit & Streak</div>
+                <div class="habit-manage-title">&#9881;&#65039; Manage Habit &amp; Streak</div>
                 <button type="button" class="habit-modal-close" id="btnHabitManageClose" title="Close">&#10005;</button>
             </div>
             <div class="habit-manage-body" id="habitManageBody"></div>
