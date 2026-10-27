@@ -5197,7 +5197,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     const DB_NAME='TaskPlannerIndexedDB';
     const DB_VERSION=1;
     const STORE_NAME='kv';
-    const legacyPrefix=/^(td_|tdw_)/;
+    const legacyPrefix=/^(td_|tdw_|tsk_|lrn_|ctc_|int_|hdef_|hlog_|note_)/;
     const cache=new Map();
     let db=null;
 
@@ -5208,7 +5208,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         if(window.localStorage){
     for(let i=0; i<window.localStorage.length; i++){
         const k = window.localStorage.key(i);
-        if(k && (k.startsWith('td_') || k.startsWith('tdw_') || k.startsWith('tp_') || legacyPrefix.test(k))){
+        if(k && (k.startsWith('td_') || k.startsWith('tdw_') || k.startsWith('tp_') || k.startsWith('tsk_') || k.startsWith('lrn_') || k.startsWith('ctc_') || k.startsWith('int_') || k.startsWith('hdef_') || k.startsWith('hlog_') || k.startsWith('note_') || legacyPrefix.test(k))){
             const val = window.localStorage.getItem(k);
             if(val !== null && val !== undefined){
                 cache.set(k, val);
@@ -5265,7 +5265,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         const legacy=[];
         for(let i=0;i<window.localStorage.length;i++){
     const key=window.localStorage.key(i);
-    if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || legacyPrefix.test(key))){
+    if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || key.startsWith('tsk_') || key.startsWith('lrn_') || key.startsWith('ctc_') || key.startsWith('int_') || key.startsWith('hdef_') || key.startsWith('hlog_') || key.startsWith('note_') || legacyPrefix.test(key))){
         const value=window.localStorage.getItem(key);
         cache.set(key,value);
         legacy.push({key,value});
@@ -5293,7 +5293,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     if(window.localStorage){
         for(let i=0;i<window.localStorage.length;i++){
             const key=window.localStorage.key(i);
-            if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || legacyPrefix.test(key))){
+            if(key && (key.startsWith('td_') || key.startsWith('tdw_') || key.startsWith('tp_') || key.startsWith('tsk_') || key.startsWith('lrn_') || key.startsWith('ctc_') || key.startsWith('int_') || key.startsWith('hdef_') || key.startsWith('hlog_') || key.startsWith('note_') || legacyPrefix.test(key))){
                 cache.set(key,window.localStorage.getItem(key));
             }
         }
@@ -5553,39 +5553,353 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
     function getStorageKey(d){return STORAGE_PREFIX+d}
     function getData(d){
-        const r=appStorage.getItem(getStorageKey(d));
-        if(!r)return null;
+        if(!d) return null;
         try{
-            const p=JSON.parse(r);
-            const rawTasks = Array.isArray(p.tasks)?p.tasks:[];
-            const seenIds = new Set();
-            const cleanTasks = [];
-            const delTaskMap = getDeletedTaskIds();
-            for(let idx=0; idx<rawTasks.length; idx++){
-                const item = rawTasks[idx];
-                if(!item || typeof item !== 'object') continue;
-                if(item.id && delTaskMap[item.id]) continue;
-                let finalTask = item;
-                if(!item.id || seenIds.has(item.id)){
-                    finalTask = Object.assign({}, item, { id: generateId() });
-                }
-                seenIds.add(finalTask.id);
-                cleanTasks.push(finalTask);
+            const delTaskMap = (typeof getDeletedTaskIds === 'function') ? getDeletedTaskIds() : {};
+            const taskLocMap = (typeof getTaskLocations === 'function') ? getTaskLocations() : {};
+
+            const r = appStorage.getItem(getStorageKey(d));
+            let composite = null;
+            if(r){
+                try{ composite = JSON.parse(r); }catch(e){}
             }
+
+            const taskMap = new Map();
+            if(composite && Array.isArray(composite.tasks)){
+                composite.tasks.forEach(t => {
+                    if(!t || !t.id || delTaskMap[t.id]) return;
+                    const loc = taskLocMap[t.id];
+                    if(loc && loc.dateStr && loc.dateStr !== d) return;
+                    const discreteRaw = appStorage.getItem('tsk_' + t.id);
+                    if(discreteRaw){
+                        try{
+                            const dt = JSON.parse(discreteRaw);
+                            if(dt && dt.dateStr && dt.dateStr !== d) return;
+                            if(dt && (dt.updatedAt || 0) > (t.updatedAt || 0)){
+                                t = Object.assign({}, t, dt);
+                            }
+                        }catch(e){}
+                    }
+                    taskMap.set(t.id, t);
+                });
+            }
+
+            for(const tid in taskLocMap){
+                if(taskLocMap[tid] && taskLocMap[tid].dateStr === d && !delTaskMap[tid] && !taskMap.has(tid)){
+                    const discreteRaw = appStorage.getItem('tsk_' + tid);
+                    if(discreteRaw){
+                        try{
+                            const dt = JSON.parse(discreteRaw);
+                            if(dt && dt.id && (dt.dateStr === d || !dt.dateStr)){
+                                dt.dateStr = d;
+                                taskMap.set(dt.id, dt);
+                            }
+                        }catch(e){}
+                    }
+                }
+            }
+
+            const cleanTasks = Array.from(taskMap.values());
+
+            const learningMap = new Map();
+            if(composite && Array.isArray(composite.learnings)){
+                composite.learnings.forEach(l => {
+                    if(!l || !l.id) return;
+                    const discreteRaw = appStorage.getItem('lrn_' + l.id);
+                    if(discreteRaw){
+                        try{
+                            const dl = JSON.parse(discreteRaw);
+                            if(dl && dl.dateStr && dl.dateStr !== d) return;
+                            if(dl && (dl.updatedAt || 0) > (l.updatedAt || 0)){
+                                l = Object.assign({}, l, dl);
+                            }
+                        }catch(e){}
+                    }
+                    learningMap.set(l.id, l);
+                });
+            }
+            const cleanLearnings = Array.from(learningMap.values());
+
+            let notes = (composite && composite.notes) || '';
+            let dayTitle = (composite && typeof composite.dayTitle === 'string') ? composite.dayTitle : '';
+            let holiday = !!(composite && composite.holiday);
+
+            const noteRaw = appStorage.getItem('note_' + d);
+            if(noteRaw){
+                try{
+                    const noteObj = JSON.parse(noteRaw);
+                    if(noteObj){
+                        if(noteObj.notes !== undefined) notes = noteObj.notes;
+                        if(noteObj.dayTitle !== undefined) dayTitle = noteObj.dayTitle;
+                        if(noteObj.holiday !== undefined) holiday = !!noteObj.holiday;
+                    }
+                }catch(e){}
+            }
+
+            let habits = (composite && Array.isArray(composite.habits)) ? composite.habits : [];
+            const hlogRaw = appStorage.getItem('hlog_' + d);
+            if(hlogRaw){
+                try{
+                    const hlogObj = JSON.parse(hlogRaw);
+                    if(hlogObj && Array.isArray(hlogObj.habits)){
+                        habits = hlogObj.habits;
+                    }
+                }catch(e){}
+            }
+
+            const attachments = (composite && Array.isArray(composite.attachments)) ? composite.attachments : [];
+            const textCalendar = (composite && Array.isArray(composite.textCalendar)) ? composite.textCalendar.filter(x => typeof x === 'string') : [];
+
+            if(!composite && !noteRaw && !hlogRaw && cleanTasks.length === 0 && cleanLearnings.length === 0){
+                return null;
+            }
+
             return{
-                tasks:cleanTasks,
-                notes:p.notes||'',
-                dayTitle:typeof p.dayTitle==='string'?p.dayTitle:'',
-                holiday:p.holiday===true,
-                attachments:Array.isArray(p.attachments)?p.attachments:[],
-                learnings:Array.isArray(p.learnings)?p.learnings:[],
-                habits:Array.isArray(p.habits)?p.habits:[],
-                textCalendar:Array.isArray(p.textCalendar)?p.textCalendar.filter(x=>typeof x==='string'):[]
+                tasks: cleanTasks,
+                notes: notes,
+                dayTitle: dayTitle,
+                holiday: holiday,
+                attachments: attachments,
+                learnings: cleanLearnings,
+                habits: habits,
+                textCalendar: textCalendar
             };
-        }catch(e){return null}
+        }catch(e){
+            return null;
+        }
     }
-    function saveData(d,data){appStorage.setItem(getStorageKey(d),JSON.stringify({tasks:data.tasks||[],notes:data.notes||'',dayTitle:data.dayTitle||'',holiday:data.holiday||false,attachments:data.attachments||[],learnings:data.learnings||[],habits:data.habits||[],textCalendar:Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>typeof x==='string'&&x.trim()):[]}))}
-    function deleteData(d){appStorage.removeItem(getStorageKey(d))}
+
+    function saveData(d, data){
+        if(!d || !data) return;
+        const now = Date.now();
+
+        const tasks = Array.isArray(data.tasks) ? data.tasks : [];
+        const currentTaskIds = new Set();
+        const cleanTasks = [];
+
+        tasks.forEach(item => {
+            if(!item || typeof item !== 'object') return;
+            let t = item;
+            if(!t.id){
+                t = Object.assign({}, t, { id: generateId() });
+            }
+            t.dateStr = d;
+            t.updatedAt = now;
+            currentTaskIds.add(t.id);
+            cleanTasks.push(t);
+
+            const key = 'tsk_' + t.id;
+            appStorage.setItem(key, JSON.stringify(t));
+            if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(key, t.updatedAt);
+            if(typeof recordTaskLocation === 'function') recordTaskLocation(t.id, d, t.updatedAt);
+        });
+
+        const learnings = Array.isArray(data.learnings) ? data.learnings : [];
+        const currentLearningIds = new Set();
+        const cleanLearnings = [];
+
+        learnings.forEach(item => {
+            if(!item || typeof item !== 'object') return;
+            let l = item;
+            if(!l.id){
+                l = Object.assign({}, l, { id: generateLearningId() });
+            }
+            l.dateStr = d;
+            l.updatedAt = now;
+            currentLearningIds.add(l.id);
+            cleanLearnings.push(l);
+
+            const key = 'lrn_' + l.id;
+            appStorage.setItem(key, JSON.stringify(l));
+            if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(key, l.updatedAt);
+        });
+
+        const noteObj = {
+            dateStr: d,
+            notes: data.notes || '',
+            dayTitle: data.dayTitle || '',
+            holiday: !!data.holiday,
+            updatedAt: now
+        };
+        appStorage.setItem('note_' + d, JSON.stringify(noteObj));
+        if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('note_' + d, now);
+
+        const hlogObj = {
+            dateStr: d,
+            habits: Array.isArray(data.habits) ? data.habits : [],
+            updatedAt: now
+        };
+        appStorage.setItem('hlog_' + d, JSON.stringify(hlogObj));
+        if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp('hlog_' + d, now);
+
+        const cleanTextCal = Array.isArray(data.textCalendar) ? data.textCalendar.filter(x => typeof x === 'string' && x.trim()) : [];
+        const composite = {
+            tasks: cleanTasks,
+            notes: data.notes || '',
+            dayTitle: data.dayTitle || '',
+            holiday: !!data.holiday,
+            attachments: Array.isArray(data.attachments) ? data.attachments : [],
+            learnings: cleanLearnings,
+            habits: Array.isArray(data.habits) ? data.habits : [],
+            textCalendar: cleanTextCal
+        };
+        appStorage.setItem(getStorageKey(d), JSON.stringify(composite));
+        if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(getStorageKey(d), now);
+    }
+
+    function deleteData(d){
+        if(!d) return;
+        const now = Date.now();
+        try{
+            const raw = appStorage.getItem(getStorageKey(d));
+            if(raw){
+                const data = JSON.parse(raw);
+                if(data && Array.isArray(data.tasks)){
+                    data.tasks.forEach(t => {
+                        if(t && t.id){
+                            appStorage.removeItem('tsk_' + t.id);
+                            if(typeof recordDeletedTaskId === 'function') recordDeletedTaskId(t.id);
+                            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('tsk_' + t.id, now);
+                        }
+                    });
+                }
+                if(data && Array.isArray(data.learnings)){
+                    data.learnings.forEach(l => {
+                        if(l && l.id){
+                            appStorage.removeItem('lrn_' + l.id);
+                            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('lrn_' + l.id, now);
+                        }
+                    });
+                }
+            }
+            appStorage.removeItem('note_' + d);
+            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('note_' + d, now);
+            appStorage.removeItem('hlog_' + d);
+            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('hlog_' + d, now);
+            appStorage.removeItem(getStorageKey(d));
+            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted(getStorageKey(d), now);
+        }catch(e){
+            appStorage.removeItem(getStorageKey(d));
+        }
+    }
+
+    function migrateToNormalizedEntities(){
+        try{
+            if(appStorage.getItem('tp_entity_normalized_v1')) return;
+            const now = Date.now();
+            const len = appStorage.length;
+            const allKeys = [];
+            for(let i=0; i<len; i++){
+                const k = appStorage.key(i);
+                if(k) allKeys.push(k);
+            }
+
+            allKeys.forEach(k => {
+                if(/^td_\d{4}-\d{2}-\d{2}$/.test(k)){
+                    const ds = k.slice(3);
+                    try{
+                        const raw = appStorage.getItem(k);
+                        if(!raw) return;
+                        const d = JSON.parse(raw);
+                        if(!d) return;
+
+                        if(Array.isArray(d.tasks)){
+                            d.tasks.forEach(t => {
+                                if(!t || !t.id) return;
+                                t.dateStr = ds;
+                                t.updatedAt = t.updatedAt || now;
+                                appStorage.setItem('tsk_' + t.id, JSON.stringify(t));
+                                if(typeof recordTaskLocation === 'function') recordTaskLocation(t.id, ds, t.updatedAt);
+                            });
+                        }
+
+                        if(Array.isArray(d.learnings)){
+                            d.learnings.forEach(l => {
+                                if(!l || !l.id) return;
+                                l.dateStr = ds;
+                                l.updatedAt = l.updatedAt || now;
+                                appStorage.setItem('lrn_' + l.id, JSON.stringify(l));
+                            });
+                        }
+
+                        if(d.notes || d.dayTitle || d.holiday){
+                            appStorage.setItem('note_' + ds, JSON.stringify({
+                                dateStr: ds,
+                                notes: d.notes || '',
+                                dayTitle: d.dayTitle || '',
+                                holiday: !!d.holiday,
+                                updatedAt: now
+                            }));
+                        }
+
+                        if(Array.isArray(d.habits) && d.habits.length > 0){
+                            appStorage.setItem('hlog_' + ds, JSON.stringify({
+                                dateStr: ds,
+                                habits: d.habits,
+                                updatedAt: now
+                            }));
+                        }
+                    }catch(e){}
+                }
+
+                if(k === 'tp_contacts'){
+                    try{
+                        const raw = appStorage.getItem(k);
+                        const contacts = raw ? JSON.parse(raw) : [];
+                        if(Array.isArray(contacts)){
+                            contacts.forEach(c => {
+                                if(c && c.id){
+                                    c.updatedAt = c.updatedAt || now;
+                                    appStorage.setItem('ctc_' + c.id, JSON.stringify(c));
+                                }
+                            });
+                        }
+                    }catch(e){}
+                }
+
+                if(k === 'tp_habits_list'){
+                    try{
+                        const raw = appStorage.getItem(k);
+                        const habits = raw ? JSON.parse(raw) : [];
+                        if(Array.isArray(habits)){
+                            habits.forEach(h => {
+                                if(h && h.id){
+                                    h.updatedAt = h.updatedAt || now;
+                                    appStorage.setItem('hdef_' + h.id, JSON.stringify(h));
+                                }
+                            });
+                        }
+                    }catch(e){}
+                }
+
+                if(/^td_pj_\d{4}-\d{2}-\d{2}$/.test(k)){
+                    const ds = k.slice(6);
+                    try{
+                        const raw = appStorage.getItem(k);
+                        const d = raw ? JSON.parse(raw) : null;
+                        if(d && Array.isArray(d.encounters)){
+                            d.encounters.forEach(enc => {
+                                if(enc && enc.id){
+                                    enc.dateStr = ds;
+                                    enc.updatedAt = enc.updatedAt || now;
+                                    appStorage.setItem('int_' + enc.id, JSON.stringify(enc));
+                                }
+                            });
+                        }
+                    }catch(e){}
+                }
+            });
+
+            appStorage.setItem('tp_entity_normalized_v1', '1');
+        }catch(err){
+            console.error('[Entity Normalization] Migration error:', err);
+        }
+    }
+    window.migrateToNormalizedEntities = migrateToNormalizedEntities;
+    window.getData = getData;
+    window.saveData = saveData;
+    window.deleteData = deleteData;
+
     function getWeekKey(w){return WEEK_PREFIX+w}
     function getWeekData(w){const r=appStorage.getItem(getWeekKey(w));if(!r)return null;try{const p=JSON.parse(r);return{tasks:Array.isArray(p.tasks)?p.tasks:[],notes:p.notes||''}}catch(e){return null}}
     function saveWeekData(w,data){appStorage.setItem(getWeekKey(w),JSON.stringify({tasks:data.tasks||[],notes:data.notes||''}))}
@@ -6409,6 +6723,18 @@ function loadHabits() {
 function saveHabitsToStorage(habits) {
     if (typeof habitCompletionsCache !== 'undefined' && habitCompletionsCache) habitCompletionsCache.clear();
     appStorage.setItem(HABITS_KEY, JSON.stringify(habits));
+    try {
+        if(Array.isArray(habits)){
+    habits.forEach(h => {
+        if(h && h.id){
+            h.updatedAt = h.updatedAt || Date.now();
+            const hKey = 'hdef_' + h.id;
+            appStorage.setItem(hKey, JSON.stringify(h));
+            if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(hKey, h.updatedAt);
+        }
+    });
+        }
+    } catch(e){}
     if (typeof scheduleCloudPush === 'function') scheduleCloudPush(200);
 }
 
@@ -8670,6 +8996,17 @@ function renderHabitMiniCalendar() {
             appStorage.removeItem(PJ_DAYS_PREFIX + ds);
         } else {
             appStorage.setItem(PJ_DAYS_PREFIX + ds, JSON.stringify({ encounters: encs, dayNotes }));
+            try {
+                encs.forEach(enc => {
+                    if(enc && enc.id){
+                        enc.dateStr = ds;
+                        enc.updatedAt = enc.updatedAt || Date.now();
+                        const intKey = 'int_' + enc.id;
+                        appStorage.setItem(intKey, JSON.stringify(enc));
+                        if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(intKey, enc.updatedAt);
+                    }
+                });
+            } catch(e){}
         }
         invalidatePjCache();
     }
@@ -8720,6 +9057,16 @@ function renderHabitMiniCalendar() {
     function savePjContacts(arr){
         const validArr = Array.isArray(arr) ? arr : [];
         appStorage.setItem(PJ_CONTACTS_KEY, JSON.stringify(validArr));
+        try {
+            validArr.forEach(c => {
+                if(c && c.id){
+                    c.updatedAt = c.updatedAt || Date.now();
+                    const cKey = 'ctc_' + c.id;
+                    appStorage.setItem(cKey, JSON.stringify(c));
+                    if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(cKey, c.updatedAt);
+                }
+            });
+        } catch(e){}
         invalidatePjCache();
         if(typeof setLocalKeyTimestamp === 'function'){
             setLocalKeyTimestamp(PJ_CONTACTS_KEY, Date.now());
@@ -14191,6 +14538,10 @@ function endTaskDrag(item) {
         const str=JSON.stringify(m);
         appStorage.setItem('tp_deleted_task_ids',str);
         if(window.localStorage){try{window.localStorage.setItem('tp_deleted_task_ids',str)}catch(e){}}
+        try{
+            appStorage.removeItem('tsk_'+id);
+            if(typeof setLocalKeyDeleted==='function')setLocalKeyDeleted('tsk_'+id,Date.now());
+        }catch(e){}
     }catch(e){}
 }
 function getDeletedTaskIds(){
@@ -14199,6 +14550,8 @@ function getDeletedTaskIds(){
         return r?JSON.parse(r):{};
     }catch(e){return{};}
 }
+window.recordDeletedTaskId = recordDeletedTaskId;
+window.getDeletedTaskIds = getDeletedTaskIds;
 function deleteTask(id){
         if(!id)return;
         if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
@@ -17253,7 +17606,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
     async function exportPDF(){flushDebounced();const b=document.getElementById('btnExportPdf');const oh=b.innerHTML;b.style.pointerEvents='none';b.innerHTML='...';try{const el=document.querySelector('.app-container');const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--bg')});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:canvas.width>canvas.height?'landscape':'portrait',unit:'px',format:[canvas.width,canvas.height]});pdf.addImage(img,'PNG',0,0,canvas.width,canvas.height);pdf.save(`todo-planner-${new Date().toISOString().slice(0,10)}.pdf`)}catch(e){alert('PDF export failed.')}finally{b.style.pointerEvents='auto';b.innerHTML=oh}}
 
     function init(){
-        initTheme();initStatsCollapse();initPertCollapse();if(typeof deduplicateAllStorage==='function')deduplicateAllStorage();
+        initTheme();initStatsCollapse();initPertCollapse();if(typeof deduplicateAllStorage==='function')deduplicateAllStorage();if(typeof migrateToNormalizedEntities==='function')migrateToNormalizedEntities();
         if(pathPrefixInput) pathPrefixInput.value=filePathPrefix;
         const ts=getTodayStr();
         const[y,m]=ts.split('-').map(Number);
@@ -21222,8 +21575,10 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
     if(k.startsWith('td_') || k.startsWith('tdw_')) return true;
     if(k.startsWith('tp_contacts') || k.startsWith('tp_people_meta')) return true;
     if(k.startsWith('tp_eisen_presets') || k.startsWith('tp_habits_list')) return true;
-    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations') return true;
-    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations') return true;
+    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations' || k === 'tp_entity_normalized_v1') return true;
+            if(k.startsWith('tsk_') || k.startsWith('lrn_') || k.startsWith('ctc_') || k.startsWith('int_') || k.startsWith('hdef_') || k.startsWith('hlog_') || k.startsWith('note_')) return true;
+    if(k === 'tp_deleted_task_ids' || k === 'tp_task_locations' || k === 'tp_entity_normalized_v1') return true;
+            if(k.startsWith('tsk_') || k.startsWith('lrn_') || k.startsWith('ctc_') || k.startsWith('int_') || k.startsWith('hdef_') || k.startsWith('hlog_') || k.startsWith('note_')) return true;
     return false;
         }
 
@@ -21699,7 +22054,101 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             continue;
         }
 
-        // Intelligent entity-level union merge for daily and weekly records (td_YYYY-MM-DD / tdw_YYYY-Wxx)
+        // -------------------------------------------------------------
+                // DIRECT SINGLE-ENTITY RECONCILIATION MERGES (Option A)
+                // -------------------------------------------------------------
+                // 1. Task Entity (tsk_<taskId>)
+                if(k.startsWith('tsk_')){
+                    const taskId = k.slice(4);
+                    let delTaskMap = {};
+                    try {
+                        const rawDel = (localPayload && localPayload['tp_deleted_task_ids']) || (storage ? storage.getItem('tp_deleted_task_ids') : null) || (remotePayload && remotePayload['tp_deleted_task_ids']);
+                        if(rawDel) delTaskMap = (typeof rawDel === 'object') ? rawDel : JSON.parse(rawDel);
+                    } catch(e){}
+
+                    if(delTaskMap[taskId]){
+                        if(curLocalVal !== null && curLocalVal !== undefined){
+                            storage.removeItem(k);
+                            localAppliedRemoteChanges = true;
+                        }
+                        mergedDeleted[k] = Math.max(localDelTs, remoteDelTs, Date.now());
+                        delete mergedTimestamps[k];
+                        continue;
+                    }
+
+                    let localTask = null, remoteTask = null;
+                    try { localTask = curLocalVal ? JSON.parse(curLocalVal) : null; } catch(e){}
+                    try { remoteTask = remoteStrVal ? JSON.parse(remoteStrVal) : null; } catch(e){}
+
+                    const localTaskTs = Math.max(localTs, localTask?.updatedAt || 0, localTask?.movedAt || 0);
+                    const remoteTaskTs = Math.max(remoteTs, remoteTask?.updatedAt || 0, remoteTask?.movedAt || 0);
+
+                    if(remoteStrVal !== null && remoteStrVal !== undefined && (curLocalVal === null || curLocalVal === undefined || remoteTaskTs > localTaskTs)){
+                        if(remoteStrVal !== curLocalVal){
+                            if(storage) storage.setItem(k, remoteStrVal);
+                            localAppliedRemoteChanges = true;
+                            if(remoteTask && remoteTask.dateStr && typeof recordTaskLocation === 'function'){
+                                recordTaskLocation(taskId, remoteTask.dateStr, remoteTaskTs);
+                            }
+                        }
+                        mergedItems[k] = remoteStrVal;
+                        mergedTimestamps[k] = remoteTaskTs;
+                    } else if(curLocalVal !== null && curLocalVal !== undefined){
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = localTaskTs || Date.now();
+                        if(curLocalVal !== remoteStrVal){
+                            hasLocalNewerChanges = true;
+                        }
+                    }
+                    continue;
+                }
+
+                // 2. Learning Entity (lrn_<learningId>)
+                if(k.startsWith('lrn_')){
+                    let localLrn = null, remoteLrn = null;
+                    try { localLrn = curLocalVal ? JSON.parse(curLocalVal) : null; } catch(e){}
+                    try { remoteLrn = remoteStrVal ? JSON.parse(remoteStrVal) : null; } catch(e){}
+
+                    const localLrnTs = Math.max(localTs, localLrn?.updatedAt || 0);
+                    const remoteLrnTs = Math.max(remoteTs, remoteLrn?.updatedAt || 0);
+
+                    if(remoteStrVal !== null && remoteStrVal !== undefined && (curLocalVal === null || curLocalVal === undefined || remoteLrnTs > localLrnTs)){
+                        if(remoteStrVal !== curLocalVal){
+                            if(storage) storage.setItem(k, remoteStrVal);
+                            localAppliedRemoteChanges = true;
+                        }
+                        mergedItems[k] = remoteStrVal;
+                        mergedTimestamps[k] = remoteLrnTs;
+                    } else if(curLocalVal !== null && curLocalVal !== undefined){
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = localLrnTs || Date.now();
+                        if(curLocalVal !== remoteStrVal){
+                            hasLocalNewerChanges = true;
+                        }
+                    }
+                    continue;
+                }
+
+                // 3. Discrete Entities: Daily Notes, Daily Habits Log, Contacts, Encounters, Habit Defs
+                if(k.startsWith('note_') || k.startsWith('hlog_') || k.startsWith('ctc_') || k.startsWith('int_') || k.startsWith('hdef_')){
+                    if(remoteStrVal !== null && remoteStrVal !== undefined && (curLocalVal === null || curLocalVal === undefined || remoteTs > localTs)){
+                        if(remoteStrVal !== curLocalVal){
+                            if(storage) storage.setItem(k, remoteStrVal);
+                            localAppliedRemoteChanges = true;
+                        }
+                        mergedItems[k] = remoteStrVal;
+                        mergedTimestamps[k] = remoteTs;
+                    } else if(curLocalVal !== null && curLocalVal !== undefined){
+                        mergedItems[k] = curLocalVal;
+                        mergedTimestamps[k] = localTs || Date.now();
+                        if(curLocalVal !== remoteStrVal){
+                            hasLocalNewerChanges = true;
+                        }
+                    }
+                    continue;
+                }
+
+                // Intelligent entity-level union merge for daily and weekly records (td_YYYY-MM-DD / tdw_YYYY-Wxx)
         // Directional recency + Anti-Cross-Date Guard prevents duplicates when moving tasks between dates
         if((/^td_\d{4}-\d{2}-\d{2}$/.test(k) || /^tdw_\d{4}-W\d{2}$/.test(k)) && curLocalVal !== null && curLocalVal !== undefined && remoteStrVal !== null && remoteStrVal !== undefined){
             try {
@@ -21992,7 +22441,51 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         window.localStorage.setItem(KEY_DELETED_KEY, JSON.stringify(mergedDeleted));
     } catch(e){}
 
-    mergedItems._meta_timestamps = mergedTimestamps;
+    // Post-merge composite td_YYYY-MM-DD synchronization with discrete entities
+            for(const mk in mergedItems){
+                if(/^td_\d{4}-\d{2}-\d{2}$/.test(mk)){
+                    const curDate = mk.slice(3);
+                    try {
+                        const dayData = JSON.parse(mergedItems[mk]);
+                        if(dayData && Array.isArray(dayData.tasks)){
+                            let changed = false;
+                            const filtered = dayData.tasks.filter(t => {
+                                if(!t || !t.id || delTaskMap[t.id]) { changed = true; return false; }
+                                const tskRaw = mergedItems['tsk_' + t.id] || (storage ? storage.getItem('tsk_' + t.id) : null);
+                                if(tskRaw){
+                                    try {
+                                        const tObj = JSON.parse(tskRaw);
+                                        if(tObj && tObj.dateStr && tObj.dateStr !== curDate) { changed = true; return false; }
+                                    } catch(e){}
+                                }
+                                return true;
+                            });
+                            for(const ek in mergedItems){
+                                if(ek.startsWith('tsk_')){
+                                    const tid = ek.slice(4);
+                                    if(delTaskMap[tid]) continue;
+                                    try {
+                                        const tObj = JSON.parse(mergedItems[ek]);
+                                        if(tObj && tObj.dateStr === curDate && !filtered.some(x => x.id === tid)){
+                                            filtered.push(tObj);
+                                            changed = true;
+                                        }
+                                    } catch(e){}
+                                }
+                            }
+                            if(changed){
+                                dayData.tasks = filtered;
+                                const updStr = JSON.stringify(dayData);
+                                mergedItems[mk] = updStr;
+                                if(storage) storage.setItem(mk, updStr);
+                                localAppliedRemoteChanges = true;
+                            }
+                        }
+                    } catch(e){}
+                }
+            }
+
+            mergedItems._meta_timestamps = mergedTimestamps;
     mergedItems._meta_deleted = mergedDeleted;
 
     return {
@@ -22001,6 +22494,8 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         localAppliedRemoteChanges
     };
         }
+        window.collectSyncPayload = collectSyncPayload;
+        window.mergePayloads = mergePayloads;
 
         function deduplicateTasksAndLearnings(items, timestamps, taskLocMap, delTaskMap, storage){
     const taskOccurrences = new Map();
