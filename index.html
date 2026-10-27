@@ -5555,8 +5555,8 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     function getData(d){
         if(!d) return null;
         try{
-            const delTaskMap = (typeof getDeletedTaskIds === 'function') ? getDeletedTaskIds() : {};
-            const taskLocMap = (typeof getTaskLocations === 'function') ? getTaskLocations() : {};
+            const delTaskMap = (typeof getDeletedTaskIds === 'function') ? getDeletedTaskIds() : null;
+            const taskLocMap = (typeof getTaskLocations === 'function') ? getTaskLocations() : null;
 
             const r = appStorage.getItem(getStorageKey(d));
             let composite = null;
@@ -5566,95 +5566,72 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 
             const taskMap = new Map();
             if(composite && Array.isArray(composite.tasks)){
-                composite.tasks.forEach(t => {
-                    if(!t || !t.id || delTaskMap[t.id]) return;
-                    const loc = taskLocMap[t.id];
-                    if(loc && loc.dateStr && loc.dateStr !== d) return;
-                    const discreteRaw = appStorage.getItem('tsk_' + t.id);
-                    if(discreteRaw){
-                        try{
-                            const dt = JSON.parse(discreteRaw);
-                            if(dt && dt.dateStr && dt.dateStr !== d) return;
-                            if(dt && (dt.updatedAt || 0) > (t.updatedAt || 0)){
-                                t = Object.assign({}, t, dt);
-                            }
-                        }catch(e){}
-                    }
+                for(let i = 0; i < composite.tasks.length; i++){
+                    const t = composite.tasks[i];
+                    if(!t || !t.id) continue;
+                    if(delTaskMap && delTaskMap[t.id]) continue;
+                    if(taskLocMap && taskLocMap[t.id] && taskLocMap[t.id].dateStr && taskLocMap[t.id].dateStr !== d) continue;
                     taskMap.set(t.id, t);
-                });
+                }
             }
 
-            for(const tid in taskLocMap){
-                if(taskLocMap[tid] && taskLocMap[tid].dateStr === d && !delTaskMap[tid] && !taskMap.has(tid)){
-                    const discreteRaw = appStorage.getItem('tsk_' + tid);
-                    if(discreteRaw){
-                        try{
-                            const dt = JSON.parse(discreteRaw);
-                            if(dt && dt.id && (dt.dateStr === d || !dt.dateStr)){
-                                dt.dateStr = d;
-                                taskMap.set(dt.id, dt);
-                            }
-                        }catch(e){}
+            // O(1) indexed lookup for any discrete tasks assigned to this date
+            const dateTaskIds = (typeof getDateToTasksIndex === 'function') ? getDateToTasksIndex().get(d) : null;
+            if(dateTaskIds && dateTaskIds.size > 0){
+                for(const tid of dateTaskIds){
+                    if((!delTaskMap || !delTaskMap[tid]) && !taskMap.has(tid)){
+                        const discreteRaw = appStorage.getItem('tsk_' + tid);
+                        if(discreteRaw){
+                            try{
+                                const dt = JSON.parse(discreteRaw);
+                                if(dt && dt.id && (dt.dateStr === d || !dt.dateStr)){
+                                    dt.dateStr = d;
+                                    taskMap.set(dt.id, dt);
+                                }
+                            }catch(e){}
+                        }
                     }
                 }
             }
 
             const cleanTasks = Array.from(taskMap.values());
-
-            const learningMap = new Map();
-            if(composite && Array.isArray(composite.learnings)){
-                composite.learnings.forEach(l => {
-                    if(!l || !l.id) return;
-                    const discreteRaw = appStorage.getItem('lrn_' + l.id);
-                    if(discreteRaw){
-                        try{
-                            const dl = JSON.parse(discreteRaw);
-                            if(dl && dl.dateStr && dl.dateStr !== d) return;
-                            if(dl && (dl.updatedAt || 0) > (l.updatedAt || 0)){
-                                l = Object.assign({}, l, dl);
-                            }
-                        }catch(e){}
-                    }
-                    learningMap.set(l.id, l);
-                });
-            }
-            const cleanLearnings = Array.from(learningMap.values());
-
+            const cleanLearnings = (composite && Array.isArray(composite.learnings)) ? composite.learnings : [];
             let notes = (composite && composite.notes) || '';
             let dayTitle = (composite && typeof composite.dayTitle === 'string') ? composite.dayTitle : '';
             let holiday = !!(composite && composite.holiday);
-
-            const noteRaw = appStorage.getItem('note_' + d);
-            if(noteRaw){
-                try{
-                    const noteObj = JSON.parse(noteRaw);
-                    if(noteObj){
-                        if(noteObj.notes !== undefined) notes = noteObj.notes;
-                        if(noteObj.dayTitle !== undefined) dayTitle = noteObj.dayTitle;
-                        if(noteObj.holiday !== undefined) holiday = !!noteObj.holiday;
-                    }
-                }catch(e){}
-            }
-
             let habits = (composite && Array.isArray(composite.habits)) ? composite.habits : [];
-            const hlogRaw = appStorage.getItem('hlog_' + d);
-            if(hlogRaw){
-                try{
-                    const hlogObj = JSON.parse(hlogRaw);
-                    if(hlogObj && Array.isArray(hlogObj.habits)){
-                        habits = hlogObj.habits;
-                    }
-                }catch(e){}
-            }
-
             const attachments = (composite && Array.isArray(composite.attachments)) ? composite.attachments : [];
             const textCalendar = (composite && Array.isArray(composite.textCalendar)) ? composite.textCalendar.filter(x => typeof x === 'string') : [];
 
-            if(!composite && !noteRaw && !hlogRaw && cleanTasks.length === 0 && cleanLearnings.length === 0){
+            if(!composite){
+                const noteRaw = appStorage.getItem('note_' + d);
+                if(noteRaw){
+                    try{
+                        const noteObj = JSON.parse(noteRaw);
+                        if(noteObj){
+                            if(noteObj.notes !== undefined) notes = noteObj.notes;
+                            if(noteObj.dayTitle !== undefined) dayTitle = noteObj.dayTitle;
+                            if(noteObj.holiday !== undefined) holiday = !!noteObj.holiday;
+                        }
+                    }catch(e){}
+                }
+
+                const hlogRaw = appStorage.getItem('hlog_' + d);
+                if(hlogRaw){
+                    try{
+                        const hlogObj = JSON.parse(hlogRaw);
+                        if(hlogObj && Array.isArray(hlogObj.habits)){
+                            habits = hlogObj.habits;
+                        }
+                    }catch(e){}
+                }
+            }
+
+            if(!composite && cleanTasks.length === 0 && cleanLearnings.length === 0 && !notes && !dayTitle && !holiday && habits.length === 0 && attachments.length === 0 && textCalendar.length === 0){
                 return null;
             }
 
-            return{
+            return {
                 tasks: cleanTasks,
                 notes: notes,
                 dayTitle: dayTitle,
@@ -6156,18 +6133,14 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     if(fromEmpty)deleteData(fromDate);else saveData(fromDate,fromData);
                 }
 
-                for(let i=0;i<appStorage.length;i++){
-                    const k=appStorage.key(i);
-                    if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){
-                        const ds=k.slice(STORAGE_PREFIX.length);
-                        if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==toDate&&ds!==fromDate){
-                            const otherData=getData(ds);
-                            if(otherData&&Array.isArray(otherData.tasks)&&otherData.tasks.some(x=>x.id===taskId)){
-                                otherData.tasks=otherData.tasks.filter(x=>x.id!==taskId);
-                                const sc=otherData.tasks.length>0||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.learnings?.length||otherData.habits?.length||otherData.textCalendar?.length;
-                                if(sc)saveData(ds,otherData);else deleteData(ds);
-                            }
-                        }
+                // Targeted cleanup of previous recorded location if different from fromDate and toDate
+                const recLoc = (typeof getTaskLocations === 'function') ? getTaskLocations()[taskId] : null;
+                if(recLoc && recLoc.dateStr && recLoc.dateStr !== fromDate && recLoc.dateStr !== toDate){
+                    const recData = getData(recLoc.dateStr);
+                    if(recData && Array.isArray(recData.tasks) && recData.tasks.some(x => x.id === taskId)){
+                        recData.tasks = recData.tasks.filter(x => x.id !== taskId);
+                        const sc = recData.tasks.length > 0 || recData.notes?.trim() || recData.dayTitle?.trim() || recData.holiday || recData.attachments?.length || recData.learnings?.length || recData.habits?.length || recData.textCalendar?.length;
+                        if(sc) saveData(recLoc.dateStr, recData); else deleteData(recLoc.dateStr);
                     }
                 }
 
@@ -6267,18 +6240,13 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                     }
                 }
 
-                for(let i = 0; i < appStorage.length; i++){
-                    const k = appStorage.key(i);
-                    if(k && k.startsWith(STORAGE_PREFIX) && !k.startsWith(WEEK_PREFIX)){
-                        const ds = k.slice(STORAGE_PREFIX.length);
-                        if(/^\d{4}-\d{2}-\d{2}$/.test(ds) && ds !== toDate && ds !== originDate && ds !== fromDate){
-                            const otherData = getData(ds);
-                            if(otherData && Array.isArray(otherData.learnings) && otherData.learnings.some(x => x.id === learningId)){
-                                otherData.learnings = otherData.learnings.filter(x => x.id !== learningId);
-                                const sc = otherData.learnings.length > 0 || otherData.tasks?.length || otherData.notes?.trim() || otherData.dayTitle?.trim() || otherData.holiday || otherData.attachments?.length || otherData.habits?.length || otherData.textCalendar?.length;
-                                if(sc) saveData(ds, otherData); else deleteData(ds);
-                            }
-                        }
+                // Targeted cleanup of origin date if different
+                if(originDate && originDate !== toDate && originDate !== fromDate){
+                    const oData = getData(originDate);
+                    if(oData && Array.isArray(oData.learnings) && oData.learnings.some(x => x.id === learningId)){
+                        oData.learnings = oData.learnings.filter(x => x.id !== learningId);
+                        const sc = oData.learnings.length > 0 || oData.tasks?.length || oData.notes?.trim() || oData.dayTitle?.trim() || oData.holiday || oData.attachments?.length || oData.habits?.length || oData.textCalendar?.length;
+                        if(sc) saveData(originDate, oData); else deleteData(originDate);
                     }
                 }
 
@@ -14526,29 +14494,34 @@ function endTaskDrag(item) {
         saveCurrentData(data);
         renderTaskList(data.tasks);
     }
-            function recordDeletedTaskId(id){
+    let _cachedDelRaw = null;
+let _cachedDelMap = null;
+function getDeletedTaskIds(){
+    try{
+        const r=appStorage.getItem('tp_deleted_task_ids')||(window.localStorage?window.localStorage.getItem('tp_deleted_task_ids'):null);
+        if(r === _cachedDelRaw && _cachedDelMap) return _cachedDelMap;
+        _cachedDelRaw = r;
+        _cachedDelMap = r ? JSON.parse(r) : {};
+        return _cachedDelMap;
+    }catch(e){return{};}
+}
+function recordDeletedTaskId(id){
     if(!id)return;
     try{
-        let m={};
-        const r=appStorage.getItem('tp_deleted_task_ids')||(window.localStorage?window.localStorage.getItem('tp_deleted_task_ids'):null);
-        if(r)m=JSON.parse(r);
+        const m = Object.assign({}, getDeletedTaskIds());
         m[id]=Date.now();
         const c=Date.now()-(90*86400000);
         for(const k in m){if(m[k]<c)delete m[k]}
         const str=JSON.stringify(m);
+        _cachedDelRaw = str;
+        _cachedDelMap = m;
         appStorage.setItem('tp_deleted_task_ids',str);
         if(window.localStorage){try{window.localStorage.setItem('tp_deleted_task_ids',str)}catch(e){}}
         try{
-            appStorage.removeItem('tsk_'+id);
-            if(typeof setLocalKeyDeleted==='function')setLocalKeyDeleted('tsk_'+id,Date.now());
+    appStorage.removeItem('tsk_'+id);
+    if(typeof setLocalKeyDeleted==='function')setLocalKeyDeleted('tsk_'+id,Date.now());
         }catch(e){}
     }catch(e){}
-}
-function getDeletedTaskIds(){
-    try{
-        const r=appStorage.getItem('tp_deleted_task_ids')||(window.localStorage?window.localStorage.getItem('tp_deleted_task_ids'):null);
-        return r?JSON.parse(r):{};
-    }catch(e){return{};}
 }
 window.recordDeletedTaskId = recordDeletedTaskId;
 window.getDeletedTaskIds = getDeletedTaskIds;
@@ -14565,16 +14538,13 @@ function deleteTask(id){
         renderTaskToolbar();
         currentDataCache=JSON.parse(JSON.stringify(data));
         saveCurrentData(data);
-        for(let i=0;i<appStorage.length;i++){
-            const k=appStorage.key(i);
-            if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;
-            const ds=k.slice(STORAGE_PREFIX.length);
-            if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;
-            const otherData=getData(ds);
-            if(otherData&&Array.isArray(otherData.tasks)&&otherData.tasks.some(x=>x.id===id)){
-                otherData.tasks=otherData.tasks.filter(x=>x.id!==id);
-                const sc=otherData.tasks.length>0||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.learnings?.length||otherData.habits?.length||otherData.textCalendar?.length;
-                if(sc)saveData(ds,otherData);else deleteData(ds);
+        const delLoc = (typeof getTaskLocations === 'function') ? getTaskLocations()[id] : null;
+        if(delLoc && delLoc.dateStr && delLoc.dateStr !== (selectionMode==='daily'?selectedDateStr:null)){
+            const od = getData(delLoc.dateStr);
+            if(od && Array.isArray(od.tasks) && od.tasks.some(x => x.id === id)){
+                od.tasks = od.tasks.filter(x => x.id !== id);
+                const sc = od.tasks.length > 0 || od.notes?.trim() || od.dayTitle?.trim() || od.holiday || od.attachments?.length || od.learnings?.length || od.habits?.length || od.textCalendar?.length;
+                if(sc) saveData(delLoc.dateStr, od); else deleteData(delLoc.dateStr);
             }
         }
         pruneEisenItemGlobal('task',id,null);
@@ -21402,73 +21372,73 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         const btnAccountSettingsOpen = document.getElementById('btnAccountSettingsOpen');
 
         function openCloudSyncModal(){
-            if(cloudSyncModalOverlay){
-                cloudSyncModalOverlay.classList.add('active');
-                cloudSyncModalOverlay.classList.add('visible');
-            }
+    if(cloudSyncModalOverlay){
+        cloudSyncModalOverlay.classList.add('active');
+        cloudSyncModalOverlay.classList.add('visible');
+    }
         }
         function closeCloudSyncModal(){
-            if(cloudSyncModalOverlay){
-                cloudSyncModalOverlay.classList.remove('active');
-                cloudSyncModalOverlay.classList.remove('visible');
-            }
+    if(cloudSyncModalOverlay){
+        cloudSyncModalOverlay.classList.remove('active');
+        cloudSyncModalOverlay.classList.remove('visible');
+    }
         }
 
         if(btnCloudSync){
-            btnCloudSync.addEventListener('click', openCloudSyncModal);
+    btnCloudSync.addEventListener('click', openCloudSyncModal);
         }
         if(btnCloudSyncClose){
-            btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
+    btnCloudSyncClose.addEventListener('click', closeCloudSyncModal);
         }
         if(cloudSyncModalOverlay){
-            cloudSyncModalOverlay.addEventListener('click', (e) => {
-                if(e.target === cloudSyncModalOverlay) closeCloudSyncModal();
-            });
+    cloudSyncModalOverlay.addEventListener('click', (e) => {
+        if(e.target === cloudSyncModalOverlay) closeCloudSyncModal();
+    });
         }
         if(btnAccountSettingsOpen){
-            btnAccountSettingsOpen.addEventListener('click', () => {
-                closeCloudSyncModal();
-                openAccountModal(false);
-            });
+    btnAccountSettingsOpen.addEventListener('click', () => {
+        closeCloudSyncModal();
+        openAccountModal(false);
+    });
         }
         if(btnForceSync){
-            btnForceSync.addEventListener('click', async () => {
-                const origText = btnForceSync.textContent;
-                btnForceSync.disabled = true;
-                btnForceSync.textContent = 'Syncing...';
-                try {
-                    if(!supabaseClient && window.supabase && window.supabase.createClient){
-                        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-                    }
-                    await pollCheckRemote(true);
-                    if(hasPendingLocalEdits) await pushToCloud();
-                    setSyncStatus('connected', 'Sync Complete', 'Local and cloud data synchronized');
-                } catch(err){
-                    setSyncStatus('error', 'Sync Failed', err ? (err.message || String(err)) : 'Error syncing');
-                } finally {
-                    btnForceSync.disabled = false;
-                    btnForceSync.textContent = origText;
-                }
-            });
+    btnForceSync.addEventListener('click', async () => {
+        const origText = btnForceSync.textContent;
+        btnForceSync.disabled = true;
+        btnForceSync.textContent = 'Syncing...';
+        try {
+            if(!supabaseClient && window.supabase && window.supabase.createClient){
+                supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+            }
+            await pollCheckRemote(true);
+            if(hasPendingLocalEdits) await pushToCloud();
+            setSyncStatus('connected', 'Sync Complete', 'Local and cloud data synchronized');
+        } catch(err){
+            setSyncStatus('error', 'Sync Failed', err ? (err.message || String(err)) : 'Error syncing');
+        } finally {
+            btnForceSync.disabled = false;
+            btnForceSync.textContent = origText;
+        }
+    });
         }
         if(btnForcePull){
-            btnForcePull.addEventListener('click', async () => {
-                const origText = btnForcePull.textContent;
-                btnForcePull.disabled = true;
-                btnForcePull.textContent = 'Pulling...';
-                try {
-                    if(!supabaseClient && window.supabase && window.supabase.createClient){
-                        supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
-                    }
-                    await pullFromCloud(true);
-                    setSyncStatus('connected', 'Pull Complete', 'Latest cloud data loaded');
-                } catch(err){
-                    setSyncStatus('error', 'Pull Failed', err ? (err.message || String(err)) : 'Error pulling');
-                } finally {
-                    btnForcePull.disabled = false;
-                    btnForcePull.textContent = origText;
-                }
-            });
+    btnForcePull.addEventListener('click', async () => {
+        const origText = btnForcePull.textContent;
+        btnForcePull.disabled = true;
+        btnForcePull.textContent = 'Pulling...';
+        try {
+            if(!supabaseClient && window.supabase && window.supabase.createClient){
+                supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+            }
+            await pullFromCloud(true);
+            setSyncStatus('connected', 'Pull Complete', 'Latest cloud data loaded');
+        } catch(err){
+            setSyncStatus('error', 'Pull Failed', err ? (err.message || String(err)) : 'Error pulling');
+        } finally {
+            btnForcePull.disabled = false;
+            btnForcePull.textContent = origText;
+        }
+    });
         }
 
         function setSyncStatus(st, msg, detail){
@@ -21535,22 +21505,46 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         }
 
         const TASK_LOCATIONS_KEY = 'tp_task_locations';
+        let _cachedTaskLocRaw = null;
+        let _cachedTaskLocMap = null;
+        let _dateToTasksIndex = null;
 
         function getTaskLocations(){
     try {
         const raw = (window.appStorage && typeof window.appStorage.getItem === 'function')
             ? window.appStorage.getItem(TASK_LOCATIONS_KEY)
             : (window.localStorage ? window.localStorage.getItem(TASK_LOCATIONS_KEY) : null);
-        return raw ? JSON.parse(raw) : {};
+        if(raw === _cachedTaskLocRaw && _cachedTaskLocMap) return _cachedTaskLocMap;
+        _cachedTaskLocRaw = raw;
+        _cachedTaskLocMap = raw ? JSON.parse(raw) : {};
+        _dateToTasksIndex = null;
+        return _cachedTaskLocMap;
     } catch(e){
         return {};
     }
         }
 
+        function getDateToTasksIndex(){
+    if(_dateToTasksIndex) return _dateToTasksIndex;
+    const locs = getTaskLocations();
+    const idx = new Map();
+    for(const tid in locs){
+        const ds = locs[tid]?.dateStr;
+        if(ds){
+            let set = idx.get(ds);
+            if(!set){ set = new Set(); idx.set(ds, set); }
+            set.add(tid);
+        }
+    }
+    _dateToTasksIndex = idx;
+    return _dateToTasksIndex;
+        }
+
         function recordTaskLocation(taskId, dateStr, ts){
     if(!taskId || !dateStr) return;
     try {
-        const locs = getTaskLocations();
+        const locs = Object.assign({}, getTaskLocations());
+        const oldDate = locs[taskId]?.dateStr;
         locs[taskId] = { dateStr: dateStr, ts: ts || Date.now() };
         const keys = Object.keys(locs);
         if(keys.length > 2000){
@@ -21560,11 +21554,23 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             }
         }
         const json = JSON.stringify(locs);
+        _cachedTaskLocRaw = json;
+        _cachedTaskLocMap = locs;
+        if(_dateToTasksIndex){
+            if(oldDate && oldDate !== dateStr){
+                const oldSet = _dateToTasksIndex.get(oldDate);
+                if(oldSet) oldSet.delete(taskId);
+            }
+            let newSet = _dateToTasksIndex.get(dateStr);
+            if(!newSet){ newSet = new Set(); _dateToTasksIndex.set(dateStr, newSet); }
+            newSet.add(taskId);
+        }
         if(window.appStorage && typeof window.appStorage.setItem === 'function') window.appStorage.setItem(TASK_LOCATIONS_KEY, json);
         if(window.localStorage) { try { window.localStorage.setItem(TASK_LOCATIONS_KEY, json); } catch(e){} }
     } catch(e){}
         }
         window.getTaskLocations = getTaskLocations;
+        window.getDateToTasksIndex = getDateToTasksIndex;
         window.recordTaskLocation = recordTaskLocation;
 
         function isSyncableKey(k){
