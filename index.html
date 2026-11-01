@@ -5239,6 +5239,323 @@ button:focus-visible {
 
 
 /* ============================================================
+   Step 6dd: Defer Multiplier & Today Agenda Modal
+   ============================================================ */
+
+/* Defer Multiplier Select */
+.defer-multiplier-select {
+  height: 28px !important;
+  line-height: 26px !important;
+  padding: 0 6px !important;
+  border-radius: var(--r-sm) !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--card-bg) !important;
+  color: var(--accent) !important;
+  font-family: var(--font-ui) !important;
+  font-size: var(--fs-xs) !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+  margin-right: 4px !important;
+  outline: none !important;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  vertical-align: middle !important;
+}
+
+.defer-multiplier-select:focus {
+  border-color: var(--accent-border) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.defer-multiplier-select:hover {
+  border-color: var(--accent) !important;
+}
+
+/* Today Agenda Modal Window */
+#todayAgendaModalOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10050 !important;
+  background: var(--modal-overlay) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+#todayAgendaModalOverlay.active {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+#todayAgendaModal {
+  width: min(1140px, 95vw) !important;
+  max-width: 1140px !important;
+  height: min(840px, 92vh) !important;
+  max-height: 92vh !important;
+  border-radius: 20px !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: var(--shadow-modal) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  transform: scale(0.97) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#todayAgendaModalOverlay.active #todayAgendaModal {
+  transform: scale(1) !important;
+}
+
+.today-agenda-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 18px 24px !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  background: var(--surface-2) !important;
+  flex-shrink: 0 !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+
+.today-agenda-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.today-agenda-title {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.today-agenda-date-badge {
+  font-size: 0.8rem !important;
+  font-weight: 650 !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--accent-border) !important;
+}
+
+.today-agenda-stats-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.today-agenda-stat-chip {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+
+.today-agenda-stat-chip strong {
+  color: var(--text) !important;
+}
+
+.today-agenda-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 22px 26px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.today-agenda-grid {
+  display: grid !important;
+  grid-template-columns: 1.15fr 0.85fr !important;
+  gap: 22px !important;
+  align-items: start !important;
+}
+
+@media (max-width: 880px) {
+  .today-agenda-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #todayAgendaModal {
+    width: 96vw !important;
+    height: 94vh !important;
+  }
+}
+
+.today-agenda-card {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 16px 18px !important;
+  box-shadow: var(--shadow-sm) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+
+.today-agenda-card:last-child {
+  margin-bottom: 0 !important;
+}
+
+.today-agenda-card-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid var(--border) !important;
+  gap: 8px !important;
+}
+
+.today-agenda-card-title {
+  font-size: 0.92rem !important;
+  font-weight: 750 !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+.today-agenda-card-count {
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  color: var(--accent) !important;
+  background: var(--accent-light) !important;
+  padding: 2px 8px !important;
+  border-radius: 999px !important;
+}
+
+.today-agenda-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  max-height: 280px !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+}
+
+.today-agenda-item-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 9px 12px !important;
+  border-radius: var(--r-md) !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  gap: 10px !important;
+  transition: border-color var(--dur-fast), background-color var(--dur-fast) !important;
+}
+
+.today-agenda-item-row:hover {
+  border-color: var(--accent-border) !important;
+  background: var(--cell-hover) !important;
+}
+
+.today-agenda-item-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+.today-agenda-item-text {
+  font-size: 0.82rem !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  flex: 1 !important;
+}
+
+.today-agenda-item-text.done {
+  text-decoration: line-through !important;
+  color: var(--text-secondary) !important;
+}
+
+.today-agenda-empty {
+  font-size: 0.8rem !important;
+  color: var(--text-secondary) !important;
+  font-style: italic !important;
+  padding: 12px 8px !important;
+  text-align: center !important;
+}
+
+.today-agenda-notes-card {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 16px 18px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  margin-bottom: 16px !important;
+}
+
+.today-agenda-notes-textarea {
+  width: 100% !important;
+  min-height: 95px !important;
+  padding: 10px 12px !important;
+  font-family: var(--font-ui) !important;
+  font-size: 0.82rem !important;
+  line-height: 1.5 !important;
+  color: var(--text) !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  resize: vertical !important;
+  box-sizing: border-box !important;
+  outline: none !important;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast) !important;
+}
+
+.today-agenda-notes-textarea:focus {
+  border-color: var(--accent-border) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+.today-agenda-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 24px !important;
+  border-top: 1px solid var(--border) !important;
+  background: var(--surface-2) !important;
+  flex-shrink: 0 !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+/* Mobile Touch Button Uniformity (< 900px) */
+@media (max-width: 900px) {
+  .defer-multiplier-select {
+    height: 36px !important;
+    line-height: 34px !important;
+    padding: 0 10px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+
+/* ============================================================
    Step 6bb: Mobile Uniform Button Sizing Engine (<= 900px)
    Renders all buttons on mobile at a consistent, uniform size
    without touching desktop PC styles.
@@ -6035,7 +6352,35 @@ button:focus-visible {
     <input type="file" id="pjContactsCsvInput" accept=".csv,text/csv,text/plain" style="display:none">
     <input type="file" id="pjEnhancedBackupInput" accept="application/json,.json" style="display:none">
 
-    <script>
+    
+    <!-- Today Agenda Cockpit Modal Overlay -->
+    <div class="pj-overlay" id="todayAgendaModalOverlay" role="dialog" aria-modal="true" aria-label="Today Agenda">
+        <div class="pj-modal-card today-agenda-modal" id="todayAgendaModal">
+            <div class="today-agenda-header">
+                <div class="today-agenda-header-left">
+                    <span class="today-agenda-title">&#128197; Today's Agenda</span>
+                    <span class="today-agenda-date-badge" id="todayAgendaDateBadge">Today</span>
+                    <div class="today-agenda-stats-bar" id="todayAgendaStatsBar"></div>
+                </div>
+                <button class="pj-modal-close" id="todayAgendaClose" aria-label="Close">&times;</button>
+            </div>
+            <div class="today-agenda-body" id="todayAgendaBody">
+                <!-- Dynamically populated by renderTodayAgendaModal() -->
+            </div>
+            <div class="today-agenda-footer">
+                <div style="font-size:0.75rem;color:var(--text-secondary);">
+                    Auto-saves all notes and status toggles instantly.
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button type="button" class="pj-toolbar-pill" id="btnAgendaGoCalendar">&#128197; Main View</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnAgendaGoPeople">&#128101; People & Text</button>
+                    <button type="button" class="btn-primary" id="btnAgendaDone" style="padding:6px 18px;">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
 /* ============================================================
    IndexedDB persistence layer
    ============================================================ */
@@ -6276,6 +6621,17 @@ button:focus-visible {
     let debounceTimeout=null,savedFlashTimeout=null,isUpdatingFromCode=false,copyFeedbackTimeout=null,currentDataCache=null;
     let pendingFileTargetTaskId=null,filePathPrefix=appStorage.getItem(PREFIX_KEY)||'',editingLearningInfo=null;
     let activeTaskId=null;
+    var currentTaskDeferMult = 1;
+    var currentLearningDeferMult = 1;
+    function getDeferMultiplierSelectHtml(selectId, currentVal) {
+        var v = parseInt(currentVal, 10) || 1;
+        return '<select class="defer-multiplier-select" id="' + selectId + '" title="Move multiplier (1x, 2x, 3x, 4x)" aria-label="Move multiplier">' +
+            '<option value="1"' + (v===1?' selected':'') + '>1</option>' +
+            '<option value="2"' + (v===2?' selected':'') + '>2</option>' +
+            '<option value="3"' + (v===3?' selected':'') + '>3</option>' +
+            '<option value="4"' + (v===4?' selected':'') + '>4</option>' +
+        '</select>';
+    }
     let textCalendarMode=false;
     let deckFilter='';
     let undoStack=[];
@@ -8944,6 +9300,7 @@ function renderHabitMiniCalendar() {
                 <button class="task-toolbar-btn success" data-tt="bulk-done">&#10003; Done</button>
                 <button class="task-toolbar-btn" data-tt="bulk-todo">&#9675; Todo</button>
                 <div class="task-defer-group">
+                    ${getDeferMultiplierSelectHtml('taskBulkDeferMult', currentTaskDeferMult)}
                     <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-1">&#8722;1d</button>
                     <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-7">&#8722;1w</button>
                     <button class="task-defer-btn neg" data-tt="bulk-defer" data-days="-30">&#8722;1m</button>
@@ -9000,6 +9357,7 @@ function renderHabitMiniCalendar() {
             </select>
             <input type="number" class="task-estimated" id="ttEstimated" value="${em}" placeholder="min" min="0" step="1" title="Estimated minutes">
             <div class="task-defer-group">
+                ${getDeferMultiplierSelectHtml('taskSingleDeferMult', currentTaskDeferMult)}
                 <button class="task-defer-btn neg" data-tt="defer" data-days="-1">−1d</button>
                 <button class="task-defer-btn neg" data-tt="defer" data-days="-7">−1w</button>
                 <button class="task-defer-btn neg" data-tt="defer" data-days="-30">−1m</button>
@@ -9113,6 +9471,7 @@ function renderHabitMiniCalendar() {
                 <button class="task-toolbar-btn" data-lt="bulk-select-all" title="${allSelected?'Deselect all learnings':'Select all learnings'}">${allSelected?'&#9744; Deselect All':'&#9745; Select All'}</button>
                 <button class="task-toolbar-btn success" data-lt="bulk-done">✓ Done</button>
                 <div class="task-defer-group">
+                    ${getDeferMultiplierSelectHtml('learningBulkDeferMult', currentLearningDeferMult)}
                     <button class="task-defer-btn neg" data-lt="bulk-defer" data-days="-7">−1w</button>
                     <button class="task-defer-btn neg" data-lt="bulk-defer" data-days="-1">−1d</button>
                     <button class="task-defer-btn" data-lt="bulk-defer" data-days="1">+1d</button>
@@ -9151,6 +9510,7 @@ function renderHabitMiniCalendar() {
             <span class="srs-badge srs-${srs.status}">${srs.label}</span>
             ${!l.completed?`
                 <div class="task-defer-group">
+                    ${getDeferMultiplierSelectHtml('learningSingleDeferMult', currentLearningDeferMult)}
                     <button class="task-defer-btn neg" data-lt="defer" data-days="-7">−1w</button>
                     <button class="task-defer-btn neg" data-lt="defer" data-days="-1">−1d</button>
                     <button class="task-defer-btn" data-lt="defer" data-days="1">+1d</button>
@@ -9181,7 +9541,7 @@ function renderHabitMiniCalendar() {
         if(l.type==='text')b+=`<div class="learning-modal-content">${l.content?renderMarkdown(l.content):'(no content)'}</div>`;
         else if(l.type==='youtube'||l.type==='link'){const url=l.content||l.url||'';b+=`<a class="learning-modal-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">&#128279; ${escapeHtml(url)}</a>`;if(l.content&&l.content!==url)b+=`<div class="learning-modal-content" style="margin-top:8px;">${renderMarkdown(l.content)}</div>`}
         else if(l.type==='file'){const fp=l.filePath||l.content||'';b+=`<div class="learning-modal-file"><span>&#128193; ${escapeHtml(fp)}</span><button class="file-path-copy" onclick="copyToClipboard('${escapeHtml(fp).replace(/'/g,"\\'")}')">&#128203;</button></div>`}
-        if(!l.completed){b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Defer:</div><div class="learning-modal-defer"><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-7">&#8722;1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-1">&#8722;1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="1">+1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="7">+1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="30">+1m</button></div>`}
+        if(!l.completed){b+=`<div class="learning-modal-srs-label" style="margin-top:8px;">Defer:</div><div class="learning-modal-defer">${getDeferMultiplierSelectHtml("learningModalDeferMult", currentLearningDeferMult)}<button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-7">&#8722;1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="-1">&#8722;1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="1">+1d</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="7">+1w</button><button class="learning-modal-defer-btn" data-action="modal-defer" data-id="${l.id}" data-source="${found.dateStr}" data-days="30">+1m</button></div>`}
         b+=`<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">${!l.completed?`<button class="learning-modal-done" data-action="modal-done" data-id="${l.id}" data-source="${found.dateStr}">&#10003; Done</button>`:''}<button class="learning-modal-delete" data-action="modal-delete" data-id="${l.id}" data-source="${found.dateStr}">&#128465; Delete</button><button class="learning-modal-rating-btn" data-action="modal-edit" data-id="${l.id}" data-source="${found.dateStr}" style="border-color:var(--warning-border);color:var(--warning);">&#9998; Edit</button></div>`;
         learningModalBody.innerHTML=b;if(l.completed){learningModal.classList.add('completed')}else{learningModal.classList.remove('completed')}learningModalOverlay.classList.add('active');
     }
@@ -9376,7 +9736,7 @@ function renderHabitMiniCalendar() {
         editingLearningInfo=null;
     }
     function closeLearningModal(){learningModalOverlay.classList.remove('active');learningModal.classList.remove('completed');learningModalBody.innerHTML='';editingLearningInfo=null}
-    function handleModalClick(e){const rb=null;const db=e.target.closest('[data-action="modal-delete"]');const dn=e.target.closest('[data-action="modal-done"]');const eb=e.target.closest('[data-action="modal-edit"]');const df=e.target.closest('[data-action="modal-defer"]');if(db){if(confirm('Delete this learning?')){deleteLearning(db.dataset.id,db.dataset.source);closeLearningModal()}return}if(dn){markLearningDone(dn.dataset.id,dn.dataset.source);closeLearningModal();return}if(eb){const id=eb.dataset.id;const source=eb.dataset.source;closeLearningModal();openEditLearningModal(id,source);return}if(df){const days=parseInt(df.dataset.days,10);deferLearning(df.dataset.id,days,df.dataset.source);return}}
+    function handleModalClick(e){const rb=null;const db=e.target.closest('[data-action="modal-delete"]');const dn=e.target.closest('[data-action="modal-done"]');const eb=e.target.closest('[data-action="modal-edit"]');const df=e.target.closest('[data-action="modal-defer"]');if(db){if(confirm('Delete this learning?')){deleteLearning(db.dataset.id,db.dataset.source);closeLearningModal()}return}if(dn){markLearningDone(dn.dataset.id,dn.dataset.source);closeLearningModal();return}if(eb){const id=eb.dataset.id;const source=eb.dataset.source;closeLearningModal();openEditLearningModal(id,source);return}if(df){const m=parseInt(document.getElementById('learningModalDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(df.dataset.days,10)*m;deferLearning(df.dataset.id,days,df.dataset.source);return}}
     function handleQuickLearningSubmit(){
         const input=document.getElementById('quickLearningInput');
         if(!input)return;
@@ -18706,7 +19066,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
 
         btnPrevMonth.addEventListener('click',()=>navigateMonth(-1));
         btnNextMonth.addEventListener('click',()=>navigateMonth(1));
-        btnToday.addEventListener('click',goToToday);
+        btnToday.addEventListener('click',()=>{ goToToday(); openTodayAgendaModal(); });
         btnTheme.addEventListener('click',toggleTheme);
         btnTextCalendar.addEventListener('click',toggleTextCalendar);
         btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
@@ -19379,7 +19739,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(kind==='bulk-done'){handleBulkTaskAction('status','done');return}
             if(kind==='bulk-todo'){handleBulkTaskAction('status','todo');return}
             if(kind==='bulk-pri'){handleBulkTaskAction('priority',btn.dataset.pri);return}
-            if(kind==='bulk-defer'){const days=parseInt(btn.dataset.days,10);if(!isNaN(days))handleBulkTaskAction('defer',days);return}
+            if(kind==='bulk-defer'){const m=parseInt(document.getElementById('taskBulkDeferMult')?.value||currentTaskDeferMult||1,10)||1;currentTaskDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;if(!isNaN(days))handleBulkTaskAction('defer',days);return}
             if(kind==='bulk-delete'){handleBulkTaskAction('delete');return}
             if(kind==='bulk-clear'){selectedTaskIds.clear();document.querySelectorAll('.task-item.selected').forEach(el=>el.classList.remove('selected'));document.querySelectorAll('.task-select-box.selected').forEach(el=>el.classList.remove('selected'));renderTaskToolbar();return}
 
@@ -19387,7 +19747,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(kind==='vote-up'){voteTask(activeTaskId,1);return}
             if(kind==='vote-down'){voteTask(activeTaskId,-1);return}
             if(kind==='priority'){cycleTaskPriority(activeTaskId);return}
-            if(kind==='defer'){const days=parseInt(btn.dataset.days,10);if(!isNaN(days))deferTask(activeTaskId,days);return}
+            if(kind==='defer'){const m=parseInt(document.getElementById('taskSingleDeferMult')?.value||currentTaskDeferMult||1,10)||1;currentTaskDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;if(!isNaN(days))deferTask(activeTaskId,days);return}
             if(kind==='attach'){pendingFileTargetTaskId=activeTaskId;fileInput.click();return}
             if(kind==='delete'){deleteTask(activeTaskId);return}
         });
@@ -19432,8 +19792,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
                 renderLearningsSection();
                 return;
             }
-            if(kind==='bulk-defer'){
-                const days=parseInt(btn.dataset.days,10);
+            if(kind==='bulk-defer'){const m=parseInt(document.getElementById('learningBulkDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;
                 if(isNaN(days))return;
                 const ops=keys.slice();
                 selectedLearningKeys.clear();
@@ -19465,7 +19824,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(kind==='vote-up'){voteLearning(id,source,1);return}
             if(kind==='vote-down'){voteLearning(id,source,-1);return}
             // rate feature removed
-            if(kind==='defer'){const days=parseInt(btn.dataset.days,10);if(!isNaN(days))deferLearning(id,days,source);return}
+            if(kind==='defer'){const m=parseInt(document.getElementById('learningSingleDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;if(!isNaN(days))deferLearning(id,days,source);return}
             if(kind==='done'){markLearningDone(id,source);return}
             if(kind==='delete'){if(confirm('Delete this learning?'))deleteLearning(id,source);return}
             if(kind==='edit'){openEditLearningModal(id,source);return}
@@ -19734,6 +20093,393 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         });
     }
     function hideBreakReminder(){breakToast.classList.remove('visible');breakToast.classList.add('hiding');setTimeout(()=>{breakToast.classList.remove('hiding')},350)}
+    
+/* ============================================================
+   Step 6dd: Defer Multiplier & Today Agenda Engine
+   ============================================================ */
+
+// Today Agenda Open & Render Logic
+function openTodayAgendaModal() {
+    const modalOverlay = document.getElementById('todayAgendaModalOverlay');
+    const body = document.getElementById('todayAgendaBody');
+    const badge = document.getElementById('todayAgendaDateBadge');
+    const statsBar = document.getElementById('todayAgendaStatsBar');
+    if (!modalOverlay || !body) return;
+
+    const today = getTodayStr();
+    if (badge) {
+        badge.textContent = typeof getFormattedDate === 'function' ? getFormattedDate(today) : today;
+    }
+
+    const todayData = (typeof getData === 'function' ? getData(today) : null) || {};
+    const tasks = Array.isArray(todayData.tasks) ? todayData.tasks : [];
+    const doneTasksCount = tasks.filter(t => t.status === 'done').length;
+
+    const learnings = typeof getLearningsDueForDate === 'function' ? getLearningsDueForDate(today) : [];
+    const doneLearningsCount = learnings.filter(l => l.completed).length;
+
+    const followUps = typeof getPjFollowUpsForDate === 'function' ? getPjFollowUpsForDate(today) : [];
+    const openFollowUps = followUps.filter(f => f.status !== 'done');
+
+    const allHabits = typeof loadHabits === 'function' ? loadHabits() : [];
+    const dueHabits = allHabits.filter(h => typeof isHabitDueOnDate === 'function' ? isHabitDueOnDate(h, today) : true);
+    const habitComps = typeof getHabitCompletions === 'function' ? getHabitCompletions(today) : [];
+    const doneHabitsCount = dueHabits.filter(h => habitComps.includes(h.name)).length;
+
+    const mainNotes = todayData.notes || todayData.dayNotes || '';
+    const pjDay = typeof getPjDayData === 'function' ? getPjDayData(today) : null;
+    const textNotes = (pjDay && pjDay.dayNotes) ? pjDay.dayNotes : ((Array.isArray(todayData.textCalendar) && todayData.textCalendar.length) ? todayData.textCalendar.join('\n') : '');
+
+    // Header Stats Bar
+    if (statsBar) {
+        statsBar.innerHTML = `
+            <span class="today-agenda-stat-chip">&#9745; Tasks: <strong>${doneTasksCount}/${tasks.length}</strong></span>
+            <span class="today-agenda-stat-chip">&#128218; Learnings: <strong>${learnings.length}</strong></span>
+            <span class="today-agenda-stat-chip">&#9200; Follow-ups: <strong>${openFollowUps.length}</strong></span>
+            <span class="today-agenda-stat-chip">&#127919; Habits: <strong>${doneHabitsCount}/${dueHabits.length}</strong></span>
+        `;
+    }
+
+    // Render Grid Content
+    body.innerHTML = `
+        <div class="today-agenda-grid">
+            <!-- Left Column: Actionables (Tasks, Learnings, Follow-ups) -->
+            <div style="display:flex;flex-direction:column;gap:18px;">
+                
+                <!-- 1. Tasks Card -->
+                <div class="today-agenda-card">
+                    <div class="today-agenda-card-head">
+                        <span class="today-agenda-card-title">&#9745; Tasks</span>
+                        <span class="today-agenda-card-count">${doneTasksCount}/${tasks.length} Done</span>
+                    </div>
+                    <div class="today-agenda-list" id="agendaTasksList">
+                        ${tasks.length ? tasks.map(t => {
+                            const isDone = t.status === 'done';
+                            const pri = t.priority ? t.priority.toUpperCase() : 'MED';
+                            return `
+                                <div class="today-agenda-item-row" data-task-id="${escapeAttr(t.id)}">
+                                    <div class="today-agenda-item-left">
+                                        <input type="checkbox" class="agenda-task-chk" data-task-id="${escapeAttr(t.id)}" ${isDone?'checked':''} style="width:16px;height:16px;cursor:pointer;">
+                                        <span class="today-agenda-item-text ${isDone?'done':''}">${escapeHtml(t.text || '(Untitled task)')}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                        <span class="task-meta-pill" style="font-size:0.65rem;">${pri}</span>
+                                        ${t.estimatedMinutes ? `<span class="task-meta-pill" style="font-size:0.65rem;">&#9201; ${t.estimatedMinutes}m</span>` : ''}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
+                            <div class="today-agenda-empty">No tasks scheduled for today.</div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- 2. Learnings Card -->
+                <div class="today-agenda-card">
+                    <div class="today-agenda-card-head">
+                        <span class="today-agenda-card-title">&#128218; Learnings</span>
+                        <span class="today-agenda-card-count">${learnings.length} Due</span>
+                    </div>
+                    <div class="today-agenda-list" id="agendaLearningsList">
+                        ${learnings.length ? learnings.map(l => {
+                            const icon = typeof getTypeIcon === 'function' ? getTypeIcon(l.type) : '&#128221;';
+                            const srs = typeof srsStatus === 'function' ? srsStatus(l) : { status: 'new', label: 'New' };
+                            return `
+                                <div class="today-agenda-item-row" data-learning-id="${escapeAttr(l.id)}">
+                                    <div class="today-agenda-item-left">
+                                        <span>${icon}</span>
+                                        <span class="today-agenda-item-text ${l.completed?'done':''}">${escapeHtml(l.title || 'Learning')}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                        <span class="srs-badge srs-${srs.status}">${srs.label}</span>
+                                        ${l.duration ? `<span class="task-meta-pill" style="font-size:0.65rem;">&#9201; ${l.duration}m</span>` : ''}
+                                        ${!l.completed ? `
+                                            <button type="button" class="pj-toolbar-pill agenda-learning-done-btn" data-lid="${escapeAttr(l.id)}" data-src="${escapeAttr(l._sourceDate || today)}" style="padding:2px 8px;font-size:0.68rem;background:var(--success);color:#fff;font-weight:700;">&#10003; Done</button>
+                                        ` : '<span style="font-size:0.68rem;color:var(--success);font-weight:700;">Done</span>'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
+                            <div class="today-agenda-empty">No learnings due today.</div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- 3. Follow-ups Card -->
+                <div class="today-agenda-card">
+                    <div class="today-agenda-card-head">
+                        <span class="today-agenda-card-title">&#9200; People Follow-ups</span>
+                        <span class="today-agenda-card-count">${followUps.length} Scheduled</span>
+                    </div>
+                    <div class="today-agenda-list" id="agendaFollowUpsList">
+                        ${followUps.length ? followUps.map(fu => {
+                            const isDone = fu.status === 'done';
+                            const initials = typeof initialsOfPj === 'function' ? initialsOfPj(fu.name) : '&#128100;';
+                            return `
+                                <div class="today-agenda-item-row" data-fu-pid="${escapeAttr(fu.personId)}">
+                                    <div class="today-agenda-item-left">
+                                        <div class="pj-encounter-avatar" style="width:26px;height:26px;font-size:0.65rem;flex-shrink:0;">${escapeHtml(initials)}</div>
+                                        <div style="display:flex;flex-direction:column;min-width:0;flex:1;">
+                                            <span style="font-size:0.8rem;font-weight:700;color:var(--text);">${escapeHtml(fu.name)}</span>
+                                            <span style="font-size:0.72rem;color:var(--text-secondary);">${escapeHtml(fu.action)}</span>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                        <span class="pj-badge ${fu.source==='profile'?'purple':'accent'}">${fu.source==='profile'?'Profile':'Encounter'}</span>
+                                        ${!isDone ? `
+                                            <button type="button" class="pj-toolbar-pill agenda-fu-done-btn" data-fu-src="${escapeAttr(fu.source)}" data-fu-pid="${escapeAttr(fu.personId)}" ${fu.encounterId ? `data-fu-enc="${escapeAttr(fu.encounterId)}" data-fu-date="${escapeAttr(fu.encounterDate||today)}"` : ''} style="padding:2px 8px;font-size:0.68rem;background:var(--success);color:#fff;font-weight:700;">&#10003; Done</button>
+                                        ` : '<span style="font-size:0.68rem;color:var(--success);font-weight:700;">Done</span>'}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
+                            <div class="today-agenda-empty">No people follow-ups scheduled for today.</div>
+                        `}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Routines & Reflection (Habits & Notes from Both Views) -->
+            <div style="display:flex;flex-direction:column;gap:18px;">
+                
+                <!-- 4. Habits Card -->
+                <div class="today-agenda-card">
+                    <div class="today-agenda-card-head">
+                        <span class="today-agenda-card-title">&#127919; Today's Habits</span>
+                        <span class="today-agenda-card-count">${doneHabitsCount}/${dueHabits.length} Done</span>
+                    </div>
+                    <div class="today-agenda-list" id="agendaHabitsList">
+                        ${dueHabits.length ? dueHabits.map(h => {
+                            const isDone = habitComps.includes(h.name);
+                            const streak = (typeof calculateHabitStreak === 'function' ? calculateHabitStreak(h.name) : 0) || 0;
+                            return `
+                                <div class="today-agenda-item-row" data-habit-name="${escapeAttr(h.name)}">
+                                    <div class="today-agenda-item-left">
+                                        <input type="checkbox" class="agenda-habit-chk" data-habit="${escapeAttr(h.name)}" ${isDone?'checked':''} style="width:16px;height:16px;cursor:pointer;">
+                                        <span class="today-agenda-item-text ${isDone?'done':''}">${escapeHtml(h.name)}</span>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                                        <span class="task-meta-pill" style="font-size:0.65rem;">&#128293; ${streak}d</span>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('') : `
+                            <div class="today-agenda-empty">No active habits due today.</div>
+                        `}
+                    </div>
+                </div>
+
+                <!-- 5. Day Notes from Both Views -->
+                <div class="today-agenda-card">
+                    <div class="today-agenda-card-head">
+                        <span class="today-agenda-card-title">&#128221; Text of the Day (Both Views)</span>
+                    </div>
+                    
+                    <!-- Main View Notes -->
+                    <div class="today-agenda-notes-card">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:0.75rem;font-weight:700;color:var(--text);">&#128197; Main View Day Notes</span>
+                            <span style="font-size:0.65rem;color:var(--text-secondary);">Auto-saved</span>
+                        </div>
+                        <textarea class="today-agenda-notes-textarea" id="agendaMainNotes" placeholder="Write today's main view notes, plans, and journal...">${escapeHtml(mainNotes)}</textarea>
+                    </div>
+
+                    <!-- People & Text View Notes -->
+                    <div class="today-agenda-notes-card" style="margin-bottom:0;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span style="font-size:0.75rem;font-weight:700;color:var(--text);">&#128101; People & Text View Notes</span>
+                            <span style="font-size:0.65rem;color:var(--text-secondary);">Auto-saved</span>
+                        </div>
+                        <textarea class="today-agenda-notes-textarea" id="agendaTextNotes" placeholder="Write notes, interactions, and reflections for People & Text view...">${escapeHtml(textNotes)}</textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    `;
+
+    // Wire Interactive Event Listeners inside Today Agenda
+    wireTodayAgendaEventListeners(today);
+
+    modalOverlay.classList.add('active');
+}
+
+function wireTodayAgendaEventListeners(today) {
+    const modalOverlay = document.getElementById('todayAgendaModalOverlay');
+    if (!modalOverlay) return;
+
+    // 1. Task Checkbox Toggles
+    modalOverlay.querySelectorAll('.agenda-task-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+            const taskId = chk.dataset.taskId;
+            const data = typeof getData === 'function' ? getData(today) : null;
+            if (data && Array.isArray(data.tasks)) {
+                const t = data.tasks.find(x => x.id === taskId);
+                if (t) {
+                    t.status = chk.checked ? 'done' : 'todo';
+                    t.updatedAt = Date.now();
+                    saveData(today, data);
+                    if (typeof renderCalendar === 'function') renderCalendar();
+                    if (typeof updateSingleCell === 'function') updateSingleCell(today, { pop: true });
+                    if (typeof updateDetailPanel === 'function' && selectedDateStr === today) {
+                        updateDetailPanel(data, today);
+                    }
+                    openTodayAgendaModal(); // refresh counts and styling
+                }
+            }
+        });
+    });
+
+    // 2. Learning Done Button
+    modalOverlay.querySelectorAll('.agenda-learning-done-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const lid = btn.dataset.lid;
+            const src = btn.dataset.src || today;
+            if (typeof markLearningDone === 'function') {
+                markLearningDone(lid, src);
+                openTodayAgendaModal();
+            }
+        });
+    });
+
+    // 3. Follow-up Done Button
+    modalOverlay.querySelectorAll('.agenda-fu-done-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const src = btn.dataset.fuSrc;
+            const pid = btn.dataset.fuPid;
+            if (src === 'profile' && pid) {
+                if (typeof pjProfile === 'function') {
+                    const pr = pjProfile(pid);
+                    pr.nextActionStatus = 'done';
+                    if (typeof savePjMeta === 'function') savePjMeta();
+                    if (typeof invalidatePjCache === 'function') invalidatePjCache();
+                    if (typeof renderCalendar === 'function') renderCalendar();
+                }
+            } else if (src === 'encounter' && pid) {
+                const encId = btn.dataset.fuEnc;
+                const encDate = btn.dataset.fuDate || today;
+                if (typeof markPjFollowUpDone === 'function') {
+                    markPjFollowUpDone(pid, encId, encDate);
+                }
+            }
+            openTodayAgendaModal();
+        });
+    });
+
+    // 4. Habit Checkbox Toggles
+    modalOverlay.querySelectorAll('.agenda-habit-chk').forEach(chk => {
+        chk.addEventListener('change', () => {
+            const hName = chk.dataset.habit;
+            if (typeof setHabitCompletion === 'function') {
+                setHabitCompletion(today, hName, chk.checked);
+                if (typeof renderHabits === 'function') renderHabits();
+                if (typeof renderCalendar === 'function') renderCalendar();
+                if (typeof updateSingleCell === 'function') updateSingleCell(today, { pop: true });
+                openTodayAgendaModal();
+            }
+        });
+    });
+
+    // 5. Main View Notes Auto-Save
+    const mainNotesEl = document.getElementById('agendaMainNotes');
+    if (mainNotesEl) {
+        mainNotesEl.addEventListener('input', () => {
+            const data = typeof getData === 'function' ? getData(today) : null;
+            if (data) {
+                data.notes = mainNotesEl.value;
+                saveData(today, data);
+                if (selectedDateStr === today && typeof inputNotes !== 'undefined' && inputNotes) {
+                    inputNotes.value = mainNotesEl.value;
+                }
+            }
+        });
+    }
+
+    // 6. People & Text View Notes Auto-Save
+    const textNotesEl = document.getElementById('agendaTextNotes');
+    if (textNotesEl) {
+        textNotesEl.addEventListener('input', () => {
+            const val = textNotesEl.value;
+            if (typeof getPjDayData === 'function' && typeof savePjDayData === 'function') {
+                const pjDay = getPjDayData(today) || { encounters: [] };
+                pjDay.dayNotes = val;
+                savePjDayData(today, pjDay);
+            }
+            const data = typeof getData === 'function' ? getData(today) : null;
+            if (data) {
+                data.textCalendar = val.split('\n').filter(s => s.trim().length > 0);
+                saveData(today, data);
+                if (typeof renderCalendar === 'function') renderCalendar();
+            }
+        });
+    }
+}
+
+function closeTodayAgendaModal() {
+    const modalOverlay = document.getElementById('todayAgendaModalOverlay');
+    if (modalOverlay) {
+        modalOverlay.classList.remove('active');
+    }
+}
+
+// Global Modal Dismissal
+document.getElementById('todayAgendaClose')?.addEventListener('click', closeTodayAgendaModal);
+document.getElementById('btnAgendaDone')?.addEventListener('click', closeTodayAgendaModal);
+document.getElementById('todayAgendaModalOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'todayAgendaModalOverlay') closeTodayAgendaModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('todayAgendaModalOverlay');
+        if (overlay && overlay.classList.contains('active')) {
+            closeTodayAgendaModal();
+        }
+    }
+});
+document.getElementById('btnAgendaGoCalendar')?.addEventListener('click', () => {
+    closeTodayAgendaModal();
+    if (typeof textCalendarMode !== 'undefined' && textCalendarMode) {
+        if (typeof toggleTextCalendar === 'function') toggleTextCalendar();
+    }
+    if (typeof goToToday === 'function') goToToday();
+});
+document.getElementById('btnAgendaGoPeople')?.addEventListener('click', () => {
+    closeTodayAgendaModal();
+    if (typeof textCalendarMode !== 'undefined' && !textCalendarMode) {
+        if (typeof toggleTextCalendar === 'function') toggleTextCalendar();
+    }
+    if (typeof goToToday === 'function') goToToday();
+});
+
+// Sync Multiplier Selection Across Toolbars
+function handleMultiplierChange(multVal) {
+    const m = parseInt(multVal, 10) || 1;
+    currentTaskDeferMult = m;
+    currentLearningDeferMult = m;
+    ['taskBulkDeferMult', 'taskSingleDeferMult', 'learningBulkDeferMult', 'learningSingleDeferMult', 'learningModalDeferMult'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = String(m);
+    });
+}
+
+document.addEventListener('change', (e) => {
+    if (e.target && e.target.classList.contains('defer-multiplier-select')) {
+        handleMultiplierChange(e.target.value);
+    }
+});
+
+// Export on Bridge and Window
+window.openTodayAgendaModal = openTodayAgendaModal;
+window.closeTodayAgendaModal = closeTodayAgendaModal;
+if (window.__taskPlannerAppBridge) {
+    window.__taskPlannerAppBridge.openTodayAgendaModal = openTodayAgendaModal;
+    window.__taskPlannerAppBridge.closeTodayAgendaModal = closeTodayAgendaModal;
+    window.__taskPlannerAppBridge.currentTaskDeferMult = () => currentTaskDeferMult;
+    window.__taskPlannerAppBridge.setTaskDeferMult = (m) => { currentTaskDeferMult = m; };
+}
+
+
     window.__taskPlannerAppBridge = {
         renderCalendar,
         openWeekTimeblocksModal,
@@ -19853,6 +20599,12 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         addTaskInTimeblock,
         TIMEBLOCK_DEFS,
         selectDate: typeof selectDate === 'function' ? selectDate : undefined,
+        getData: typeof getData === 'function' ? getData : undefined,
+        saveData: typeof saveData === 'function' ? saveData : undefined,
+        openTodayAgendaModal: typeof openTodayAgendaModal === 'function' ? openTodayAgendaModal : undefined,
+        closeTodayAgendaModal: typeof closeTodayAgendaModal === 'function' ? closeTodayAgendaModal : undefined,
+        currentTaskDeferMult: () => currentTaskDeferMult,
+        setTaskDeferMult: (m) => { currentTaskDeferMult = m; },
         getCurrentData: typeof getCurrentData === 'function' ? getCurrentData : undefined,
         saveCurrentData: typeof saveCurrentData === 'function' ? saveCurrentData : undefined,
         renderTaskList: typeof renderTaskList === 'function' ? renderTaskList : undefined,
