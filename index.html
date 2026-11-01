@@ -2696,9 +2696,9 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 }
 
 #pjProfileModal .pj-modal-card {
-  max-width: 640px !important;
-  width: 95vw !important;
-  max-height: 88vh !important;
+  max-width: 1120px !important;
+  width: min(1120px, 95vw) !important;
+  max-height: 90vh !important;
   display: flex !important;
   flex-direction: column !important;
 }
@@ -4623,32 +4623,32 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 :root {
   --font-ui: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 14px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
-  --shadow-modal: 0 24px 60px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(15, 23, 42, 0.08);
-  --modal-overlay: rgba(15, 23, 42, 0.52);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 3px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 8px 20px -3px rgba(15, 23, 42, 0.10), 0 3px 8px -1px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 16px 32px -4px rgba(15, 23, 42, 0.14), 0 6px 14px -2px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 28px 70px -12px rgba(15, 23, 42, 0.32), 0 0 0 1px rgba(15, 23, 42, 0.08);
+  --modal-overlay: rgba(15, 23, 42, 0.55);
   --focus-ring: 0 0 0 3.5px rgba(61, 107, 245, 0.28);
 }
 
 [data-theme="dark"] {
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 8px 20px -3px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 0.7);
-  --shadow-modal: 0 28px 70px -14px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(255, 255, 255, 0.09);
-  --modal-overlay: rgba(7, 11, 20, 0.72);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.55);
+  --shadow: 0 3px 7px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 10px 24px -3px rgba(0, 0, 0, 0.65);
+  --shadow-lg: 0 18px 40px -6px rgba(0, 0, 0, 0.75);
+  --shadow-modal: 0 32px 80px -14px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(255, 255, 255, 0.09);
+  --modal-overlay: rgba(7, 11, 20, 0.74);
   --focus-ring: 0 0 0 3.5px rgba(107, 147, 255, 0.35);
 }
 
 [data-theme="oled"] {
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.9);
-  --shadow: 0 2px 5px rgba(0, 0, 0, 0.95);
-  --shadow-md: 0 8px 20px -3px rgba(0, 0, 0, 1);
-  --shadow-lg: 0 16px 36px -6px rgba(0, 0, 0, 1);
-  --shadow-modal: 0 32px 80px -16px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, 0.16);
-  --modal-overlay: rgba(0, 0, 0, 0.86);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.95);
+  --shadow: 0 3px 7px rgba(0, 0, 0, 0.98);
+  --shadow-md: 0 10px 24px -3px rgba(0, 0, 0, 1);
+  --shadow-lg: 0 18px 40px -6px rgba(0, 0, 0, 1);
+  --shadow-modal: 0 36px 90px -16px rgba(0, 0, 0, 1), 0 0 0 1px rgba(255, 255, 255, 0.16);
+  --modal-overlay: rgba(0, 0, 0, 0.88);
   --focus-ring: 0 0 0 3.5px rgba(122, 162, 255, 0.45);
 }
 
@@ -4709,18 +4709,18 @@ button:focus-visible {
 }
 
 /* ============================================================
-   2. SPATIOUS MODAL WINDOWS (NO BUTTON CUTOFF)
+   2. SPATIOUS MODAL WINDOWS (NO BUTTON OR TEXT CUTOFF)
    ============================================================ */
 
-/* Tier 1: Major Hubs & Workspaces (Width: min(1200px, 96vw), Height: min(860px, 92vh)) */
+/* Tier 1: Major Hubs & Workspaces (1280px x 880px) */
 #pjCenterModal,
 #pjPeopleModal,
 #eisenModal,
 .wtb-modal,
 .time-machine-modal {
-  width: min(1200px, 96vw) !important;
-  max-width: 1200px !important;
-  height: min(860px, 92vh) !important;
+  width: min(1280px, 96vw) !important;
+  max-width: 1280px !important;
+  height: min(880px, 92vh) !important;
   max-height: 92vh !important;
   border-radius: 20px !important;
   box-shadow: var(--shadow-modal) !important;
@@ -4731,18 +4731,13 @@ button:focus-visible {
   background: var(--card-bg) !important;
 }
 
-/* Tier 2: Forms, Detail Cards & Editors (Width: min(920px, 95vw)) */
-#pjProfileModal .pj-modal-card,
-#pjEncounterModal,
-#pjContactModal,
-#pjMergeModal,
-#learningModal,
-.detail-modal {
-  width: min(920px, 95vw) !important;
-  max-width: 920px !important;
-  height: auto !important;
+/* Tier 2A: Person Profile Modal (1080px x 840px - Ultra Spacious) */
+#pjProfileModal .pj-modal-card {
+  width: min(1080px, 95vw) !important;
+  max-width: 1080px !important;
+  height: min(840px, 90vh) !important;
   max-height: 90vh !important;
-  border-radius: 18px !important;
+  border-radius: 20px !important;
   box-shadow: var(--shadow-modal) !important;
   border: 1px solid var(--border-strong) !important;
   display: flex !important;
@@ -4751,7 +4746,26 @@ button:focus-visible {
   background: var(--card-bg) !important;
 }
 
-/* Tier 3: Dialogs, Settings & Utility Popups (Width: min(720px, 94vw)) */
+/* Tier 2B: Forms & Detail Editors (960px Width) */
+#pjEncounterModal,
+#pjContactModal,
+#pjMergeModal,
+#learningModal,
+.detail-modal {
+  width: min(960px, 95vw) !important;
+  max-width: 960px !important;
+  height: auto !important;
+  max-height: 90vh !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow-modal) !important;
+  border: 1px solid var(--border-strong) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  background: var(--card-bg) !important;
+}
+
+/* Tier 3: Dialogs, Settings & Utility Popups (720px Width) */
 .account-modal,
 #habitManageModal,
 #eisenMoveDateModal,
@@ -4781,8 +4795,8 @@ button:focus-visible {
 .time-machine-header,
 .pj-dir-header,
 .pj-center-head {
-  padding: 16px 22px !important;
-  background: var(--surface-2) !important;
+  padding: 16px 24px !important;
+  background: var(--surface-1) !important;
   border-bottom: 1px solid var(--border) !important;
   display: flex !important;
   align-items: center !important;
@@ -4791,7 +4805,41 @@ button:focus-visible {
   gap: 12px !important;
 }
 
-/* Modal Body Scrollability (Guarantees footers are NEVER pushed or cut off) */
+.pj-modal-close,
+.account-modal-close,
+.learning-modal-close,
+.eisen-move-close,
+.habit-modal-close,
+.wtb-close-btn,
+.time-machine-close {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: var(--r-full) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid var(--border) !important;
+  background: var(--surface-2) !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  transition: all 0.15s ease !important;
+}
+
+.pj-modal-close:hover,
+.account-modal-close:hover,
+.learning-modal-close:hover,
+.eisen-move-close:hover,
+.habit-modal-close:hover,
+.wtb-close-btn:hover,
+.time-machine-close:hover {
+  background: var(--danger-bg) !important;
+  color: var(--danger) !important;
+  border-color: var(--danger-border) !important;
+}
+
+/* Modal Body Scrollability */
 .modal-body,
 .account-modal-body,
 .learning-modal-body,
@@ -4801,61 +4849,259 @@ button:focus-visible {
 .time-machine-body,
 .pj-merge-body,
 #pjCenterContent,
-#pjProfileBody,
-#pjpPaneDetails,
-#pjpPaneHistory {
+#pjProfileBody {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow-y: auto !important;
-  padding: 20px 24px !important;
+  padding: 20px 26px !important;
   box-sizing: border-box !important;
   position: relative !important;
 }
 
-/* Modal Footers & Action Bars: Flex-wrap, Generous Padding, Zero Cutoff */
+/* ============================================================
+   3. PERSON PROFILE MODAL TAB ISOLATION & REDESIGN
+   ============================================================ */
+
+/* Strict Tab Pane Isolation (Prevent Details and History Overlapping) */
+#pjpPaneDetails[style*="display:none"],
+#pjpPaneDetails[style*="display: none"],
+#pjpPaneDetails[style*="display: none;"] {
+  display: none !important;
+}
+
+#pjpPaneHistory[style*="display:none"],
+#pjpPaneHistory[style*="display: none"],
+#pjpPaneHistory[style*="display: none;"] {
+  display: none !important;
+}
+
+#pjpPaneDetails {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#pjpPaneHistory {
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Modern Elevated Person Header Card */
+#pjProfileModal #pjProfileBody > div:first-child {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 16px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  margin-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+#pjProfileModal .pj-encounter-avatar {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: var(--r-full) !important;
+  font-size: 1.15rem !important;
+  font-weight: 750 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: linear-gradient(135deg, #3d6bf5, #7c5cf0) !important;
+  color: #ffffff !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 4px 12px rgba(61, 107, 245, 0.3) !important;
+}
+
+/* Tab Switcher Bar */
+#pjProfileModal #pjProfileBody > div:nth-child(2) {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid var(--border) !important;
+  margin-bottom: 0 !important;
+  flex-wrap: wrap !important;
+}
+
+#pjProfileModal .pj-profile-tab-bar {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+
+#pjProfileModal .pj-profile-tab-bar .pj-toolbar-pill {
+  padding: 7px 16px !important;
+  border-radius: var(--r-md) !important;
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease !important;
+}
+
+#pjProfileModal .pj-profile-tab-bar .pj-toolbar-pill.active {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 2px 8px rgba(61, 107, 245, 0.35) !important;
+}
+
+/* Robust 2-Column Responsive Form Grid (NO HORIZONTAL CUTOFF) */
+.pj-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 16px 22px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-top: 6px !important;
+  margin-bottom: 20px !important;
+}
+
+@media (max-width: 768px) {
+  .pj-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.pj-form-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.pj-form-field.full {
+  grid-column: 1 / -1 !important;
+}
+
+.pj-form-field label {
+  font-size: 0.72rem !important;
+  font-weight: 750 !important;
+  color: var(--text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  margin-bottom: 2px !important;
+}
+
+.pj-form-field input,
+.pj-form-field select,
+.pj-form-field textarea {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 14px !important;
+  border-radius: var(--r-md) !important;
+  border: 1px solid var(--border-strong) !important;
+  background: var(--input-bg) !important;
+  color: var(--text) !important;
+  font-size: 0.85rem !important;
+  transition: all 0.15s ease !important;
+}
+
+/* History Timeline Items & Scrollable Container */
+#pjpPaneHistory > div:first-child,
+.pjp-history-scroll {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  max-height: 58vh !important;
+  overflow-y: auto !important;
+  padding-right: 6px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.pj-dir-timeline-item,
+.pjp-history-item {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-lg) !important;
+  padding: 16px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.pj-dir-timeline-item:hover,
+.pjp-history-item:hover {
+  border-color: var(--accent-border) !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* ============================================================
+   4. MODAL FOOTERS & ACTION BARS (ZERO CUTOFF)
+   ============================================================ */
+
+/* Specific Targeted Footers (NO BROAD :has OVERRIDES!) */
+#pjpPaneDetails > div:last-child,
+.pjp-details-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 12px 16px !important;
+  padding: 16px 0 4px 0 !important;
+  border-top: 1px solid var(--border) !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#pjpPaneHistory > div:last-child,
+.pjp-history-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 16px 0 4px 0 !important;
+  border-top: 1px solid var(--border) !important;
+  margin-top: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+#pjContactModalBody > div:last-child,
+#pjEncounterModalBody > div:last-child,
+.pjc-footer-actions,
+.pje-footer-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  padding: 16px 0 4px 0 !important;
+  border-top: 1px solid var(--border) !important;
+  margin-top: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
 .account-modal-actions,
 .learning-modal-footer,
 .learning-form-actions,
-.pj-modal-actions,
 .eisen-move-footer,
 .habit-manage-footer,
 .wtb-modal-footer,
 .time-machine-footer,
 .pj-dup-footer,
 .pj-dup-actions,
-.detail-actions,
-#pjContactModal div:has(> #btnSavePjc),
-#pjEncounterModal div:has(> #btnSavePjEncounter),
-#pjProfileModal .pj-modal-card div:has(#btnPjpSave) {
-  position: sticky !important;
-  bottom: 0 !important;
-  background: var(--card-bg) !important;
-  z-index: 20 !important;
-  box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.08) !important;
-  border-top: 1px solid var(--border) !important;
+.detail-actions {
   display: flex !important;
   flex-wrap: wrap !important;
   align-items: center !important;
   justify-content: flex-end !important;
   gap: 10px 14px !important;
   padding: 14px 22px !important;
+  background: var(--surface-2) !important;
+  border-top: 1px solid var(--border) !important;
   margin-top: auto !important;
   min-height: 54px !important;
   overflow: visible !important;
   flex-shrink: 0 !important;
   box-sizing: border-box !important;
-}
-
-#pjProfileModal .pj-modal-card div:has(#btnPjpSave) {
-  justify-content: space-between !important;
-}
-
-#pjProfileModal .pj-modal-card div:has(#btnPjpSave) > div {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: center !important;
-  gap: 8px 10px !important;
-  overflow: visible !important;
 }
 
 /* Button Zero-Cutoff Protection: No Truncation, Complete Visibility */
@@ -4867,6 +5113,11 @@ button:focus-visible {
 .habit-manage-footer button,
 .wtb-modal-footer button,
 .time-machine-footer button,
+#pjProfileModal button,
+#pjContactModal button,
+#pjEncounterModal button,
+#pjCenterModal button,
+#pjPeopleModal button,
 #btnPjpSave,
 #btnPjpCancel,
 #btnPjpTimeline,
@@ -4912,7 +5163,7 @@ button:focus-visible {
   #btnSavePjc,
   #btnSavePjEncounter,
   #btnPjpSave {
-    padding: 8px 18px !important;
+    padding: 8px 20px !important;
     border-radius: var(--r-sm) !important;
     font-size: 0.85rem !important;
     font-weight: 600 !important;
@@ -4923,7 +5174,7 @@ button:focus-visible {
   #btnCancelPjc,
   #btnCancelPjEncounter,
   #btnPjpCancel {
-    padding: 8px 16px !important;
+    padding: 8px 18px !important;
     border-radius: var(--r-sm) !important;
     font-size: 0.85rem !important;
   }
