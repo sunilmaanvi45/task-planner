@@ -5682,7 +5682,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
   display: none !important;
 }
 
-/* Panchanga Calendar Day Cell */
+/* Panchanga Calendar Day Cell (Shaded in Light Grey #cbd5e1 & White #ffffff) */
 .calendar-cell.panchanga-cell {
   position: relative !important;
   display: flex !important;
@@ -5690,7 +5690,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
   justify-content: flex-start !important;
   padding: 6px !important;
   overflow: hidden !important;
-  border: 1px solid #4b5563 !important;
+  border: 1px solid #94a3b8 !important;
   transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) !important;
 }
 
@@ -5783,6 +5783,102 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
   text-overflow: ellipsis !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
   backdrop-filter: blur(4px) !important;
+}
+
+/* Panchanga Detail Modal Window */
+#panchangaModalOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 10050 !important;
+  background: var(--modal-overlay) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  opacity: 0 !important;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+#panchangaModalOverlay.active {
+  display: flex !important;
+  opacity: 1 !important;
+}
+
+#panchangaModal {
+  width: min(1050px, 95vw) !important;
+  max-width: 1050px !important;
+  height: min(840px, 92vh) !important;
+  max-height: 92vh !important;
+  border-radius: 20px !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border-strong) !important;
+  box-shadow: var(--shadow-modal) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  transform: scale(0.97) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#panchangaModalOverlay.active #panchangaModal {
+  transform: scale(1) !important;
+}
+
+.panchanga-modal-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 16px 24px !important;
+  border-bottom: 1px solid var(--border-strong) !important;
+  background: var(--surface-2) !important;
+  flex-shrink: 0 !important;
+  gap: 16px !important;
+  flex-wrap: wrap !important;
+}
+
+.panchanga-modal-header-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.panchanga-modal-title {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+}
+
+.panchanga-modal-date-badge {
+  font-size: 0.75rem !important;
+  font-weight: 750 !important;
+  padding: 3px 10px !important;
+  border-radius: 999px !important;
+  background: var(--accent-light) !important;
+  color: var(--accent) !important;
+  border: 1px solid var(--accent-border) !important;
+}
+
+.panchanga-modal-body {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  padding: 20px 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.panchanga-modal-footer {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 14px 24px !important;
+  border-top: 1px solid var(--border-strong) !important;
+  background: var(--surface-2) !important;
+  flex-shrink: 0 !important;
 }
 
 /* Panchanga Detail Panel */
@@ -6793,6 +6889,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
         </div>
     </div>
 
+<div class="pj-overlay" id="panchangaModalOverlay" role="dialog" aria-modal="true" aria-label="Vedic Panchanga Detail"><div class="pj-modal-card panchanga-modal" id="panchangaModal"><div class="panchanga-modal-header"><div class="panchanga-modal-header-left"><span class="panchanga-modal-title">&#128334; Vedic Panchanga &amp; Muhurta Chakra</span><span class="panchanga-modal-date-badge" id="panchangaModalDateBadge"></span></div><button class="pj-modal-close" id="panchangaModalClose" aria-label="Close">&times;</button></div><div class="panchanga-modal-body" id="panchangaModalBody"></div><div class="panchanga-modal-footer"><div style="font-size:0.75rem;color:var(--text-secondary);">&#9775; Drik Ganita Astronomical Panchanga &amp; 24-Hour Muhurta Dial</div><div style="display:flex;gap:8px;"><button type="button" class="btn-primary" id="btnPanchangaModalDone" style="padding:6px 24px;">Close</button></div></div></div></div>
 <script>
 /* ============================================================
    IndexedDB persistence layer
@@ -10414,7 +10511,7 @@ function renderHabitMiniCalendar() {
                 if(animate){c.classes.push('entering');const col=(i-off)%7,row=Math.floor((i-off)/7);const dly=Math.min(col*26+row*34,420);sa=` style="animation-delay:${dly}ms"`}
                 const cellStyle = (c.style || '') + (sa ? '; ' + sa.replace(' style="', '').replace('"', '') : '');
                 const styleAttr = cellStyle ? ` style="${cellStyle}"` : '';
-                const cellTooltip = panchangaMode ? `${getFormattedDate(ds)} - Panchanga Details` : `${getFormattedDate(ds)} - double-click for Eisenhower Matrix`;
+                const cellTooltip = panchangaMode ? `${getFormattedDate(ds)} - double-click for Panchanga Details` : `${getFormattedDate(ds)} - double-click for Eisenhower Matrix`;
                 html+=`<div class="${c.classes.join(' ')}" data-date="${ds}" title="${cellTooltip}"${styleAttr}>${c.inner}</div>`;
             }
         }
@@ -10438,9 +10535,13 @@ function renderHabitMiniCalendar() {
                         const ds = c.getAttribute('data-date');
                         if (panchangaMode) {
     if (ds) {
-        selectDate(ds);
-        const detailPanel = document.getElementById('detailPanel') || document.querySelector('.detail-panel');
-        if (detailPanel) detailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (typeof openPanchangaModal === 'function') {
+            openPanchangaModal(ds);
+        } else {
+            selectDate(ds);
+            const detailPanel = document.getElementById('detailPanel') || document.querySelector('.detail-panel');
+            if (detailPanel) detailPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     }
     return;
 }
@@ -21137,21 +21238,21 @@ function getPanchangaForDate(ds) {
         else phaseName = "Waning Crescent";
     }
 
-    // Dynamic Moon Shading Style on Tile: Dark Grey (#33373e) & White (#ffffff)
+    // Dynamic Moon Shading Style on Tile: Light Grey (#cbd5e1) & White (#ffffff)
     let moonShadingStyle = '';
     if (isPurnima) {
-        // Purnima: Solid White
+        // Purnima: Full illuminated moon (Solid White)
         moonShadingStyle = 'background: #ffffff !important; border-color: #cbd5e1 !important;';
     } else if (isAmavasya) {
-        // Amavasya: Solid Dark Grey
-        moonShadingStyle = 'background: #33373e !important; border-color: #4b5563 !important;';
+        // Amavasya: Full shadow new moon (Solid Light Grey)
+        moonShadingStyle = 'background: #cbd5e1 !important; border-color: #94a3b8 !important;';
     } else if (isWaxing) {
-        // Waxing (Shukla Paksha): Light (white) enters from right, left is dark grey
+        // Waxing (Shukla Paksha): Light (white) enters from right, left is light grey
         const darkPct = 100 - illumPct;
-        moonShadingStyle = `background: linear-gradient(to right, #33373e ${darkPct}%, #ffffff ${darkPct}%) !important; border-color: #4b5563 !important;`;
+        moonShadingStyle = `background: linear-gradient(to right, #cbd5e1 ${darkPct}%, #ffffff ${darkPct}%) !important; border-color: #94a3b8 !important;`;
     } else {
-        // Waning (Krishna Paksha): Shadow (dark grey) enters from right, left is white
-        moonShadingStyle = `background: linear-gradient(to right, #ffffff ${illumPct}%, #33373e ${illumPct}%) !important; border-color: #4b5563 !important;`;
+        // Waning (Krishna Paksha): Shadow (light grey) enters from right, left is white
+        moonShadingStyle = `background: linear-gradient(to right, #ffffff ${illumPct}%, #cbd5e1 ${illumPct}%) !important; border-color: #94a3b8 !important;`;
     }
 
     // Masa (Lunar Month) based on solar rashi
@@ -21455,6 +21556,43 @@ function generateMuhurtaCircleSvg(p, currentMinutesNow) {
 }
 
 // 9. Render Panchanga Detail Panel
+// 9. Panchanga Detail Modal Window Logic
+function openPanchangaModal(ds) {
+    if (!ds) ds = selectedDateStr || getTodayStr();
+    if (typeof selectDate === 'function') selectDate(ds);
+    const overlay = document.getElementById('panchangaModalOverlay');
+    const body = document.getElementById('panchangaModalBody');
+    const badge = document.getElementById('panchangaModalDateBadge');
+    if (!overlay || !body) return;
+
+    if (badge) {
+        badge.textContent = typeof getFormattedDate === 'function' ? getFormattedDate(ds) : ds;
+    }
+    body.innerHTML = renderPanchangaDetailHTML(ds);
+    overlay.classList.add('active');
+}
+
+function closePanchangaModal() {
+    const overlay = document.getElementById('panchangaModalOverlay');
+    if (overlay) {
+        overlay.classList.remove('active');
+    }
+}
+
+document.getElementById('panchangaModalClose')?.addEventListener('click', closePanchangaModal);
+document.getElementById('btnPanchangaModalDone')?.addEventListener('click', closePanchangaModal);
+document.getElementById('panchangaModalOverlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'panchangaModalOverlay') closePanchangaModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const overlay = document.getElementById('panchangaModalOverlay');
+        if (overlay && overlay.classList.contains('active')) {
+            closePanchangaModal();
+        }
+    }
+});
+
 function renderPanchangaDetailHTML(ds) {
     const p = getPanchangaForDate(ds);
     if (!p) return '<div class="panchanga-card"><div class="today-agenda-empty">Select a date to view Vedic Panchanga details.</div></div>';
@@ -21686,6 +21824,8 @@ function renderPanchangaDetailHTML(ds) {
         getPanchangaForDate: typeof getPanchangaForDate === 'function' ? getPanchangaForDate : undefined,
         generateMuhurtaCircleSvg: typeof generateMuhurtaCircleSvg === 'function' ? generateMuhurtaCircleSvg : undefined,
         renderPanchangaDetailHTML: typeof renderPanchangaDetailHTML === 'function' ? renderPanchangaDetailHTML : undefined,
+        openPanchangaModal: typeof openPanchangaModal === 'function' ? openPanchangaModal : undefined,
+        closePanchangaModal: typeof closePanchangaModal === 'function' ? closePanchangaModal : undefined,
         getData: typeof getData === 'function' ? getData : undefined,
         saveData: typeof saveData === 'function' ? saveData : undefined,
         openTodayAgendaModal: typeof openTodayAgendaModal === 'function' ? openTodayAgendaModal : undefined,
