@@ -2538,9 +2538,9 @@ body.text-calendar-mode .text-calendar-actions{display:none !important}
 .pj-dir-item:hover{background:var(--cell-hover)}
 .pj-dir-item.active{background:var(--accent-light);border-color:var(--accent-border)}
 .pj-dir-timeline{display:flex;flex-direction:column;gap:var(--sp-3);margin-top:var(--sp-3)}
-.pj-dir-timeline-item{position:relative;padding-left:var(--sp-5);border-left:2px solid var(--border);padding-bottom:var(--sp-3)}
-.pj-dir-timeline-item:last-child{padding-bottom:0;border-left-color:transparent}
-.pj-dir-timeline-item::before{content:'';position:absolute;left:-6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid var(--card-bg);box-shadow:0 0 0 2px var(--accent-border)}
+.pj-dir-timeline-item{position:relative;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 16px;margin-bottom:12px;background:var(--surface-1)}
+.pj-dir-timeline-item:last-child{margin-bottom:0}
+.pj-dir-timeline-item::before{display:none !important;content:none !important}
 
 /* Relationship Center Modal */
 .pj-center-modal{width:min(1160px,95vw) !important;max-width:min(1160px,95vw) !important;height:min(780px,88vh) !important;max-height:88vh !important;padding:0;overflow:hidden;border-radius:20px;box-shadow:0 24px 60px -12px rgba(0,0,0,0.28), 0 0 0 1px var(--border)}
@@ -5011,10 +5011,18 @@ button:focus-visible {
   box-sizing: border-box !important;
 }
 
+.pj-dir-timeline-item::before,
+.pjp-history-item::before,
+.pj-dir-timeline::before {
+  display: none !important;
+  content: none !important;
+}
+
 .pj-dir-timeline-item,
 .pjp-history-item {
   background: var(--surface-1) !important;
   border: 1px solid var(--border-strong) !important;
+  border-left: 1px solid var(--border-strong) !important;
   border-radius: var(--r-lg) !important;
   padding: 16px 20px !important;
   box-shadow: var(--shadow-sm) !important;
