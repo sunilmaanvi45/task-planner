@@ -2676,6 +2676,50 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
 .pj-date-quick-row input{flex:1}
 .pj-p-form-subheading{font-size:var(--fs-2xs);font-weight:750;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.05em;margin-top:10px;margin-bottom:4px}
 
+/* ============================================================
+   Stacking Layer Hierarchy for People & Text overlays
+   ============================================================ */
+#pjCenterOverlay,
+#pjPeopleOverlay,
+#pjGlobalSearchOverlay {
+  z-index: 11000 !important;
+}
+
+#pjProfileModal,
+#pjMergeModalOverlay {
+  z-index: 12000 !important;
+}
+
+#pjEncounterModalOverlay,
+#pjContactModalOverlay {
+  z-index: 13000 !important;
+}
+
+#pjProfileModal .pj-modal-card {
+  max-width: 640px !important;
+  width: 95vw !important;
+  max-height: 88vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.pj-profile-tab-bar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pj-profile-tab-bar .pj-toolbar-pill.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+  font-weight: 750 !important;
+}
+
+.pj-dir-timeline-item:hover {
+  border-color: var(--border-strong) !important;
+}
+
 /* 3-Hour Time Blocking Sections */
 .task-timeblock-section {
   display: flex;
@@ -9661,6 +9705,9 @@ function renderHabitMiniCalendar() {
             return cur;
         };
 
+        const phoneToPid = new Map();
+        const emailToPid = new Map();
+
         loadPjContacts().forEach(c=>{
             if(!c || !c.personId) return;
             const finalPid = resolvePid(c.personId, c.name);
@@ -9682,8 +9729,8 @@ function renderHabitMiniCalendar() {
             }
 
             const canonical = pjCanonicalName(c, c.personId);
-            const pr = pjMeta.profiles[c.personId] || {};
-            map.set(c.personId, {
+            const pr = (pjMeta && pjMeta.profiles && pjMeta.profiles[c.personId]) || {};
+            const pObj = {
                 personId: c.personId,
                 name: canonical,
                 nickname: pr.nickname || c.nickname || '',
@@ -9697,9 +9744,18 @@ function renderHabitMiniCalendar() {
                 tags: Array.isArray(c.tags) ? c.tags.slice() : [],
                 firstMet: null, lastSeen: null, encounters: [],
                 isContact: true, source: c.source || 'csv'
-            });
+            };
+            map.set(c.personId, pObj);
             if(c.name) nameToPid.set(normalizePjName(c.name), c.personId);
             if(canonical) nameToPid.set(normalizePjName(canonical), c.personId);
+            pObj.phones.forEach(ph => {
+                const digits = normalizePhoneForCompare(ph);
+                if(digits) phoneToPid.set(digits, c.personId);
+            });
+            pObj.emails.forEach(em => {
+                const low = normalizeEmailForCompare(em);
+                if(low) emailToPid.set(low, c.personId);
+            });
         });
 
         listAllPjDays().forEach(ds=>{
@@ -9707,8 +9763,19 @@ function renderHabitMiniCalendar() {
             if(!data || !Array.isArray(data.encounters)) return;
             data.encounters.forEach(e=>{
                 let rawPid = e.personId;
+                if(!rawPid || !map.has(rawPid)){
+                    if(e.name && nameToPid.has(normalizePjName(e.name))){
+                        rawPid = nameToPid.get(normalizePjName(e.name));
+                    } else {
+                        const ePhones = Array.isArray(e.phones) ? e.phones : (e.phone ? [e.phone] : []);
+                        for(const ph of ePhones){
+                            const digits = normalizePhoneForCompare(ph);
+                            if(digits && phoneToPid.has(digits)){ rawPid = phoneToPid.get(digits); break; }
+                        }
+                    }
+                }
                 if(!rawPid && e.name){
-                    rawPid = nameToPid.get(normalizePjName(e.name)) || normalizePjName(e.name);
+                    rawPid = normalizePjName(e.name);
                 }
                 if(!rawPid) return;
                 const pid = resolvePid(rawPid, e.name);
@@ -9790,9 +9857,23 @@ function renderHabitMiniCalendar() {
     }
 
     function findKnownPerson(name){
+        if(!name) return null;
         const norm = normalizePjName(name);
         if(!norm) return null;
-        return getPjPeopleRegistry().find(p=>p.personId === norm) || null;
+        const all = getPjPeopleRegistry();
+        // 1. Exact personId match
+        let found = all.find(p => p.personId === norm || p.personId === name);
+        if(found) return found;
+        // 2. Normalized name match
+        found = all.find(p => normalizePjName(p.name) === norm || normalizePjName(pjCanonicalName(p, p.personId)) === norm);
+        if(found) return found;
+        // 3. Nickname match
+        found = all.find(p => (p.nickname && normalizePjName(p.nickname) === norm) || (p.profile?.nickname && normalizePjName(p.profile.nickname) === norm));
+        if(found) return found;
+        // 4. Case-insensitive exact name match
+        const lower = name.trim().toLowerCase();
+        found = all.find(p => (p.name && p.name.trim().toLowerCase() === lower) || (p.displayName && p.displayName.trim().toLowerCase() === lower));
+        return found || null;
     }
 
     function pjDateDiff(a,b){
@@ -10270,9 +10351,22 @@ function renderHabitMiniCalendar() {
         editingEncounterDay = null;
     }
 
-    function renderPjEncounterForm(enc){
+    function renderPjEncounterForm(enc, presetPersonOrPid, targetDate){
         const e = enc || {};
         const allPeople = getPjPeopleRegistry();
+        let prefillPid = e.personId || '';
+        let prefillName = e.name || '';
+
+        if(!prefillPid && presetPersonOrPid){
+            if(typeof presetPersonOrPid === 'object'){
+                prefillPid = presetPersonOrPid.personId || '';
+                prefillName = presetPersonOrPid.name || '';
+            } else if(typeof presetPersonOrPid === 'string'){
+                prefillPid = presetPersonOrPid;
+                const matchP = allPeople.find(x => x.personId === presetPersonOrPid || normalizePjName(x.name) === normalizePjName(presetPersonOrPid));
+                if(matchP) prefillName = matchP.name;
+            }
+        }
         const knownNames = allPeople.map(p => p.name).filter(Boolean);
         const namesDatalist = `<datalist id="pjKnownNamesList">${knownNames.map(n=>`<option value="${escapeHtml(n)}"></option>`).join('')}</datalist>`;
         const relationsDatalist = `<datalist id="pjRelationsList">${PJ_RELATION_OPTIONS.map(r=>`<option value="${escapeHtml(r)}"></option>`).join('')}</datalist>`;
@@ -10322,11 +10416,11 @@ function renderHabitMiniCalendar() {
                     <div style="margin-bottom:6px;">
                         <select id="pjEncPersonSelect" style="width:100%;padding:7px 10px;border-radius:var(--r-md);border:1px solid var(--border);background:var(--input-bg);color:var(--text);font-size:var(--fs-xs);">
                             <option value="">-- Choose Existing Contact (or type below) --</option>
-                            ${allPeople.map(p => `<option value="${escapeAttr(p.personId)}" ${e.personId===p.personId?'selected':''}>${escapeHtml(pjCanonicalName(p, p.personId))}${p.profile?.relation||p.relation ? ' ('+escapeHtml(p.profile?.relation||p.relation)+')' : ''}</option>`).join('')}
+                            ${allPeople.map(p => { const isSel = (prefillPid && p.personId === prefillPid) || (!prefillPid && prefillName && normalizePjName(p.name) === normalizePjName(prefillName)); return `<option value="${escapeAttr(p.personId)}" ${isSel ? 'selected' : ''}>${escapeHtml(pjCanonicalName(p, p.personId))}${p.profile?.relation||p.relation ? ' ('+escapeHtml(p.profile?.relation||p.relation)+')' : ''}</option>`; }).join('')}
                         </select>
                     </div>
                     <div class="pj-voice-field">
-                        <input type="text" id="pjEncQuickName" list="pjKnownNamesList" placeholder="Full name or clue" value="${escapeHtml(e.name||'')}" maxlength="80" autocomplete="off">
+                        <input type="text" id="pjEncQuickName" list="pjKnownNamesList" placeholder="Full name or clue" value="${escapeHtml(e.name || prefillName || '')}" maxlength="80" autocomplete="off">
                         <button type="button" class="pj-voice-btn" data-voice-target="pjEncQuickName" title="Dictate">&#127908;</button>
                     </div>
                     <div style="font-size:var(--fs-2xs);color:var(--accent);font-weight:600;margin-top:4px;" id="pjKnownHint"></div>
@@ -10711,12 +10805,16 @@ function renderHabitMiniCalendar() {
         if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')){
             renderPjDirectory();
         }
+        if(document.getElementById('pjProfileModal')?.classList.contains('active')){
+            const profPid = personId || editingPersonId;
+            if(profPid) openPjProfile(profPid, 'history');
+        }
         showToast(editingEncounterId ? 'Encounter updated' : 'Encounter logged');
     }
 
-    function deletePjEncounter(encId){
-        if(!selectedDateStr) return;
-        const data = getPjDayData(selectedDateStr);
+    function deletePjEncounter(encId, date){
+        const dStr = date || editingEncounterDay || selectedDateStr || getTodayStr();
+        const data = getPjDayData(dStr);
         if(!data) return;
         const enc = (data.encounters||[]).find(e => e.id === encId);
         if(!enc) return;
@@ -10724,12 +10822,25 @@ function renderHabitMiniCalendar() {
 
         pushUndo('Delete encounter');
         data.encounters = (data.encounters||[]).filter(e => e.id !== encId);
-        savePjDayData(selectedDateStr, data);
+        savePjDayData(dStr, data);
+        try {
+            appStorage.removeItem('int_' + encId);
+            if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('int_' + encId, Date.now());
+        } catch(err){}
         expandedEncounters.delete(encId);
-        updateSingleCell(selectedDateStr, { pop:true });
-        renderPjDailySection(selectedDateStr);
+        updateSingleCell(dStr, { pop:true });
+        invalidatePjCache();
+        if(selectedDateStr) renderPjDailySection(selectedDateStr);
+        if(document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjCenter();
+        if(document.getElementById('pjPeopleOverlay')?.classList.contains('active')) renderPjDirectory();
+        if(document.getElementById('pjProfileModal')?.classList.contains('active')){
+            const targetPid = enc.personId || normalizePjName(enc.name);
+            if(targetPid) openPjProfile(targetPid, 'history');
+        }
+        if(typeof renderCalendar === 'function') renderCalendar();
         showToast('Encounter deleted');
     }
+    window.deletePjEncounter = deletePjEncounter;
 
     // Duplicate Detection & Merge Logic
     function normalizePhoneForCompare(ph){
@@ -11784,7 +11895,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
     }
 
     // Person Profile Modal Open / Close
-    function openPjProfile(pid){
+    function openPjProfile(pid, initialTab){
         if(!pid) return;
         let p = pjAllPeople().find(x => x.personId === pid);
         if(!p){
@@ -11797,6 +11908,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
         const pr = pjProfile(p.personId);
         const health = pjHealth(p);
         const cName = pjCanonicalName(p, p.personId);
+        const encs = (p.encounters || []).slice().sort((a,b) => String(b._date||'').localeCompare(String(a._date||'')));
+        let currentTab = initialTab === 'history' ? 'history' : 'details';
 
         const phones = Array.isArray(p.phones) ? p.phones : [];
         const emails = Array.isArray(p.emails) ? p.emails : [];
@@ -11833,112 +11946,251 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             </div>
         `;
 
+        // History Timeline HTML
+        const historyListHtml = encs.length ? encs.map(e => `
+            <div class="pj-dir-timeline-item" style="margin-bottom:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-size:var(--fs-xs);font-weight:700;color:var(--accent);">&#128197; ${getShortDate(e._date)}</span>
+                        ${e.venue ? `<span style="font-size:var(--fs-2xs);background:var(--card-bg);border:1px solid var(--border);padding:1px 6px;border-radius:var(--r-sm);">&#127963; ${escapeHtml(e.venue)}</span>` : ''}
+                        ${e.timeOfDay ? `<span style="font-size:var(--fs-2xs);color:var(--text-secondary);">&middot; ${escapeHtml(e.timeOfDay)}</span>` : ''}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;">
+                        <button type="button" class="pj-toolbar-pill" data-edit-enc="${escapeAttr(e.id)}" data-enc-date="${escapeAttr(e._date)}" style="padding:2px 8px;font-size:var(--fs-2xs);" title="Edit this interaction">&#9998; Edit</button>
+                        <button type="button" class="pj-toolbar-pill pj-danger-pill" data-delete-enc="${escapeAttr(e.id)}" data-enc-date="${escapeAttr(e._date)}" style="padding:2px 8px;font-size:var(--fs-2xs);" title="Delete this interaction">&#128465;</button>
+                    </div>
+                </div>
+                ${e.summary ? `<div style="font-size:var(--fs-xs);font-weight:600;color:var(--text);margin-bottom:4px;">${escapeHtml(e.summary)}</div>` : ''}
+                ${e.topics ? `<div class="pj-md-content" style="font-size:var(--fs-xs);margin-top:4px;padding:6px 8px;background:var(--card-bg);border-radius:var(--r-sm);border:1px solid var(--border);">${renderMarkdown(e.topics)}</div>` : ''}
+                ${e.gifts ? `<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:4px;">&#127873; <em>${escapeHtml(e.gifts)}</em></div>` : ''}
+                ${e.notes && e.notes !== e.summary ? `<div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:4px;font-style:italic;">${escapeHtml(e.notes)}</div>` : ''}
+                ${e.followUp ? `
+                    <div style="margin-top:8px;padding-top:6px;border-top:1px dashed var(--border);display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap;">
+                        <span style="font-size:var(--fs-2xs);color:${e.followUpDone?'var(--success)':'var(--warning)'};font-weight:600;">
+                            &#9200; Follow-up (${getShortDate(e.followUp)}): ${escapeHtml(e.followUpAction||'Check in')} ${e.followUpDone?'[Completed]':'[Pending]'}
+                        </span>
+                        <button type="button" class="pj-toolbar-pill" data-toggle-enc-fu="${escapeAttr(e.id)}" data-enc-date="${escapeAttr(e._date)}" style="font-size:var(--fs-2xs);padding:2px 8px;${e.followUpDone?'':'background:var(--success);color:#fff;font-weight:700;'}">
+                            ${e.followUpDone ? '&#8634; Reopen' : '&#10003; Mark Done'}
+                        </button>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('') : `
+            <div style="text-align:center;padding:32px 16px;background:var(--surface-2);border:1.5px dashed var(--border);border-radius:var(--r-lg);">
+                <div style="font-size:2rem;opacity:.5;margin-bottom:8px;">&#128197;</div>
+                <div style="font-size:var(--fs-sm);font-weight:700;color:var(--text);">No recorded interactions with ${escapeHtml(cName)} yet.</div>
+                <div style="font-size:var(--fs-xs);color:var(--text-secondary);margin:4px 0 14px;">Log meetings, calls, casual run-ins, coffee chats or milestones.</div>
+                <button type="button" class="btn-primary" id="btnPjpLogFirst" data-pid="${escapeAttr(p.personId)}" style="padding:6px 18px;">+ Log First Interaction</button>
+            </div>
+        `;
+
         body.innerHTML = `
-            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;">
-                <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:44px;height:44px;font-size:1rem;">${escapeHtml(initialsOfPj(cName))}</div>
+            <!-- Person Header Card -->
+            <div style="display:flex;align-items:center;gap:14px;padding:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:12px;">
+                <div class="pj-encounter-avatar ${p.isContact?'contact-marker':''}" style="width:46px;height:46px;font-size:1.05rem;flex-shrink:0;">${escapeHtml(initialsOfPj(cName))}</div>
                 <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:8px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                         <span style="font-size:var(--fs-md);font-weight:750;">${escapeHtml(cName)}</span>
                         <span class="pj-badge ${p._status.cls}">${p._status.label}</span>
-                        ${pr.favorite ? '<span class="pj-fav" title="Starred">&#9733;</span>' : ''}
+                        ${p.isContact ? '<span class="pj-badge good">Contact</span>' : '<span class="pj-badge warn">Met in Calendar</span>'}
+                        <button type="button" class="pj-star-btn ${pr.favorite?'active':''}" id="pjpHeaderFav" title="Toggle Favorite" style="margin-left:auto;">&#9733;</button>
                     </div>
                     <div style="font-size:var(--fs-2xs);color:var(--text-secondary);margin-top:2px;">
                         ${p.lastSeen ? `Last met: ${getShortDate(p.lastSeen)} &middot; ` : 'Not met yet &middot; '}
-                        ${p.encounters.length} interaction(s) &middot; Health: <strong>${health}%</strong>
+                        <strong>${encs.length}</strong> interaction(s) &middot; Health: <strong>${health}%</strong>
                     </div>
                 </div>
             </div>
 
-            <div class="pj-form-grid">
-                <div class="pj-form-field">
-                    <label>Display / Full Name *</label>
-                    <input type="text" id="pjpName" value="${escapeAttr(pr.displayName || p.name)}" placeholder="Full Name">
+            <!-- Mode / Tab Switcher Bar -->
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:10px;flex-wrap:wrap;">
+                <div class="pj-profile-tab-bar">
+                    <button type="button" class="pj-toolbar-pill ${currentTab==='details'?'active':''}" id="tabPjpDetails" style="font-weight:700;">&#128100; Profile Details</button>
+                    <button type="button" class="pj-toolbar-pill ${currentTab==='history'?'active':''}" id="tabPjpHistory" style="font-weight:700;">&#128220; History (${encs.length})</button>
                 </div>
-                <div class="pj-form-field">
-                    <label>Nickname / Alias</label>
-                    <input type="text" id="pjpNickname" value="${escapeAttr(pr.nickname || p.profile?.nickname || '')}" placeholder="Nickname">
+                <button type="button" class="btn-primary" id="btnPjpLogInteraction" data-pid="${escapeAttr(p.personId)}" style="font-size:var(--fs-xs);padding:5px 14px;">+ Log Interaction</button>
+            </div>
+
+            <!-- Tab 1: Profile Details Pane -->
+            <div id="pjpPaneDetails" style="${currentTab==='details'?'display:block;':'display:none;'}">
+                <div class="pj-form-grid">
+                    <div class="pj-form-field">
+                        <label>Display / Full Name *</label>
+                        <input type="text" id="pjpName" value="${escapeAttr(pr.displayName || p.name)}" placeholder="Full Name">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Nickname / Alias</label>
+                        <input type="text" id="pjpNickname" value="${escapeAttr(pr.nickname || p.profile?.nickname || '')}" placeholder="Nickname">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Relationship / Category</label>
+                        <input type="text" id="pjpRelation" value="${escapeAttr(pr.relation || p.profile?.relation || '')}" placeholder="e.g. Friend, Colleague, Client...">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Birthday</label>
+                        <input type="date" id="pjpBirthday" value="${escapeAttr(pr.birthday || p.profile?.birthday || '')}">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Keep in Touch Frequency (Days)</label>
+                        <input type="number" id="pjpFreq" min="0" max="365" value="${Number(pr.contactFrequencyDays || 0)}" placeholder="0 = default (60d)">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Priority</label>
+                        <select id="pjpPriority">
+                            <option value="low" ${pr.priority==='low'?'selected':''}>Low</option>
+                            <option value="normal" ${pr.priority==='normal'||!pr.priority?'selected':''}>Normal</option>
+                            <option value="high" ${pr.priority==='high'?'selected':''}>High</option>
+                        </select>
+                    </div>
+                    <div class="pj-form-field full">
+                        <label>Tags / Categories</label>
+                        <div class="pj-tag-picker" id="pjpTagPicker">${pjpTagsHtml}</div>
+                    </div>
+                    <div class="pj-form-field full">
+                        <label>Phone Numbers</label>
+                        <div id="pjpPhonesList" class="pj-multi-list">${phonesRows}</div>
+                        <button type="button" class="pj-multi-add" id="btnAddPjpPhone" style="align-self:flex-start;margin-top:4px;">+ Add Phone</button>
+                    </div>
+                    <div class="pj-form-field full">
+                        <label>Email Addresses</label>
+                        <div id="pjpEmailsList" class="pj-multi-list">${emailsRows}</div>
+                        <button type="button" class="pj-multi-add" id="btnAddPjpEmail" style="align-self:flex-start;margin-top:4px;">+ Add Email</button>
+                    </div>
+                    <div class="pj-form-field full">
+                        <label>Next Action / Follow-up</label>
+                        <input type="text" id="pjpNextAction" value="${escapeAttr(pr.nextAction || '')}" placeholder="e.g. Call to discuss proposal, Send report...">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Next Action Due Date</label>
+                        <input type="date" id="pjpNextDue" value="${escapeAttr(pr.nextActionDue || '')}">
+                    </div>
+                    <div class="pj-form-field">
+                        <label>Next Action Status</label>
+                        <select id="pjpNextStatus">
+                            <option value="open" ${pr.nextActionStatus==='open'||!pr.nextActionStatus?'selected':''}>Open</option>
+                            <option value="done" ${pr.nextActionStatus==='done'?'selected':''}>Completed / Done</option>
+                        </select>
+                    </div>
+                    <div class="pj-form-field full">
+                        <label>Relationship & Private Notes</label>
+                        <textarea id="pjpNotes" rows="3" placeholder="Private notes about background, interests, conversation topics...">${escapeHtml(pr.notes || '')}</textarea>
+                    </div>
                 </div>
-                <div class="pj-form-field">
-                    <label>Relationship / Category</label>
-                    <input type="text" id="pjpRelation" value="${escapeAttr(pr.relation || p.profile?.relation || '')}" placeholder="e.g. Friend, Colleague, Client...">
-                </div>
-                <div class="pj-form-field">
-                    <label>Birthday</label>
-                    <input type="date" id="pjpBirthday" value="${escapeAttr(pr.birthday || p.profile?.birthday || '')}">
-                </div>
-                <div class="pj-form-field">
-                    <label>Keep in Touch Frequency (Days)</label>
-                    <input type="number" id="pjpFreq" min="0" max="365" value="${Number(pr.contactFrequencyDays || 0)}" placeholder="0 = default (60d)">
-                </div>
-                <div class="pj-form-field">
-                    <label>Priority</label>
-                    <select id="pjpPriority">
-                        <option value="low" ${pr.priority==='low'?'selected':''}>Low</option>
-                        <option value="normal" ${pr.priority==='normal'||!pr.priority?'selected':''}>Normal</option>
-                        <option value="high" ${pr.priority==='high'?'selected':''}>High</option>
-                    </select>
-                </div>
-                <div class="pj-form-field full">
-                    <label>Tags / Categories</label>
-                    <div class="pj-tag-picker" id="pjpTagPicker">${pjpTagsHtml}</div>
-                </div>
-                <div class="pj-form-field full">
-                    <label>Phone Numbers</label>
-                    <div id="pjpPhonesList" class="pj-multi-list">${phonesRows}</div>
-                    <button type="button" class="pj-multi-add" id="btnAddPjpPhone" style="align-self:flex-start;margin-top:4px;">+ Add Phone</button>
-                </div>
-                <div class="pj-form-field full">
-                    <label>Email Addresses</label>
-                    <div id="pjpEmailsList" class="pj-multi-list">${emailsRows}</div>
-                    <button type="button" class="pj-multi-add" id="btnAddPjpEmail" style="align-self:flex-start;margin-top:4px;">+ Add Email</button>
-                </div>
-                <div class="pj-form-field full">
-                    <label>Next Action / Follow-up</label>
-                    <input type="text" id="pjpNextAction" value="${escapeAttr(pr.nextAction || '')}" placeholder="e.g. Call to discuss proposal, Send report...">
-                </div>
-                <div class="pj-form-field">
-                    <label>Next Action Due Date</label>
-                    <input type="date" id="pjpNextDue" value="${escapeAttr(pr.nextActionDue || '')}">
-                </div>
-                <div class="pj-form-field">
-                    <label>Next Action Status</label>
-                    <select id="pjpNextStatus">
-                        <option value="open" ${pr.nextActionStatus==='open'||!pr.nextActionStatus?'selected':''}>Open</option>
-                        <option value="done" ${pr.nextActionStatus==='done'?'selected':''}>Completed / Done</option>
-                    </select>
-                </div>
-                <div class="pj-form-field full">
-                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;text-transform:none;font-size:var(--fs-xs);font-weight:600;">
-                        <input type="checkbox" id="pjpFavorite" ${pr.favorite?'checked':''}>
-                        <span>&#9733; Star as Favorite / Priority Contact</span>
-                    </label>
-                </div>
-                <div class="pj-form-field full">
-                    <label>Relationship & Private Notes</label>
-                    <textarea id="pjpNotes" rows="3" placeholder="Private notes about background, interests, conversation topics...">${escapeHtml(pr.notes || '')}</textarea>
+
+                <!-- Details Footer Buttons -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                        <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">&#128220; View History (${encs.length})</button>
+                        ${p.isContact && encs.length > 0 ? `
+                            <button type="button" class="pj-toolbar-pill" id="btnPjpRemoveContact" data-pid="${escapeAttr(p.personId)}" title="Remove contact card but keep historical interactions">&#128465; Remove Contact Card</button>
+                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all calendar encounters">&#9888; Delete Person & History</button>
+                        ` : p.isContact ? `
+                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}" title="Delete saved contact">&#128465; Delete Contact</button>
+                        ` : `
+                            <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all encounters">&#128465; Delete Person & History</button>
+                        `}
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
+                        <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">&#128190; Save Profile</button>
+                    </div>
                 </div>
             </div>
 
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;gap:8px;">
-                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
-                    <button type="button" class="pj-toolbar-pill" id="btnPjpTimeline" data-pid="${escapeAttr(p.personId)}">&#128220; History (${p.encounters.length})</button>
-                    ${p.isContact && p.encounters.length > 0 ? `
-                        <button type="button" class="pj-toolbar-pill" id="btnPjpRemoveContact" data-pid="${escapeAttr(p.personId)}" title="Remove contact card but keep historical interactions">&#128465; Remove Contact Card</button>
-                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all calendar encounters">&#9888; Delete Person & History</button>
-                    ` : p.isContact ? `
-                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDelete" data-pid="${escapeAttr(p.personId)}" title="Delete saved contact">&#128465; Delete Contact</button>
-                    ` : `
-                        <button type="button" class="pj-toolbar-pill pj-danger-pill" id="btnPjpDeleteAll" data-pid="${escapeAttr(p.personId)}" title="Delete person and all encounters">&#128465; Delete Person & History</button>
-                    `}
+            <!-- Tab 2: Interaction History Pane -->
+            <div id="pjpPaneHistory" style="${currentTab==='history'?'display:block;':'display:none;'}">
+                <div style="display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto;padding-right:4px;">
+                    ${historyListHtml}
                 </div>
-                <div style="display:flex;gap:8px;">
-                    <button type="button" class="pj-toolbar-pill" id="btnPjpCancel">Cancel</button>
-                    <button type="button" class="btn-primary" id="btnPjpSave" data-pid="${escapeAttr(p.personId)}" style="padding:7px 16px;">&#128190; Save Profile</button>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:10px;border-top:1px solid var(--border);">
+                    <button type="button" class="pj-toolbar-pill" id="btnPjpBackToDetails">&#128100; Edit Profile Details</button>
+                    <button type="button" class="pj-toolbar-pill" id="btnPjpCloseHistory">Close</button>
                 </div>
             </div>
         `;
 
         modal.classList.add('active');
+
+        // Tab Switchers
+        const tabDetails = document.getElementById('tabPjpDetails');
+        const tabHistory = document.getElementById('tabPjpHistory');
+        const paneDetails = document.getElementById('pjpPaneDetails');
+        const paneHistory = document.getElementById('pjpPaneHistory');
+
+        function switchPjpTab(tab){
+            currentTab = tab;
+            if(tab === 'history'){
+                tabHistory?.classList.add('active');
+                tabDetails?.classList.remove('active');
+                if(paneHistory) paneHistory.style.display = 'block';
+                if(paneDetails) paneDetails.style.display = 'none';
+            } else {
+                tabDetails?.classList.add('active');
+                tabHistory?.classList.remove('active');
+                if(paneDetails) paneDetails.style.display = 'block';
+                if(paneHistory) paneHistory.style.display = 'none';
+            }
+        }
+
+        tabDetails?.addEventListener('click', () => switchPjpTab('details'));
+        tabHistory?.addEventListener('click', () => switchPjpTab('history'));
+        document.getElementById('btnPjpTimeline')?.addEventListener('click', () => switchPjpTab('history'));
+        document.getElementById('btnPjpBackToDetails')?.addEventListener('click', () => switchPjpTab('details'));
+        document.getElementById('btnPjpCloseHistory')?.addEventListener('click', closePjProfile);
+
+        // Quick Log Interaction from Profile Header
+        document.getElementById('btnPjpLogInteraction')?.addEventListener('click', () => {
+            openAddPjEncounter(p.personId, getTodayStr());
+        });
+        document.getElementById('btnPjpLogFirst')?.addEventListener('click', () => {
+            openAddPjEncounter(p.personId, getTodayStr());
+        });
+
+        // Header Favorite Star
+        document.getElementById('pjpHeaderFav')?.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const favBtn = document.getElementById('pjpHeaderFav');
+            pr.favorite = !pr.favorite;
+            favBtn?.classList.toggle('active', pr.favorite);
+            savePjMeta();
+            invalidatePjCache();
+            if(document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjCenter();
+            showToast(pr.favorite ? 'Added to favorites' : 'Removed from favorites');
+        });
+
+        // History Timeline Action Delegations (Edit, Delete, Follow-up Toggle)
+        paneHistory?.addEventListener('click', (ev) => {
+            const editBtn = ev.target.closest('[data-edit-enc]');
+            if(editBtn){
+                openEditPjEncounter(editBtn.dataset.editEnc, editBtn.dataset.encDate);
+                return;
+            }
+            const delBtn = ev.target.closest('[data-delete-enc]');
+            if(delBtn){
+                deletePjEncounter(delBtn.dataset.deleteEnc, delBtn.dataset.encDate);
+                return;
+            }
+            const fuBtn = ev.target.closest('[data-toggle-enc-fu]');
+            if(fuBtn){
+                const encId = fuBtn.dataset.toggleEncFu;
+                const encDate = fuBtn.dataset.encDate;
+                const d = getPjDayData(encDate);
+                if(d && Array.isArray(d.encounters)){
+                    const encItem = d.encounters.find(x => x.id === encId);
+                    if(encItem){
+                        encItem.followUpDone = !encItem.followUpDone;
+                        savePjDayData(encDate, d);
+                        invalidatePjCache();
+                        openPjProfile(p.personId, 'history');
+                        if(document.getElementById('pjCenterOverlay')?.classList.contains('active')) renderPjCenter();
+                        if(selectedDateStr) renderPjDailySection(selectedDateStr);
+                        if(typeof renderCalendar === 'function') renderCalendar();
+                        showToast(encItem.followUpDone ? 'Follow-up marked completed' : 'Follow-up reopened');
+                    }
+                }
+                return;
+            }
+        });
 
         document.getElementById('btnPjpCancel')?.addEventListener('click', closePjProfile);
         document.getElementById('btnPjpDelete')?.addEventListener('click', () => { deletePjContact(p.personId); });
@@ -12054,7 +12306,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             prObj.nextAction = (document.getElementById('pjpNextAction')?.value || '').trim();
             prObj.nextActionDue = document.getElementById('pjpNextDue')?.value || '';
             prObj.nextActionStatus = document.getElementById('pjpNextStatus')?.value || 'open';
-            prObj.favorite = !!document.getElementById('pjpFavorite')?.checked;
             prObj.notes = (document.getElementById('pjpNotes')?.value || '').trim();
             savePjMeta();
 
@@ -12067,11 +12318,6 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             if(selectedDateStr) renderPjDailySection(selectedDateStr);
             if(typeof renderCalendar === 'function') renderCalendar();
             showToast('Profile saved');
-        });
-        document.getElementById('btnPjpTimeline')?.addEventListener('click', () => {
-            closePjProfile();
-            selectedPersonId = p.personId;
-            openPjDirectory();
         });
     }
 
@@ -12250,21 +12496,21 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             `;
 
             // Bind Dashboard events
-            document.getElementById('btnDashAddContact')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
-            document.getElementById('btnDashLogInteraction')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
-            document.getElementById('btnDashAddPerson')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
+            document.getElementById('btnDashAddContact')?.addEventListener('click', () => { openAddPjContact(); });
+            document.getElementById('btnDashLogInteraction')?.addEventListener('click', () => { openAddPjEncounter(null, getTodayStr(), true); });
+            document.getElementById('btnDashAddPerson')?.addEventListener('click', () => { openAddPjContact(); });
             document.getElementById('btnDashAddFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
             document.getElementById('btnDashScheduleFu')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
             document.getElementById('btnDashAddFuEmpty')?.addEventListener('click', () => { pjShowFuForm = true; pjActiveTab = 'followups'; renderPjCenter(); });
             document.getElementById('btnDashAddBday')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
             document.getElementById('btnDashAddBdayTop')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
             document.getElementById('btnDashAddBdayEmpty')?.addEventListener('click', () => { pjShowBdayForm = true; pjActiveTab = 'birthdays'; renderPjCenter(); });
-            document.getElementById('btnDashDirectory')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
-            document.getElementById('btnDashViewDir')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
-            document.getElementById('btnDashStarEmpty')?.addEventListener('click', () => { closePjCenter(); openPjDirectory(); });
-            document.getElementById('btnDashDuplicates')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
-            document.getElementById('btnDashLogToday')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
-            document.getElementById('btnDashLogTodayEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(null, getTodayStr(), true); });
+            document.getElementById('btnDashDirectory')?.addEventListener('click', () => { pjActiveTab = 'people'; renderPjCenter(); });
+            document.getElementById('btnDashViewDir')?.addEventListener('click', () => { pjActiveTab = 'people'; renderPjCenter(); });
+            document.getElementById('btnDashStarEmpty')?.addEventListener('click', () => { pjActiveTab = 'people'; renderPjCenter(); });
+            document.getElementById('btnDashDuplicates')?.addEventListener('click', () => { openPjDuplicatesModal(); });
+            document.getElementById('btnDashLogToday')?.addEventListener('click', () => { openAddPjEncounter(null, getTodayStr(), true); });
+            document.getElementById('btnDashLogTodayEmpty')?.addEventListener('click', () => { openAddPjEncounter(null, getTodayStr(), true); });
 
         } else if(pjActiveTab === 'people'){
             let filtered = people;
@@ -12343,6 +12589,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     </div>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:6px;">
+                                    <button type="button" class="pj-toolbar-pill" data-open-history="${escapeAttr(p.personId)}" title="View interaction history">&#128220; ${p.encounters.length} met</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">&#9200; Follow-up</button>
@@ -12367,11 +12614,11 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             // Bind People Tab events
             document.getElementById('pjCenterSort')?.addEventListener('change', e => { pjCenterPeopleSort = e.target.value; renderPjCenter(); });
             document.getElementById('pjCenterPeopleSearchInput')?.addEventListener('input', e => { pjCenterPeopleSearch = e.target.value; renderPjCenter(); });
-            document.getElementById('btnPeopleAdd')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
-            document.getElementById('btnPeopleAddEmpty')?.addEventListener('click', () => { closePjCenter(); openAddPjContact(); });
+            document.getElementById('btnPeopleAdd')?.addEventListener('click', () => { openAddPjContact(); });
+            document.getElementById('btnPeopleAddEmpty')?.addEventListener('click', () => { openAddPjContact(); });
             document.getElementById('btnPeopleImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
             document.getElementById('btnPeopleImportCsvEmpty')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
-            document.getElementById('btnPeopleMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
+            document.getElementById('btnPeopleMergeDups')?.addEventListener('click', () => { openPjDuplicatesModal(); });
             document.getElementById('btnPeopleExportCsv')?.addEventListener('click', exportPjPeopleCSV);
 
         } else if(pjActiveTab === 'followups'){
@@ -12720,7 +12967,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             // Bind Analytics events
             document.getElementById('btnAnalyticsActive')?.addEventListener('click', () => { pjCenterPeopleFilter = 'active'; pjActiveTab = 'people'; renderPjCenter(); });
             document.getElementById('btnAnalyticsNeglected')?.addEventListener('click', () => { pjCenterPeopleFilter = 'neglected'; pjActiveTab = 'people'; renderPjCenter(); });
-            document.getElementById('btnAnalyticsLog')?.addEventListener('click', () => { closePjCenter(); openAddPjEncounter(); });
+            document.getElementById('btnAnalyticsLog')?.addEventListener('click', () => { openAddPjEncounter(); });
             document.getElementById('btnAnalyticsExportCsv')?.addEventListener('click', exportPjPeopleCSV);
 
         } else if(pjActiveTab === 'search'){
@@ -13095,6 +13342,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                                     </div>
                                 </div>
                                 <div style="display:flex;align-items:center;gap:6px;">
+                                    <button type="button" class="pj-toolbar-pill" data-open-history="${escapeAttr(p.personId)}" title="View interaction history">&#128220; ${p.encounters.length} met</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-profile="${escapeAttr(p.personId)}">&#128100; Profile</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-encounter="${escapeAttr(p.personId)}" title="Add encounter">+ Meet</button>
                                     <button type="button" class="pj-toolbar-pill" data-open-fu-modal="${escapeAttr(p.personId)}" title="Schedule follow-up">&#9200; Follow-up</button>
@@ -13128,14 +13376,8 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
                 pjCenterTagScope = e.target.value;
                 renderPjCenter();
             });
-            document.getElementById('btnTagsAddContact')?.addEventListener('click', () => {
-                closePjCenter();
-                openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null);
-            });
-            document.getElementById('btnTagsAddContactEmpty')?.addEventListener('click', () => {
-                closePjCenter();
-                openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null);
-            });
+            document.getElementById('btnTagsAddContact')?.addEventListener('click', () => { openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null); });
+            document.getElementById('btnTagsAddContactEmpty')?.addEventListener('click', () => { openAddPjContact(pjCenterTagFilter !== 'all' && pjCenterTagFilter !== 'untagged' ? { tags: [pjCenterTagFilter] } : null); });
             document.getElementById('btnTagsShowAll')?.addEventListener('click', () => {
                 pjCenterTagFilter = 'all';
                 renderPjCenter();
@@ -13224,7 +13466,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
             document.getElementById('btnDataExportCsv')?.addEventListener('click', exportPjPeopleCSV);
             document.getElementById('btnDataImportCsv')?.addEventListener('click', () => { document.getElementById('pjContactsCsvInput')?.click(); });
             document.getElementById('btnDataImportJson')?.addEventListener('click', () => { document.getElementById('pjEnhancedBackupInput')?.click(); });
-            document.getElementById('btnDataMergeDups')?.addEventListener('click', () => { closePjCenter(); openPjDuplicatesModal(); });
+            document.getElementById('btnDataMergeDups')?.addEventListener('click', () => { openPjDuplicatesModal(); });
             document.getElementById('btnDataGoToPeople')?.addEventListener('click', () => { pjActiveTab = 'people'; renderPjCenter(); });
             document.getElementById('btnSaveStaleThreshold')?.addEventListener('click', () => {
                 const val = parseInt(document.getElementById('pjStaleThresholdInput')?.value, 10);
@@ -17901,8 +18143,18 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(qMerge){openPjMergeModal(qMerge.dataset.p1,qMerge.dataset.p2);return;}
             const mMerge=e.target.closest('#btnManualMergePerson');
             if(mMerge){openPjMergeModal(mMerge.dataset.pid);return;}
+            const editEnc=e.target.closest('[data-edit-enc]');
+            if(editEnc){
+                openEditPjEncounter(editEnc.dataset.editEnc, editEnc.dataset.encDate);
+                return;
+            }
+            const delEnc=e.target.closest('[data-delete-enc]');
+            if(delEnc){
+                deletePjEncounter(delEnc.dataset.deleteEnc, delEnc.dataset.encDate);
+                return;
+            }
             const editProf=e.target.closest('#btnEditCurrentProfile')||e.target.closest('#btnEditCurrentContact');
-            if(editProf){const pid=editProf.dataset.pid||selectedPersonId;if(pid)openPjProfile(pid);return;}
+            if(editProf){const pid=editProf.dataset.pid||selectedPersonId;if(pid)openPjProfile(pid, 'details');return;}
             const logEnc=e.target.closest('#btnLogEncounterForPerson');
             if(logEnc){const pid=logEnc.dataset.pid||selectedPersonId;const p=getPjPeopleRegistry().find(x=>x.personId===pid);if(p)openAddPjEncounter(p,selectedDateStr||getTodayStr());return;}
             const saveContact=e.target.closest('#btnSaveAsSavedContact');
@@ -18005,17 +18257,34 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         const pjCenterTabs=document.getElementById('pjCenterTabs');
         if(pjCenterTabs)pjCenterTabs.addEventListener('click',e=>{const tb=e.target.closest('.pj-center-tab');if(tb){pjActiveTab=tb.dataset.tab;renderPjCenter();}});
         const pjCenterQuickAdd=document.getElementById('pjCenterQuickAdd');
-        if(pjCenterQuickAdd)pjCenterQuickAdd.addEventListener('click',()=>{closePjCenter();openAddPjEncounter();});
+        if(pjCenterQuickAdd)pjCenterQuickAdd.addEventListener('click',()=>{openAddPjEncounter();});
         const pjCenterSearch=document.getElementById('pjCenterSearch');
-        if(pjCenterSearch)pjCenterSearch.addEventListener('input',()=>{openPjSearch(pjCenterSearch.value);closePjCenter();});
+        if(pjCenterSearch)pjCenterSearch.addEventListener('input',()=>{
+    const val = pjCenterSearch.value;
+    if(pjActiveTab !== 'people' && pjActiveTab !== 'search'){
+        pjActiveTab = 'people';
+    }
+    if(pjActiveTab === 'people'){
+        pjCenterPeopleSearch = val;
+        renderPjCenter();
+        const s = document.getElementById('pjCenterSearch');
+        if(s && document.activeElement !== s){
+    s.focus();
+    try { s.setSelectionRange(val.length, val.length); } catch(e){}
+        }
+    } else if(pjActiveTab === 'search'){
+        pjAdvSearchCriteria.query = val;
+        renderPjCenter();
+    }
+});
         const pjCenterBody=document.getElementById('pjCenterBody');
         if(pjCenterBody)pjCenterBody.addEventListener('click',e=>{
             const st=e.target.closest('.pj-center-stat');
             if(st&&st.dataset.tab){pjActiveTab=st.dataset.tab;if(st.dataset.filter)pjCenterPeopleFilter=st.dataset.filter;renderPjCenter();return;}
-            const pBtn=e.target.closest('[data-open-profile]');
-            if(pBtn){e.stopPropagation();openPjProfile(pBtn.dataset.openProfile);return;}
+            const histBtn=e.target.closest('[data-open-history]');
+            if(histBtn){e.stopPropagation();openPjProfile(histBtn.dataset.openHistory, 'history');return;}
             const encBtn=e.target.closest('[data-open-encounter]');
-            if(encBtn){e.stopPropagation();closePjCenter();openAddPjEncounter(null, encBtn.dataset.openEncounter);return;}
+            if(encBtn){e.stopPropagation();openAddPjEncounter(encBtn.dataset.openEncounter, getTodayStr());return;}
             const delPerson=e.target.closest('[data-delete-person]');
             if(delPerson){e.stopPropagation();deletePjContact(delPerson.dataset.deletePerson);return;}
             const fuBtn=e.target.closest('[data-open-fu-modal]');
@@ -18024,6 +18293,8 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(bBtn){e.stopPropagation();pjPrefillBdayPersonId=bBtn.dataset.openBdayEdit;pjShowBdayForm=true;pjActiveTab='birthdays';renderPjCenter();return;}
             const favBtn=e.target.closest('[data-toggle-fav]');
             if(favBtn){e.stopPropagation();const pid=favBtn.dataset.toggleFav;const pr=pjProfile(pid);pr.favorite=!pr.favorite;savePjMeta();invalidatePjCache();renderPjCenter();showToast(pr.favorite?'Added to favorites':'Removed from favorites');return;}
+            const pBtn=e.target.closest('[data-open-profile]');
+            if(pBtn){e.stopPropagation();openPjProfile(pBtn.dataset.openProfile, 'details');return;}
             const pf=e.target.closest('[data-p-filter]');
             if(pf){pjCenterPeopleFilter=pf.dataset.pFilter;renderPjCenter();return;}
             const ff=e.target.closest('[data-fu-filter]');
@@ -18048,7 +18319,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(jd&&jd.dataset.jumpDate){const dt=jd.dataset.jumpDate;closePjCenter();const pts=dt.split('-').map(Number);if(pts[0]!==currentYear||pts[1]!==currentMonth){currentYear=pts[0];currentMonth=pts[1];renderCalendar({animate:true});}selectDate(dt);return;}
             const row=e.target.closest('.pj-center-row');
             if(row){
-                if(row.dataset.centerPerson){selectedPersonId=row.dataset.centerPerson;closePjCenter();openPjDirectory();return;}
+                if(row.dataset.centerPerson){openPjProfile(row.dataset.centerPerson, 'details');return;}
             }
         });
         const pjProfileClose=document.getElementById('pjProfileClose');
