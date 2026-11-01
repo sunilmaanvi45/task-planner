@@ -5891,6 +5891,7 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
             currentTaskIds.add(t.id);
             cleanTasks.push(t);
 
+            if(typeof unrecordDeletedTaskId === 'function') unrecordDeletedTaskId(t.id);
             const key = 'tsk_' + t.id;
             appStorage.setItem(key, JSON.stringify(t));
             if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(key, t.updatedAt);
@@ -5950,16 +5951,28 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         if(typeof setLocalKeyTimestamp === 'function') setLocalKeyTimestamp(getStorageKey(d), now);
     }
 
-    function deleteData(d){
+    function deleteData(d, opts){
         if(!d) return;
         const now = Date.now();
+        const excludeTaskIds = new Set((opts && opts.excludeTaskIds) || []);
+        const excludeLearningIds = new Set((opts && opts.excludeLearningIds) || []);
         try{
+            const taskLocMap = (typeof getTaskLocations === 'function') ? getTaskLocations() : null;
             const raw = appStorage.getItem(getStorageKey(d));
             if(raw){
                 const data = JSON.parse(raw);
                 if(data && Array.isArray(data.tasks)){
                     data.tasks.forEach(t => {
                         if(t && t.id){
+                            if(excludeTaskIds.has(t.id)) return;
+                            if(taskLocMap && taskLocMap[t.id] && taskLocMap[t.id].dateStr && taskLocMap[t.id].dateStr !== d) return;
+                            const discreteRaw = appStorage.getItem('tsk_' + t.id);
+                            if(discreteRaw){
+                                try{
+                                    const parsed = JSON.parse(discreteRaw);
+                                    if(parsed && parsed.dateStr && parsed.dateStr !== d) return;
+                                }catch(e){}
+                            }
                             appStorage.removeItem('tsk_' + t.id);
                             if(typeof recordDeletedTaskId === 'function') recordDeletedTaskId(t.id);
                             if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('tsk_' + t.id, now);
@@ -5969,6 +5982,14 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
                 if(data && Array.isArray(data.learnings)){
                     data.learnings.forEach(l => {
                         if(l && l.id){
+                            if(excludeLearningIds.has(l.id)) return;
+                            const discreteRaw = appStorage.getItem('lrn_' + l.id);
+                            if(discreteRaw){
+                                try{
+                                    const parsed = JSON.parse(discreteRaw);
+                                    if(parsed && (parsed.dateStr || parsed.currentDate) && (parsed.dateStr !== d && parsed.currentDate !== d)) return;
+                                }catch(e){}
+                            }
                             appStorage.removeItem('lrn_' + l.id);
                             if(typeof setLocalKeyDeleted === 'function') setLocalKeyDeleted('lrn_' + l.id, now);
                         }
@@ -6274,258 +6295,265 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
         undoToastTimer=setTimeout(()=>undoToast.classList.remove('visible'),6500);
     }
 
-                        function pruneEisenItemGlobal(kind,sourceId,allowedDate){
-                if(!sourceId)return;
-                const targetChipId=(kind==='task'?'task_':(kind==='learning'?'learn_':''))+sourceId;
-                const strSourceId=String(sourceId);
-                let anyOverlayRenderNeeded=false;
-                const affectedDates=[];
-                for(let i=0;i<appStorage.length;i++){
-                    const k=appStorage.key(i);
-                    if(!k||!k.startsWith(EISEN_PREFIX))continue;
-                    const ds=k.slice(EISEN_PREFIX.length);
-                    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;
-                    if(allowedDate&&ds===allowedDate)continue;
-                    const raw=appStorage.getItem(k);
-                    if(!raw)continue;
-                    let data=null;
-                    try{data=JSON.parse(raw)}catch(e){data=null}
-                    if(!data||!data.quadrants)continue;
-                    let modified=false;
-                    QUADRANT_KEYS.forEach(qk=>{
-                        const q=data.quadrants[qk];
-                        if(!q||!Array.isArray(q.items))return;
-                        const lenBefore=q.items.length;
-                        q.items=q.items.filter(it=>{
-                            if(!it)return false;
-                            if(it.id===targetChipId||it.id===strSourceId)return false;
-                            if(String(it.sourceId)===strSourceId&&(!kind||it.kind===kind))return false;
-                            return true;
-                        });
-                        if(q.items.length!==lenBefore)modified=true;
-                    });
-                    if(data.justStart&&(data.justStart[targetChipId]||data.justStart[strSourceId])){
-                        delete data.justStart[targetChipId];
-                        delete data.justStart[strSourceId];
-                        modified=true;
-                    }
-                    if(modified){
-                        if(typeof saveEisenData==='function')saveEisenData(ds,data);
-                        else appStorage.setItem(k,JSON.stringify(data));
-                        affectedDates.push(ds);
-                        if(eisenOverlay&&eisenOverlay.classList.contains('active')&&eisenDateStr===ds){
-                            anyOverlayRenderNeeded=true;
-                        }
-                    }
-                }
-                affectedDates.forEach(d=>updateSingleCell(d));
-                if(anyOverlayRenderNeeded){
-                    selectedEisenIds.delete(targetChipId);
-                    selectedEisenSourceIds.delete(targetChipId);
-                    renderEisen();
+                function pruneEisenItemGlobal(kind,sourceId,allowedDate){
+        if(!sourceId)return;
+        const targetChipId=(kind==='task'?'task_':(kind==='learning'?'learn_':''))+sourceId;
+        const strSourceId=String(sourceId);
+        let anyOverlayRenderNeeded=false;
+        const affectedDates=[];
+        for(let i=0;i<appStorage.length;i++){
+            const k=appStorage.key(i);
+            if(!k||!k.startsWith(EISEN_PREFIX))continue;
+            const ds=k.slice(EISEN_PREFIX.length);
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;
+            if(allowedDate&&ds===allowedDate)continue;
+            const raw=appStorage.getItem(k);
+            if(!raw)continue;
+            let data=null;
+            try{data=JSON.parse(raw)}catch(e){data=null}
+            if(!data||!data.quadrants)continue;
+            let modified=false;
+            QUADRANT_KEYS.forEach(qk=>{
+                const q=data.quadrants[qk];
+                if(!q||!Array.isArray(q.items))return;
+                const lenBefore=q.items.length;
+                q.items=q.items.filter(it=>{
+                    if(!it)return false;
+                    if(it.id===targetChipId||it.id===strSourceId)return false;
+                    if(String(it.sourceId)===strSourceId&&(!kind||it.kind===kind))return false;
+                    return true;
+                });
+                if(q.items.length!==lenBefore)modified=true;
+            });
+            if(data.justStart&&(data.justStart[targetChipId]||data.justStart[strSourceId])){
+                delete data.justStart[targetChipId];
+                delete data.justStart[strSourceId];
+                modified=true;
+            }
+            if(modified){
+                if(typeof saveEisenData==='function')saveEisenData(ds,data);
+                else appStorage.setItem(k,JSON.stringify(data));
+                affectedDates.push(ds);
+                if(eisenOverlay&&eisenOverlay.classList.contains('active')&&eisenDateStr===ds){
+                    anyOverlayRenderNeeded=true;
                 }
             }
+        }
+        affectedDates.forEach(d=>updateSingleCell(d));
+        if(anyOverlayRenderNeeded){
+            selectedEisenIds.delete(targetChipId);
+            selectedEisenSourceIds.delete(targetChipId);
+            renderEisen();
+        }
+    }
 
-            function moveTaskBetweenDates(taskId,fromDate,toDate,opts){
-                opts=opts||{};
-                if(!taskId||!toDate)return false;
-                if(typeof flushDebounced==='function')flushDebounced();
-                if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
-                let task=null;
-                if(fromDate){
-                    const fdData=getData(fromDate);
-                    if(fdData&&Array.isArray(fdData.tasks)){
-                        const idx=fdData.tasks.findIndex(t=>t.id===taskId);
-                        if(idx!==-1){
-                            task=fdData.tasks[idx];
-                        }
-                    }
+    function moveTaskBetweenDates(taskId,fromDate,toDate,opts){
+        opts=opts||{};
+        if(!taskId||!toDate)return false;
+        if(typeof flushDebounced==='function')flushDebounced();
+        if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
+        let task=null;
+        if(fromDate){
+            const fdData=getData(fromDate);
+            if(fdData&&Array.isArray(fdData.tasks)){
+                const idx=fdData.tasks.findIndex(t=>t.id===taskId);
+                if(idx!==-1){
+                    task=fdData.tasks[idx];
                 }
-                if(!task){
-                    const found=findTaskByIdGlobal(taskId);
-                    if(found){
-                        task=found.task;
-                        if(!fromDate)fromDate=found.dateStr;
-                    }
+            }
+        }
+        if(!task){
+            const found=findTaskByIdGlobal(taskId);
+            if(found){
+                task=found.task;
+                if(!fromDate)fromDate=found.dateStr;
+            }
+        }
+        if(!task)return false;
+        if(!fromDate)return false;
+        if(fromDate===toDate)return false;
+
+        // 1. Un-tombstone task immediately
+        if(typeof unrecordDeletedTaskId==='function')unrecordDeletedTaskId(taskId);
+
+        // 2. Immediately register new location so deleteData knows task has moved
+        if(typeof recordTaskLocation==='function')recordTaskLocation(taskId,toDate,Date.now());
+
+        const fromData=getData(fromDate);
+        if(fromData&&Array.isArray(fromData.tasks)){
+            fromData.tasks=fromData.tasks.filter(t=>t.id!==taskId);
+            const fromEmpty=!fromData.tasks.length&&!fromData.notes?.trim()&&!fromData.dayTitle?.trim()&&!fromData.attachments?.length&&!fromData.learnings?.length&&!fromData.habits?.length&&!fromData.holiday&&!fromData.textCalendar?.length;
+            if(fromEmpty)deleteData(fromDate,{excludeTaskIds:[taskId]});else saveData(fromDate,fromData);
+        }
+
+        // Targeted cleanup of previous recorded location if different from fromDate and toDate
+        const recLoc = (typeof getTaskLocations === 'function') ? getTaskLocations()[taskId] : null;
+        if(recLoc && recLoc.dateStr && recLoc.dateStr !== fromDate && recLoc.dateStr !== toDate){
+            const recData = getData(recLoc.dateStr);
+            if(recData && Array.isArray(recData.tasks) && recData.tasks.some(x => x.id === taskId)){
+                recData.tasks = recData.tasks.filter(x => x.id !== taskId);
+                const sc = recData.tasks.length > 0 || recData.notes?.trim() || recData.dayTitle?.trim() || recData.holiday || recData.attachments?.length || recData.learnings?.length || recData.habits?.length || recData.textCalendar?.length;
+                if(sc) saveData(recLoc.dateStr, recData); else deleteData(recLoc.dateStr,{excludeTaskIds:[taskId]});
+            }
+        }
+
+        const toData=getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+        toData.tasks=toData.tasks||[];
+        toData.tasks=toData.tasks.filter(t=>t.id!==taskId);
+        task.dateStr=toDate;
+        task.updatedAt=Date.now();
+        task.movedAt=Date.now();
+        if(typeof recordTaskLocation==='function')recordTaskLocation(taskId,toDate,Date.now());
+        toData.tasks.push(task);
+        saveData(toDate,toData);
+        if(typeof unrecordDeletedTaskId==='function')unrecordDeletedTaskId(taskId);
+        if(typeof setLocalKeyTimestamp==='function'){
+            setLocalKeyTimestamp('td_'+fromDate,Date.now());
+            setLocalKeyTimestamp('td_'+toDate,Date.now());
+        }
+
+        pruneEisenItemGlobal('task',taskId,toDate);
+
+        selectedTaskIds.delete(taskId);
+        if(activeTaskId===taskId)activeTaskId=null;
+
+        if(!opts.silent){
+            currentDataCache=null;
+            if(selectionMode==='daily'&&selectedDateStr){
+                const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+                currentDataCache=JSON.parse(JSON.stringify(curD));
+            }
+            renderCalendar();
+            renderLearningsSection();
+            if(selectionMode==='daily'){
+                if(selectedDateStr===fromDate){
+                    updateDetailPanel(getData(fromDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},fromDate);
+                }else if(selectedDateStr===toDate){
+                    updateDetailPanel(getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},toDate);
                 }
-                if(!task)return false;
-                if(!fromDate)return false;
-                if(fromDate===toDate)return false;
-
-                const fromData=getData(fromDate);
-                if(fromData&&Array.isArray(fromData.tasks)){
-                    fromData.tasks=fromData.tasks.filter(t=>t.id!==taskId);
-                    const fromEmpty=!fromData.tasks.length&&!fromData.notes?.trim()&&!fromData.dayTitle?.trim()&&!fromData.attachments?.length&&!fromData.learnings?.length&&!fromData.habits?.length&&!fromData.holiday&&!fromData.textCalendar?.length;
-                    if(fromEmpty)deleteData(fromDate);else saveData(fromDate,fromData);
-                }
-
-                // Targeted cleanup of previous recorded location if different from fromDate and toDate
-                const recLoc = (typeof getTaskLocations === 'function') ? getTaskLocations()[taskId] : null;
-                if(recLoc && recLoc.dateStr && recLoc.dateStr !== fromDate && recLoc.dateStr !== toDate){
-                    const recData = getData(recLoc.dateStr);
-                    if(recData && Array.isArray(recData.tasks) && recData.tasks.some(x => x.id === taskId)){
-                        recData.tasks = recData.tasks.filter(x => x.id !== taskId);
-                        const sc = recData.tasks.length > 0 || recData.notes?.trim() || recData.dayTitle?.trim() || recData.holiday || recData.attachments?.length || recData.learnings?.length || recData.habits?.length || recData.textCalendar?.length;
-                        if(sc) saveData(recLoc.dateStr, recData); else deleteData(recLoc.dateStr);
-                    }
-                }
-
-                const toData=getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                toData.tasks=toData.tasks||[];
-                toData.tasks=toData.tasks.filter(t=>t.id!==taskId);
-                task.dateStr=toDate;
-                task.updatedAt=Date.now();
-                task.movedAt=Date.now();
-                if(typeof recordTaskLocation==='function')recordTaskLocation(taskId,toDate,Date.now());
-                toData.tasks.push(task);
-                saveData(toDate,toData);
-                if(typeof setLocalKeyTimestamp==='function'){
-                    setLocalKeyTimestamp('td_'+fromDate,Date.now());
-                    setLocalKeyTimestamp('td_'+toDate,Date.now());
-                }
-
-                pruneEisenItemGlobal('task',taskId,toDate);
-
-                selectedTaskIds.delete(taskId);
-                if(activeTaskId===taskId)activeTaskId=null;
-
-                if(!opts.silent){
-                    currentDataCache=null;
-                    if(selectionMode==='daily'&&selectedDateStr){
-                        const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                        currentDataCache=JSON.parse(JSON.stringify(curD));
-                    }
-                    renderCalendar();
-                    renderLearningsSection();
-                    if(selectionMode==='daily'){
-                        if(selectedDateStr===fromDate){
-                            updateDetailPanel(getData(fromDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},fromDate);
-                        }else if(selectedDateStr===toDate){
-                            updateDetailPanel(getData(toDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]},toDate);
-                        }
-                    }
-                    renderTaskToolbar();
-                    if(eisenOverlay.classList.contains('active'))renderEisen();
-                    updateSingleCell(fromDate,{pop:true});
-                    updateSingleCell(toDate,{pop:true});
-                    showSaved();
-                    if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);
-                    window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+            }
+            renderTaskToolbar();
+            if(eisenOverlay.classList.contains('active'))renderEisen();
+            updateSingleCell(fromDate,{pop:true});
+            updateSingleCell(toDate,{pop:true});
+            showSaved();
+            if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);
+            window.dispatchEvent(new CustomEvent('td-tasks-changed'));
         if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
         if(typeof invalidatePjCache==='function')invalidatePjCache();
         if(typeof loadPjMeta==='function')loadPjMeta();
         if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
-                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
-                }
-                return true;
+        if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
+        }
+        return true;
+    }
+
+    function moveLearningBetweenDates(learningId,toDateOrFromDate,optsOrToDate,maybeOpts){
+        if(typeof flushDebounced==='function')flushDebounced();
+        if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
+        let fromDate, toDate, opts;
+        if(typeof optsOrToDate === 'string'){
+            fromDate = toDateOrFromDate;
+            toDate = optsOrToDate;
+            opts = maybeOpts || {};
+        } else {
+            toDate = toDateOrFromDate;
+            opts = optsOrToDate || {};
+        }
+        opts = opts || {};
+        if(!learningId||!toDate) return false;
+
+        let found = null;
+        if(fromDate){
+            const fdData = getData(fromDate);
+            if(fdData && Array.isArray(fdData.learnings)){
+                const item = fdData.learnings.find(x => x.id === learningId);
+                if(item) found = { dateStr: fromDate, learning: item };
             }
+        }
+        if(!found) found = findLearningById(learningId);
+        if(!found) return false;
+        const l = found.learning;
+        const originDate = found.dateStr;
+        if(!fromDate) fromDate = originDate;
+        if(fromDate === toDate) return false;
 
-            function moveLearningBetweenDates(learningId,toDateOrFromDate,optsOrToDate,maybeOpts){
-                if(typeof flushDebounced==='function')flushDebounced();
-                if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}
-                let fromDate, toDate, opts;
-                if(typeof optsOrToDate === 'string'){
-                    fromDate = toDateOrFromDate;
-                    toDate = optsOrToDate;
-                    opts = maybeOpts || {};
-                } else {
-                    toDate = toDateOrFromDate;
-                    opts = optsOrToDate || {};
+        const origData = getData(originDate);
+        if(origData && Array.isArray(origData.learnings)){
+            origData.learnings = origData.learnings.filter(x => x.id !== learningId);
+            const sc = origData.learnings.length > 0 || origData.tasks?.length || origData.notes?.trim() || origData.dayTitle?.trim() || origData.holiday || origData.attachments?.length || origData.habits?.length || origData.textCalendar?.length;
+            if(sc) saveData(originDate, origData); else deleteData(originDate, {excludeLearningIds:[learningId]});
+        }
+
+        if(fromDate && fromDate !== originDate){
+            const fData = getData(fromDate);
+            if(fData && Array.isArray(fData.learnings)){
+                fData.learnings = fData.learnings.filter(x => x.id !== learningId);
+                const sc = fData.learnings.length > 0 || fData.tasks?.length || fData.notes?.trim() || fData.dayTitle?.trim() || fData.holiday || fData.attachments?.length || fData.habits?.length || fData.textCalendar?.length;
+                if(sc) saveData(fromDate, fData); else deleteData(fromDate, {excludeLearningIds:[learningId]});
+            }
+        }
+
+        // Targeted cleanup of origin date if different
+        if(originDate && originDate !== toDate && originDate !== fromDate){
+            const oData = getData(originDate);
+            if(oData && Array.isArray(oData.learnings) && oData.learnings.some(x => x.id === learningId)){
+                oData.learnings = oData.learnings.filter(x => x.id !== learningId);
+                const sc = oData.learnings.length > 0 || oData.tasks?.length || oData.notes?.trim() || oData.dayTitle?.trim() || oData.holiday || oData.attachments?.length || oData.habits?.length || oData.textCalendar?.length;
+                if(sc) saveData(originDate, oData); else deleteData(originDate, {excludeLearningIds:[learningId]});
+            }
+        }
+
+        const toData = getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+        toData.learnings = toData.learnings || [];
+        toData.learnings=toData.learnings.filter(x=>x.id!==learningId);
+        l.currentDate = toDate;
+        l.dateStr = toDate;
+        l.updatedAt = Date.now();
+        l.movedAt = Date.now();
+        toData.learnings.push(l);
+        saveData(toDate, toData);
+        if(typeof setLocalKeyTimestamp==='function'){
+            setLocalKeyTimestamp('td_'+(fromDate||originDate),Date.now());
+            setLocalKeyTimestamp('td_'+toDate,Date.now());
+        }
+
+        pruneEisenItemGlobal('learning',learningId,toDate);
+
+        selectedLearningKeys.clear();
+
+        if(!opts.silent){
+            currentDataCache = null;
+            if(selectionMode === 'daily' && selectedDateStr){
+                const curD = getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
+                currentDataCache = JSON.parse(JSON.stringify(curD));
+            }
+            closeLearningModal();
+            renderLearningsSection();
+            renderCalendar();
+            renderLearningsToolbar();
+            if(selectionMode === 'daily'){
+                if(selectedDateStr === fromDate || selectedDateStr === originDate){
+                    updateDetailPanel(getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, selectedDateStr);
+                } else if(selectedDateStr === toDate){
+                    updateDetailPanel(getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, toDate);
                 }
-                opts = opts || {};
-                if(!learningId||!toDate) return false;
-
-                let found = null;
-                if(fromDate){
-                    const fdData = getData(fromDate);
-                    if(fdData && Array.isArray(fdData.learnings)){
-                        const item = fdData.learnings.find(x => x.id === learningId);
-                        if(item) found = { dateStr: fromDate, learning: item };
-                    }
-                }
-                if(!found) found = findLearningById(learningId);
-                if(!found) return false;
-                const l = found.learning;
-                const originDate = found.dateStr;
-                if(!fromDate) fromDate = originDate;
-                if(fromDate === toDate) return false;
-
-                const origData = getData(originDate);
-                if(origData && Array.isArray(origData.learnings)){
-                    origData.learnings = origData.learnings.filter(x => x.id !== learningId);
-                    const sc = origData.learnings.length > 0 || origData.tasks?.length || origData.notes?.trim() || origData.dayTitle?.trim() || origData.holiday || origData.attachments?.length || origData.habits?.length || origData.textCalendar?.length;
-                    if(sc) saveData(originDate, origData); else deleteData(originDate);
-                }
-
-                if(fromDate && fromDate !== originDate){
-                    const fData = getData(fromDate);
-                    if(fData && Array.isArray(fData.learnings)){
-                        fData.learnings = fData.learnings.filter(x => x.id !== learningId);
-                        const sc = fData.learnings.length > 0 || fData.tasks?.length || fData.notes?.trim() || fData.dayTitle?.trim() || fData.holiday || fData.attachments?.length || fData.habits?.length || fData.textCalendar?.length;
-                        if(sc) saveData(fromDate, fData); else deleteData(fromDate);
-                    }
-                }
-
-                // Targeted cleanup of origin date if different
-                if(originDate && originDate !== toDate && originDate !== fromDate){
-                    const oData = getData(originDate);
-                    if(oData && Array.isArray(oData.learnings) && oData.learnings.some(x => x.id === learningId)){
-                        oData.learnings = oData.learnings.filter(x => x.id !== learningId);
-                        const sc = oData.learnings.length > 0 || oData.tasks?.length || oData.notes?.trim() || oData.dayTitle?.trim() || oData.holiday || oData.attachments?.length || oData.habits?.length || oData.textCalendar?.length;
-                        if(sc) saveData(originDate, oData); else deleteData(originDate);
-                    }
-                }
-
-                const toData = getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                toData.learnings = toData.learnings || [];
-                toData.learnings=toData.learnings.filter(x=>x.id!==learningId);
-                l.currentDate = toDate;
-                l.dateStr = toDate;
-                l.updatedAt = Date.now();
-                l.movedAt = Date.now();
-                toData.learnings.push(l);
-                saveData(toDate, toData);
-                if(typeof setLocalKeyTimestamp==='function'){
-                    setLocalKeyTimestamp('td_'+(fromDate||originDate),Date.now());
-                    setLocalKeyTimestamp('td_'+toDate,Date.now());
-                }
-
-                pruneEisenItemGlobal('learning',learningId,toDate);
-
-                selectedLearningKeys.clear();
-
-                if(!opts.silent){
-                    currentDataCache = null;
-                    if(selectionMode === 'daily' && selectedDateStr){
-                        const curD = getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
-                        currentDataCache = JSON.parse(JSON.stringify(curD));
-                    }
-                    closeLearningModal();
-                    renderLearningsSection();
-                    renderCalendar();
-                    renderLearningsToolbar();
-                    if(selectionMode === 'daily'){
-                        if(selectedDateStr === fromDate || selectedDateStr === originDate){
-                            updateDetailPanel(getData(selectedDateStr) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, selectedDateStr);
-                        } else if(selectedDateStr === toDate){
-                            updateDetailPanel(getData(toDate) || {tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]}, toDate);
-                        }
-                    }
-                    if(eisenOverlay.classList.contains('active')) renderEisen();
-                    updateSingleCell(originDate, {pop:true});
-                    if(fromDate && fromDate !== originDate) updateSingleCell(fromDate, {pop:true});
-                    updateSingleCell(toDate, {pop:true});
-                    showSaved();
-                    if(typeof scheduleCloudPush==='function') scheduleCloudPush(100);
-                    window.dispatchEvent(new CustomEvent('td-tasks-changed'));
+            }
+            if(eisenOverlay.classList.contains('active')) renderEisen();
+            updateSingleCell(originDate, {pop:true});
+            if(fromDate && fromDate !== originDate) updateSingleCell(fromDate, {pop:true});
+            updateSingleCell(toDate, {pop:true});
+            showSaved();
+            if(typeof scheduleCloudPush==='function') scheduleCloudPush(100);
+            window.dispatchEvent(new CustomEvent('td-tasks-changed'));
         if(typeof window.__taskPlannerReloadPert==='function')window.__taskPlannerReloadPert();
         if(typeof invalidatePjCache==='function')invalidatePjCache();
         if(typeof loadPjMeta==='function')loadPjMeta();
         if(typeof renderPjDirectory==='function'&&document.getElementById('pjPeopleOverlay')?.classList.contains('active'))renderPjDirectory();
-                if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
-                }
-                return true;
-            }
+        if(typeof renderPjRelationshipCenter==='function'&&document.getElementById('pjCenterOverlay')?.classList.contains('active'))renderPjRelationshipCenter();
+        }
+        return true;
+    }
 
     function getAllDecks(){
         const decks=new Set();
@@ -14947,7 +14975,22 @@ function recordDeletedTaskId(id){
         }catch(e){}
     }catch(e){}
 }
+function unrecordDeletedTaskId(id){
+    if(!id)return;
+    try{
+        const m = Object.assign({}, getDeletedTaskIds());
+        if(m[id]){
+    delete m[id];
+    const str=JSON.stringify(m);
+    _cachedDelRaw = str;
+    _cachedDelMap = m;
+    appStorage.setItem('tp_deleted_task_ids',str);
+    if(window.localStorage){try{window.localStorage.setItem('tp_deleted_task_ids',str)}catch(e){}}
+        }
+    }catch(e){}
+}
 window.recordDeletedTaskId = recordDeletedTaskId;
+window.unrecordDeletedTaskId = unrecordDeletedTaskId;
 window.getDeletedTaskIds = getDeletedTaskIds;
 function deleteTask(id){
         if(!id)return;
@@ -19076,6 +19119,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         getTaskShortform,
         moveWtbTask,
         recordDeletedTaskId,
+        unrecordDeletedTaskId,
         getDeletedTaskIds,
         moveWtbBatchBlock,
         getUiSectionStates,
@@ -19199,6 +19243,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         getTaskShortform,
         moveWtbTask,
         recordDeletedTaskId,
+        unrecordDeletedTaskId,
         getDeletedTaskIds,
         moveWtbBatchBlock,
         getUiSectionStates,
