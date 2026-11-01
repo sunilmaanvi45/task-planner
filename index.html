@@ -4570,6 +4570,188 @@ button.pj-dir-item:focus-visible{outline:2px solid var(--accent);outline-offset:
     gap: 10px;
 }
 
+
+/* ============================================================
+   Step 6bb: Mobile Uniform Button Sizing Engine (<= 900px)
+   Renders all buttons on mobile at a consistent, uniform size
+   without touching desktop PC styles.
+   ============================================================ */
+@media (max-width: 900px) {
+  /* 1. Square & Circular Icon Buttons (36px x 36px) */
+  .nav-btn,
+  .icon-btn:not(.text-calendar-btn),
+  .pert-zoom-btn,
+  .eisen-preset-cycle-btn,
+  .eisen-copy-png,
+  .eisen-back,
+  .eisen-filter-clear,
+  .eisen-close,
+  .account-modal-close,
+  .learning-modal-close,
+  .pj-modal-close,
+  .detail-close-btn,
+  .magnifier-close-btn,
+  .break-toast-close,
+  .wtb-close-btn,
+  .time-machine-close {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+  }
+
+  .icon-btn svg,
+  .nav-btn svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  /* 2. Standard Text & Action Buttons (Uniform 36px Height, 12px Font) */
+  .btn-today,
+  .text-calendar-btn,
+  .pj-top-btn,
+  .pj-toolbar-pill,
+  .destination-add-btn,
+  .pert-btn,
+  .btn-oldest-due,
+  .btn-add-learning,
+  .btn-add-task,
+  .btn-copy-png-task,
+  .btn-add-text-calendar,
+  .habit-add-btn,
+  .habit-filter-btn,
+  .btn-clear,
+  .btn-copy,
+  .btn-primary,
+  .btn-secondary,
+  .auth-btn-primary,
+  .eisen-btn-primary,
+  .eisen-btn-secondary,
+  .btn-habit-primary,
+  .btn-habit-danger,
+  .btn-save-learning,
+  .btn-cancel-learning,
+  .btn-preset-save-trigger,
+  .btn-preset-form-cancel,
+  .btn-preset-form-save,
+  .eisen-filter-select,
+  .eisen-defaults-toggle,
+  .eisen-completed-toggle,
+  .eisen-just-start-toggle,
+  .task-toolbar-btn,
+  .learnings-toolbar button,
+  .eisen-sel-btn,
+  .learning-tab-btn,
+  .wtb-nav-btn,
+  .wtb-btn-filter,
+  .wtb-footer-close-btn,
+  .pj-btn-merge-all,
+  .pj-btn-done,
+  .btn-tm-restore-all,
+  .btn-tm-restore-day,
+  .btn-tm-preview,
+  #btnTakeManualSnapshot,
+  #btnOpenTimeMachineFromData,
+  .account-modal-footer button,
+  .time-machine-footer button,
+  .pj-modal-footer button {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    box-sizing: border-box !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    line-height: normal !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    gap: 5px !important;
+    vertical-align: middle !important;
+  }
+
+  /* Border-radius styling */
+  .btn-today,
+  .text-calendar-btn,
+  .pj-top-btn,
+  .pj-toolbar-pill,
+  .destination-add-btn,
+  .btn-oldest-due,
+  .btn-add-learning,
+  .habit-filter-btn {
+    border-radius: var(--r-full) !important;
+  }
+
+  .btn-add-task,
+  .btn-copy-png-task,
+  .btn-add-text-calendar,
+  .btn-clear,
+  .btn-copy,
+  .btn-primary,
+  .btn-secondary,
+  .auth-btn-primary,
+  .eisen-btn-primary,
+  .eisen-btn-secondary,
+  .btn-save-learning,
+  .btn-cancel-learning,
+  .pert-btn,
+  .habit-add-btn,
+  .btn-habit-primary,
+  .btn-habit-danger {
+    border-radius: var(--r-md, 8px) !important;
+  }
+
+  /* 3. Sub-block action pills inside content groups */
+  .task-timeblock-add-btn {
+    height: 28px !important;
+    min-height: 28px !important;
+    max-height: 28px !important;
+    box-sizing: border-box !important;
+    padding: 0 9px !important;
+    font-size: 11px !important;
+    border-radius: var(--r-sm, 4px) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .undo-toast-btn {
+    height: 32px !important;
+    min-height: 32px !important;
+    max-height: 32px !important;
+    box-sizing: border-box !important;
+    padding: 0 12px !important;
+    font-size: 11px !important;
+    border-radius: var(--r-full) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* 4. Controls layout harmonization */
+  .calendar-controls {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  .calendar-nav {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+}
 </style>
 </head>
 <body>
