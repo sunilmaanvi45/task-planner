@@ -5491,51 +5491,87 @@ button:focus-visible {
   padding: 14px 16px !important;
   display: flex !important;
   flex-direction: column !important;
-  gap: 8px !important;
+  gap: 10px !important;
   margin-bottom: 12px !important;
 }
 
-.today-agenda-title-input {
-  width: 100% !important;
-  height: 34px !important;
-  padding: 0 10px !important;
-  font-family: var(--font-ui) !important;
-  font-size: 0.82rem !important;
-  font-weight: 650 !important;
+/* Clean Read-Only View Display for Day Tile Text */
+.today-agenda-view-headline {
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
   color: var(--text) !important;
+  padding: 8px 12px !important;
+  border-radius: var(--r-md) !important;
   background: var(--card-bg) !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--r-md) !important;
+  display: flex !important;
+  align-items: center !important;
+  min-height: 34px !important;
   box-sizing: border-box !important;
-  outline: none !important;
-  transition: border-color var(--dur-fast), box-shadow var(--dur-fast) !important;
 }
 
-.today-agenda-title-input:focus {
-  border-color: var(--accent-border) !important;
-  box-shadow: var(--focus-ring) !important;
-}
-
-.today-agenda-notes-textarea {
-  width: 100% !important;
-  min-height: 80px !important;
-  padding: 8px 10px !important;
-  font-family: var(--font-ui) !important;
+.today-agenda-view-text {
   font-size: 0.82rem !important;
-  line-height: 1.45 !important;
+  line-height: 1.55 !important;
   color: var(--text) !important;
+  padding: 10px 12px !important;
+  border-radius: var(--r-md) !important;
   background: var(--card-bg) !important;
   border: 1px solid var(--border) !important;
-  border-radius: var(--r-md) !important;
-  resize: vertical !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  max-height: 140px !important;
+  overflow-y: auto !important;
   box-sizing: border-box !important;
-  outline: none !important;
-  transition: border-color var(--dur-fast), box-shadow var(--dur-fast) !important;
 }
 
-.today-agenda-notes-textarea:focus {
-  border-color: var(--accent-border) !important;
-  box-shadow: var(--focus-ring) !important;
+.today-agenda-textcal-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  max-height: 160px !important;
+  overflow-y: auto !important;
+}
+
+.today-agenda-textcal-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 10px !important;
+  border-radius: var(--r-md) !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  font-size: 0.82rem !important;
+  color: var(--text) !important;
+}
+
+.today-agenda-textcal-num {
+  font-size: 0.68rem !important;
+  font-weight: 750 !important;
+  color: var(--accent) !important;
+  background: var(--accent-light) !important;
+  border-radius: 999px !important;
+  width: 18px !important;
+  height: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.today-agenda-textcal-val {
+  flex: 1 1 auto !important;
+  word-break: break-word !important;
+}
+
+.today-agenda-view-empty {
+  font-size: 0.78rem !important;
+  color: var(--text-secondary) !important;
+  font-style: italic !important;
+  padding: 8px 12px !important;
+  border-radius: var(--r-md) !important;
+  background: var(--surface-2) !important;
+  border: 1px dashed var(--border) !important;
 }
 
 .today-agenda-footer {
@@ -6375,7 +6411,7 @@ button:focus-visible {
             </div>
             <div class="today-agenda-footer">
                 <div style="font-size:0.75rem;color:var(--text-secondary);">
-                    &#10004; Auto-saves all day tile text, notes, and checklist items instantly.
+                    &#10004; Today's Overview & Agenda View
                 </div>
                 <div style="display:flex;gap:8px;">
                     <button type="button" class="btn-primary" id="btnAgendaDone" style="padding:6px 24px;">Close</button>
@@ -20146,11 +20182,10 @@ function openTodayAgendaModal() {
     const habitComps = typeof getHabitCompletions === 'function' ? getHabitCompletions(today, allHabits) : [];
     const doneHabitsCount = allHabits.filter(h => habitComps.includes(h.name)).length;
 
-    // Day Tile Text from Both Views
+    // Day Tile Text from Both Views (Read-only View Mode)
     const mainDayTitle = todayData.dayTitle || '';
     const mainNotes = todayData.notes || todayData.dayNotes || '';
-    const textCalArray = Array.isArray(todayData.textCalendar) ? todayData.textCalendar : [];
-    const textCalStr = textCalArray.join('\n');
+    const textCalArray = Array.isArray(todayData.textCalendar) ? todayData.textCalendar.filter(x => typeof x === 'string' && x.trim().length > 0) : [];
     const pjDay = typeof getPjDayData === 'function' ? getPjDayData(today) : null;
     const pjNotes = (pjDay && pjDay.dayNotes) ? pjDay.dayNotes : '';
 
@@ -20264,7 +20299,7 @@ function openTodayAgendaModal() {
 
             </div>
 
-            <!-- Right Column: Habits & Day Tile Text from Both Views -->
+            <!-- Right Column: Habits & Day Tile Text from Both Views (Read-Only Viewer) -->
             <div style="display:flex;flex-direction:column;gap:18px;">
                 
                 <!-- 4. Habits Card (All habits listed cleanly) -->
@@ -20304,11 +20339,11 @@ function openTodayAgendaModal() {
                     </div>
                 </div>
 
-                <!-- 5. Day Tile Text from Both Views (Main View & Text View) -->
+                <!-- 5. Day Tile Text from Both Views (Main View & Text View) - READ-ONLY VIEW -->
                 <div class="today-agenda-card">
                     <div class="today-agenda-card-head">
                         <span class="today-agenda-card-title">&#128221; Day Tile Text (Both Views)</span>
-                        <span class="today-agenda-card-count">Instant Auto-Save</span>
+                        <span class="today-agenda-card-count">Overview</span>
                     </div>
                     
                     <!-- A. Main View Day Tile Text -->
@@ -20318,17 +20353,20 @@ function openTodayAgendaModal() {
                                 <span style="font-size:0.8rem;font-weight:750;color:var(--text);">&#128197; Main View Day Tile Text</span>
                                 <span class="pj-badge accent" style="font-size:0.65rem;">Main Calendar</span>
                             </div>
-                            <span style="font-size:0.65rem;color:var(--text-secondary);">&#9889; Auto-Saved</span>
                         </div>
                         
                         <div style="display:flex;flex-direction:column;gap:4px;">
-                            <label style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">TILE HEADLINE / DAY TITLE (Shown on day tile header):</label>
-                            <input type="text" class="today-agenda-title-input" id="agendaDayTitle" value="${escapeAttr(mainDayTitle)}" placeholder="Holiday or Day Headline (e.g. Sprint Review)..." maxlength="60">
+                            <span style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Tile Headline / Holiday:</span>
+                            <div class="today-agenda-view-headline" id="agendaMainDayTitleView">
+                                ${mainDayTitle ? escapeHtml(mainDayTitle) : '<span class="today-agenda-view-empty" style="padding:0;background:none;border:none;">(No headline or holiday set for today)</span>'}
+                            </div>
                         </div>
 
-                        <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
-                            <label style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">DAY TILE NOTES & JOURNAL:</label>
-                            <textarea class="today-agenda-notes-textarea" id="agendaMainNotes" placeholder="Write main view day tile notes, reflections, and context...">${escapeHtml(mainNotes)}</textarea>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+                            <span style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Day Tile Notes & Journal:</span>
+                            <div class="today-agenda-view-text" id="agendaMainNotesView">
+                                ${mainNotes ? escapeHtml(mainNotes) : '<span class="today-agenda-view-empty" style="padding:0;background:none;border:none;">(No notes recorded for today)</span>'}
+                            </div>
                         </div>
                     </div>
 
@@ -20339,17 +20377,29 @@ function openTodayAgendaModal() {
                                 <span style="font-size:0.8rem;font-weight:750;color:var(--text);">&#128101; Text View Day Tile Text</span>
                                 <span class="pj-badge purple" style="font-size:0.65rem;">People & Text Calendar</span>
                             </div>
-                            <span style="font-size:0.65rem;color:var(--text-secondary);">&#9889; Auto-Saved</span>
                         </div>
 
                         <div style="display:flex;flex-direction:column;gap:4px;">
-                            <label style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">DAY TILE TEXT ENTRIES (Each line appears directly on day tile):</label>
-                            <textarea class="today-agenda-notes-textarea" id="agendaTextCalendar" style="min-height:75px;" placeholder="Enter day text (one line per item, rendered directly on the Text View day tile)...">${escapeHtml(textCalStr)}</textarea>
+                            <span style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">Day Tile Text Entries (Shown directly on tile):</span>
+                            <div id="agendaTextCalendarView">
+                                ${textCalArray.length ? `
+                                    <div class="today-agenda-textcal-list">
+                                        ${textCalArray.map((txt, idx) => `
+                                            <div class="today-agenda-textcal-item">
+                                                <span class="today-agenda-textcal-num">${idx + 1}</span>
+                                                <span class="today-agenda-textcal-val">${escapeHtml(txt)}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<div class="today-agenda-view-empty">(No day text entries on today\'s text tile)</div>'}
+                            </div>
                         </div>
 
-                        <div style="display:flex;flex-direction:column;gap:4px;margin-top:4px;">
-                            <label style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);">PEOPLE JOURNAL DAY NOTES:</label>
-                            <textarea class="today-agenda-notes-textarea" id="agendaPjNotes" style="min-height:55px;" placeholder="Day notes and encounter reflections for People & Text view...">${escapeHtml(pjNotes)}</textarea>
+                        <div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">
+                            <span style="font-size:0.7rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;">People Journal Day Notes:</span>
+                            <div class="today-agenda-view-text" id="agendaPjNotesView">
+                                ${pjNotes ? escapeHtml(pjNotes) : '<span class="today-agenda-view-empty" style="padding:0;background:none;border:none;">(No people journal notes for today)</span>'}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -20439,65 +20489,6 @@ function wireTodayAgendaEventListeners(today) {
             }
         });
     });
-
-    // 5. Main View Day Title Auto-Save
-    const titleEl = document.getElementById('agendaDayTitle');
-    if (titleEl) {
-        titleEl.addEventListener('input', () => {
-            const data = (typeof getData === 'function' ? getData(today) : null) || { tasks: [], notes: '' };
-            data.dayTitle = titleEl.value;
-            saveData(today, data);
-            if (selectedDateStr === today) {
-                const it = document.getElementById('inputTitle');
-                if (it) it.value = titleEl.value;
-            }
-            if (typeof updateSingleCell === 'function') updateSingleCell(today, { pop: true });
-            if (typeof renderCalendar === 'function') renderCalendar();
-        });
-    }
-
-    // 6. Main View Notes Auto-Save
-    const mainNotesEl = document.getElementById('agendaMainNotes');
-    if (mainNotesEl) {
-        mainNotesEl.addEventListener('input', () => {
-            const data = (typeof getData === 'function' ? getData(today) : null) || { tasks: [], notes: '' };
-            data.notes = mainNotesEl.value;
-            saveData(today, data);
-            if (selectedDateStr === today && typeof inputNotes !== 'undefined' && inputNotes) {
-                inputNotes.value = mainNotesEl.value;
-            }
-            if (typeof updateSingleCell === 'function') updateSingleCell(today, { pop: true });
-        });
-    }
-
-    // 7. Text View Day Tile Text (Text Calendar) Auto-Save
-    const textCalEl = document.getElementById('agendaTextCalendar');
-    if (textCalEl) {
-        textCalEl.addEventListener('input', () => {
-            const lines = textCalEl.value.split('\n').filter(s => s.trim().length > 0);
-            const data = (typeof getData === 'function' ? getData(today) : null) || { tasks: [], notes: '' };
-            data.textCalendar = lines;
-            saveData(today, data);
-            if (selectedDateStr === today && typeof renderTextCalendarList === 'function' && typeof textCalendarMode !== 'undefined' && textCalendarMode) {
-                renderTextCalendarList(data.textCalendar);
-            }
-            if (typeof updateSingleCell === 'function') updateSingleCell(today, { pop: true });
-            if (typeof renderCalendar === 'function') renderCalendar();
-        });
-    }
-
-    // 8. Text View People Journal Day Notes Auto-Save
-    const pjNotesEl = document.getElementById('agendaPjNotes');
-    if (pjNotesEl) {
-        pjNotesEl.addEventListener('input', () => {
-            const val = pjNotesEl.value;
-            if (typeof getPjDayData === 'function' && typeof savePjDayData === 'function') {
-                const pjDay = getPjDayData(today) || { encounters: [] };
-                pjDay.dayNotes = val;
-                savePjDayData(today, pjDay);
-            }
-        });
-    }
 }
 
 function closeTodayAgendaModal() {
