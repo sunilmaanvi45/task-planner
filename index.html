@@ -5598,6 +5598,321 @@ button:focus-visible {
 
 
 /* ============================================================
+   Step 6ee: Panchanga Calendar & Muhurta Dial Styles
+   ============================================================ */
+
+/* Panchanga Header Toggle Button */
+.btn-panchanga-toggle {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-sm) !important;
+  padding: 4px 10px !important;
+  font-family: var(--font-ui) !important;
+  font-size: var(--fs-xs) !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  transition: all var(--dur-fast) ease !important;
+  outline: none !important;
+}
+
+.btn-panchanga-toggle:hover {
+  background: var(--surface-3) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+}
+
+.btn-panchanga-toggle.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 12px rgba(217, 119, 6, 0.35) !important;
+}
+
+/* Mobile Touch Button Uniformity (< 900px) */
+@media (max-width: 900px) {
+  .btn-panchanga-toggle {
+    height: 36px !important;
+    line-height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Panchanga Calendar Day Cell */
+.calendar-cell.panchanga-cell {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  padding: 6px !important;
+  overflow: hidden !important;
+  transition: background var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) !important;
+}
+
+.panchanga-cell-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin-bottom: 3px !important;
+}
+
+.panchanga-moon-pill {
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+  padding: 1px 5px !important;
+  border-radius: 999px !important;
+  background: rgba(254, 243, 199, 0.25) !important;
+  border: 1px solid rgba(245, 158, 11, 0.4) !important;
+  color: var(--text) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.panchanga-tithi-title {
+  font-size: 0.76rem !important;
+  font-weight: 750 !important;
+  color: var(--text) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin-bottom: 2px !important;
+}
+
+.panchanga-nakshatra-sub {
+  font-size: 0.68rem !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.panchanga-festival-badge {
+  display: inline-block !important;
+  margin-top: 3px !important;
+  padding: 1px 6px !important;
+  border-radius: var(--r-xs) !important;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.18), rgba(245, 158, 11, 0.22)) !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+  color: #dc2626 !important;
+  font-size: 0.65rem !important;
+  font-weight: 750 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+[data-theme="dark"] .panchanga-festival-badge,
+[data-theme="oled"] .panchanga-festival-badge {
+  color: #f87171 !important;
+}
+
+.panchanga-rahu-preview {
+  margin-top: auto !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+  color: #dc2626 !important;
+  opacity: 0.85 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+[data-theme="dark"] .panchanga-rahu-preview,
+[data-theme="oled"] .panchanga-rahu-preview {
+  color: #fca5a5 !important;
+}
+
+/* Panchanga Detail Panel */
+.panchanga-detail-container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+}
+
+.panchanga-card {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-xl) !important;
+  padding: 18px 20px !important;
+  box-shadow: var(--shadow-sm) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.panchanga-card-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding-bottom: 8px !important;
+}
+
+.panchanga-card-title {
+  font-size: 0.95rem !important;
+  font-weight: 750 !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+/* Circular Muhurta Dial (24-Hour Green & Red Circle) */
+.muhurta-dial-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 10px 0 !important;
+  position: relative !important;
+}
+
+.muhurta-dial-svg {
+  width: 250px !important;
+  height: 250px !important;
+  max-width: 90vw !important;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08)) !important;
+}
+
+.muhurta-center-info {
+  margin-top: 10px !important;
+  text-align: center !important;
+}
+
+.muhurta-status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 12px !important;
+  border-radius: 999px !important;
+  font-size: 0.78rem !important;
+  font-weight: 750 !important;
+}
+
+.muhurta-status-badge.shubha {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #16a34a !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+}
+
+.muhurta-status-badge.ashubha {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #dc2626 !important;
+  border: 1px solid rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-theme="dark"] .muhurta-status-badge.shubha,
+[data-theme="oled"] .muhurta-status-badge.shubha {
+  color: #4ade80 !important;
+}
+
+[data-theme="dark"] .muhurta-status-badge.ashubha,
+[data-theme="oled"] .muhurta-status-badge.ashubha {
+  color: #f87171 !important;
+}
+
+/* Muhurta Times Legend List */
+.muhurta-legend-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-top: 6px !important;
+}
+
+.muhurta-legend-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 7px 10px !important;
+  border-radius: var(--r-md) !important;
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+  font-size: 0.78rem !important;
+}
+
+.muhurta-legend-item.ashubha {
+  border-left: 3px solid #ef4444 !important;
+}
+
+.muhurta-legend-item.shubha {
+  border-left: 3px solid #22c55e !important;
+}
+
+.muhurta-legend-title {
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+}
+
+.muhurta-legend-time {
+  font-weight: 650 !important;
+  color: var(--text-secondary) !important;
+  font-size: 0.74rem !important;
+}
+
+/* Five Limbs (Pancha-Angas) Grid */
+.panchanga-limbs-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.panchanga-limb-cell {
+  background: var(--surface-1) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-md) !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.panchanga-limb-label {
+  font-size: 0.68rem !important;
+  font-weight: 750 !important;
+  color: var(--text-secondary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.panchanga-limb-value {
+  font-size: 0.88rem !important;
+  font-weight: 750 !important;
+  color: var(--text) !important;
+}
+
+.panchanga-limb-extra {
+  font-size: 0.7rem !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Masa, Ritu & Solar Info Banner */
+.panchanga-meta-banner {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--r-md) !important;
+  padding: 10px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  font-size: 0.8rem !important;
+}
+
+
+/* ============================================================
    Step 6bb: Mobile Uniform Button Sizing Engine (<= 900px)
    Renders all buttons on mobile at a consistent, uniform size
    without touching desktop PC styles.
@@ -5645,6 +5960,8 @@ button:focus-visible {
   /* 2. Standard Text & Action Buttons (Uniform 36px Height, 12px Font) */
   .btn-today,
   .text-calendar-btn,
+  .btn-panchanga-toggle,
+  #btnPanchanga,
   .pj-top-btn,
   .pj-toolbar-pill,
   .destination-add-btn,
@@ -5811,7 +6128,7 @@ button:focus-visible {
             <button class="nav-btn" id="btnPrevMonth" aria-label="Previous month">&#10094;</button>
             <span class="calendar-title" id="calendarTitle">June 2026</span>
             <button class="nav-btn" id="btnNextMonth" aria-label="Next month">&#10095;</button>
-            <button class="btn-today" id="btnToday">Today</button>
+            <button class="btn-today" id="btnToday">Today</button><button class="btn-panchanga-toggle" id="btnPanchanga" title="Panchanga Calendar (Vedic Muhurta & Moon Phases)" aria-label="Panchanga Calendar" aria-pressed="false">&#128334; Panchanga</button>
         </div>
         <div class="header-right">
             <button class="icon-btn" id="btnExport" title="Export JSON" aria-label="Export JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
@@ -9933,7 +10250,19 @@ function renderHabitMiniCalendar() {
                 const badgeStyle=(!textCalendarMode&&(stats.total>0||((data.tasks&&Array.isArray(data.tasks))?data.tasks.filter(t=>t.status!=='done').length:0)>0))?'style="right:22px;" ':'';
                 fuBadgeHTML=`<div class="cell-followup-badge ${isOverdue?'overdue':''}" ${badgeStyle}data-pid="${escapeAttr(firstPid)}" title="${dayFus.length} follow-up(s) due: ${escapeAttr(dayFus.map(f=>f.name).join(', '))}">&#9200;${dayFus.length>1?' '+dayFus.length:''}</div>`;
             }
-            if(textCalendarMode){
+            if(panchangaMode){
+                const p = getPanchangaForDate(ds);
+                classes.push("panchanga-cell");
+                taskHTML = `
+                    <div class="panchanga-cell-header">
+                        <span class="panchanga-moon-pill" title="${p.moon.phaseName}">${p.moon.illumPct}%</span>
+                    </div>
+                    <div class="panchanga-tithi-title" title="${escapeAttr(p.tithi.name)}">${escapeHtml(p.tithi.shortName)}</div>
+                    <div class="panchanga-nakshatra-sub" title="Nakshatra: ${escapeAttr(p.nakshatra.name)}">${escapeHtml(p.nakshatra.name)}</div>
+                    ${p.festival ? `<div class="panchanga-festival-badge" title="${escapeAttr(p.festival)}">${escapeHtml(p.festival)}</div>` : ""}
+                    <div class="panchanga-rahu-preview" title="Rahu Kalam: ${escapeAttr(p.rahuKalam.str)}">&#128308; ${escapeHtml(p.rahuKalam.short)}</div>
+                `;
+            } else if(textCalendarMode){
                 const texts=Array.isArray(data.textCalendar)?data.textCalendar.filter(x=>String(x||'').trim()):[];
                 let pjHtml='';
                 let fuHtml='';
@@ -9972,7 +10301,14 @@ function renderHabitMiniCalendar() {
         const counts=eisenCountsMap&&eisenCountsMap[ds];
         if(!textCalendarMode&&counts){mg=`<div class="cell-eisen-mini"><div class="cell-eisen-mini-cell q-do_now">${counts[0]||''}</div><div class="cell-eisen-mini-cell q-do_later">${counts[1]||''}</div><div class="cell-eisen-mini-cell q-delegate">${counts[2]||''}</div><div class="cell-eisen-mini-cell q-delete">${counts[3]||''}</div></div>`}
         const inner=`${titleHTML}<span class="cell-date">${day}</span>${taskHTML}${ti}${li}${mg}${fuBadgeHTML}`;
-        return{classes,inner};
+        let cellCustomStyle = "";
+        if(panchangaMode){
+            const p = getPanchangaForDate(ds);
+            if(p && p.moon && p.moon.shadingStyle){
+                cellCustomStyle = p.moon.shadingStyle;
+            }
+        }
+        return{classes,inner,style:cellCustomStyle};
     }
     function computeWeeksForMonth(y,m){const off=getFirstDayOffset(y,m);const dim=getDaysInMonth(y,m);const ts=Math.ceil((off+dim)/7)*7;const nr=ts/7;const weeks=[];for(let r=0;r<nr;r++){const days=[];for(let c=0;c<7;c++){const si=r*7+c;const day=si-off+1;if(day>=1&&day<=dim)days.push(formatDateStr(y,m,day))}if(days.length>0){const wid=`${y}-${String(m).padStart(2,'0')}-W${weeks.length+1}`;weeks.push({id:wid,index:weeks.length+1,days})}}return weeks}
     function buildWeekCellHTML(w,monthData){
@@ -10019,7 +10355,9 @@ function renderHabitMiniCalendar() {
                 if(ds===bd&&bn>0)c.classes.push('best-day');
                 let sa='';
                 if(animate){c.classes.push('entering');const col=(i-off)%7,row=Math.floor((i-off)/7);const dly=Math.min(col*26+row*34,420);sa=` style="animation-delay:${dly}ms"`}
-                html+=`<div class="${c.classes.join(' ')}" data-date="${ds}" title="${getFormattedDate(ds)} — double-click for Eisenhower Matrix"${sa}>${c.inner}</div>`;
+                const cellStyle = (c.style || '') + (sa ? '; ' + sa.replace(' style="', '').replace('"', '') : '');
+                const styleAttr = cellStyle ? ` style="${cellStyle}"` : '';
+                html+=`<div class="${c.classes.join(' ')}" data-date="${ds}" title="${getFormattedDate(ds)} - double-click for Eisenhower Matrix"${styleAttr}>${c.inner}</div>`;
             }
         }
         calendarGrid.innerHTML=html;
@@ -10058,7 +10396,7 @@ function renderHabitMiniCalendar() {
         const ec=computeEisenCountsMap(currentYear,currentMonth);
         const ts=getTodayStr();
         const b=buildCellHTML(ds,day,md,ts,ld,ec);
-        c.className=b.classes.join(' ');c.innerHTML=b.inner;
+        c.className=b.classes.join(' ');c.innerHTML=b.inner;c.style.cssText=b.style||'';
         if(opts.pop){c.classList.remove('just-saved');void c.offsetWidth;c.classList.add('just-saved')}
         renderWeekColumn(md);renderStats(md);
     }
@@ -15394,7 +15732,12 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
         inputNotes.placeholder='Write your notes, reflections, or ideas for this day...';
         const d=data||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};
         currentDataCache=JSON.parse(JSON.stringify(d));
-        if(textCalendarMode){renderTextCalendarList(d.textCalendar||[]);}else{renderTaskList(d.tasks);}if(typeof renderPjDailySection==='function')renderPjDailySection(ds);
+        if(panchangaMode){
+            if(taskList){
+                taskList.innerHTML = renderPanchangaDetailHTML(ds);
+            }
+            if(taskToolbar) taskToolbar.classList.add('disabled');
+        } else if(textCalendarMode){renderTextCalendarList(d.textCalendar||[]);}else{renderTaskList(d.tasks);}if(typeof renderPjDailySection==='function')renderPjDailySection(ds);
         inputNotes.value=d.notes||'';
         inputDayTitle.value=d.dayTitle||'';
         updateProgressViz(d);
@@ -19099,6 +19442,8 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         btnPrevMonth.addEventListener('click',()=>navigateMonth(-1));
         btnNextMonth.addEventListener('click',()=>navigateMonth(1));
         btnToday.addEventListener('click',()=>{ goToToday(); openTodayAgendaModal(); });
+        const btnPanchanga = document.getElementById('btnPanchanga');
+        if (btnPanchanga) btnPanchanga.addEventListener('click', togglePanchangaMode);
         btnTheme.addEventListener('click',toggleTheme);
         btnTextCalendar.addEventListener('click',toggleTextCalendar);
         btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
@@ -20530,6 +20875,620 @@ document.addEventListener('change', (e) => {
     }
 });
 
+    
+/* ============================================================
+   Step 6ee: Vedic Panchanga Astronomical Engine & Muhurta Dial
+   ============================================================ */
+
+var panchangaMode = false;
+
+// 1. Julian Day Calculation
+function getPanchangaJD(year, month, day, hour = 6) {
+    let y = year, m = month;
+    if (m <= 2) { y -= 1; m += 12; }
+    const A = Math.floor(y / 100);
+    const B = 2 - A + Math.floor(A / 4);
+    return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + B - 1524.5 + (hour / 24);
+}
+
+// 2. Solar Longitude (Jean Meeus / VSOP87 series)
+function getPanchangaSunLongitude(jd) {
+    const T = (jd - 2451545.0) / 36525.0;
+    const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
+    const M = 357.52911 + 35999.05029 * T - 0.0001537 * T * T;
+    const Mrad = M * Math.PI / 180;
+    const C = (1.914602 - 0.004817 * T) * Math.sin(Mrad) + (0.019993 - 0.000101 * T) * Math.sin(2 * Mrad) + 0.000289 * Math.sin(3 * Mrad);
+    let trueLong = (L0 + C) % 360;
+    if (trueLong < 0) trueLong += 360;
+    return trueLong;
+}
+
+// 3. Lunar Longitude (with major periodic perturbations)
+function getPanchangaMoonLongitude(jd) {
+    const T = (jd - 2451545.0) / 36525.0;
+    const Lprime = 218.3164477 + 481267.88123421 * T;
+    const D = 297.8501921 + 445267.1114034 * T;
+    const M = 357.5291092 + 35999.0502909 * T;
+    const Mprime = 134.9633964 + 477198.8675055 * T;
+    const F = 93.2720950 + 483202.0175233 * T;
+    const toRad = Math.PI / 180;
+
+    const deltaLong = 6.288774 * Math.sin(Mprime * toRad)
+        + 1.274027 * Math.sin((2 * D - Mprime) * toRad)
+        + 0.658314 * Math.sin(2 * D * toRad)
+        + 0.213618 * Math.sin(2 * Mprime * toRad)
+        - 0.185116 * Math.sin(M * toRad)
+        - 0.114332 * Math.sin(2 * F * toRad)
+        + 0.058793 * Math.sin((2 * D - 2 * Mprime) * toRad)
+        + 0.057066 * Math.sin((2 * D - M - Mprime) * toRad)
+        + 0.053322 * Math.sin((2 * D + Mprime) * toRad)
+        + 0.045758 * Math.sin((2 * D - M) * toRad);
+
+    let trueLong = (Lprime + deltaLong) % 360;
+    if (trueLong < 0) trueLong += 360;
+    return trueLong;
+}
+
+// 4. Lahiri Ayanamsha (Chitra Paksha)
+function getPanchangaLahiriAyanamsha(jd) {
+    const T = (jd - 2451545.0) / 36525.0;
+    return 23.85 + (T * 100 * 50.29) / 3600;
+}
+
+// 5. Vedic Constants & Names
+const PANCHANGA_TITHIS = [
+    "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami",
+    "Shashti", "Saptami", "Ashtami", "Navami", "Dashami",
+    "Ekadashi", "Dvadashi", "Trayodashi", "Chaturdashi", "Purnima",
+    "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami",
+    "Shashti", "Saptami", "Ashtami", "Navami", "Dashami",
+    "Ekadashi", "Dvadashi", "Trayodashi", "Chaturdashi", "Amavasya"
+];
+
+const PANCHANGA_NAKSHATRAS = [
+    "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashirsha", "Ardra",
+    "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
+    "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+    "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha",
+    "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"
+];
+
+const PANCHANGA_YOGAS = [
+    "Vishkambha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda",
+    "Sukarma", "Dhriti", "Shula", "Ganda", "Vriddhi", "Dhruva",
+    "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyana",
+    "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha", "Shukla",
+    "Brahma", "Indra", "Vaidhriti"
+];
+
+const PANCHANGA_KARANAS = [
+    "Bava", "Balava", "Kaulava", "Taitila", "Garija", "Vanija", "Vishti (Bhadra)",
+    "Shakuni", "Chatushpada", "Naga", "Kintughna"
+];
+
+const PANCHANGA_VARAS = [
+    { name: "Ravivara", ruler: "Surya (Sun)", short: "Sun" },
+    { name: "Somavara", ruler: "Chandra (Moon)", short: "Mon" },
+    { name: "Mangalavara", ruler: "Mangala (Mars)", short: "Tue" },
+    { name: "Budhavara", ruler: "Budha (Mercury)", short: "Wed" },
+    { name: "Guruvara", ruler: "Guru (Jupiter)", short: "Thu" },
+    { name: "Shukravara", ruler: "Shukra (Venus)", short: "Fri" },
+    { name: "Shanivara", ruler: "Shani (Saturn)", short: "Sat" }
+];
+
+const PANCHANGA_MASAS = [
+    "Chaitra", "Vaishakha", "Jyeshtha", "Ashadha", "Shravana", "Bhadrapada",
+    "Ashvina", "Kartika", "Margashirsha", "Pausha", "Magha", "Phalguna"
+];
+
+const PANCHANGA_RITUS = [
+    { name: "Vasanta (Spring)", masas: [0, 1] },
+    { name: "Grishma (Summer)", masas: [2, 3] },
+    { name: "Varsha (Monsoon)", masas: [4, 5] },
+    { name: "Sharad (Autumn)", masas: [6, 7] },
+    { name: "Hemanta (Pre-Winter)", masas: [8, 9] },
+    { name: "Shishira (Winter)", masas: [10, 11] }
+];
+
+// Helper to format minutes from midnight to 12-hour AM/PM string
+function formatMinuteTo12h(totalMins) {
+    let m = Math.round(totalMins) % 1440;
+    if (m < 0) m += 1440;
+    const hr24 = Math.floor(m / 60);
+    const mins = m % 60;
+    const hr12 = hr24 % 12 === 0 ? 12 : hr24 % 12;
+    const ampm = hr24 < 12 ? 'AM' : 'PM';
+    return hr12 + ':' + String(mins).padStart(2, '0') + ' ' + ampm;
+}
+
+// 6. Comprehensive Panchanga Computation for Date (ds = YYYY-MM-DD)
+function getPanchangaForDate(ds) {
+    if (!ds || typeof ds !== 'string') return null;
+    const [y, m, d] = ds.split('-').map(Number);
+    if (!y || !m || !d) return null;
+
+    // Approximate Sunrise at 6:00 AM IST (00:30 UTC)
+    const jd = getPanchangaJD(y, m, d, 6);
+    const sunLong = getPanchangaSunLongitude(jd);
+    const moonLong = getPanchangaMoonLongitude(jd);
+    const ayanamsha = getPanchangaLahiriAyanamsha(jd);
+
+    const sunSidereal = (sunLong - ayanamsha + 360) % 360;
+    const moonSidereal = (moonLong - ayanamsha + 360) % 360;
+
+    // Tithi
+    let diff = (moonLong - sunLong + 360) % 360;
+    const tithiIndex = Math.floor(diff / 12); // 0 to 29
+    const tithiNum = tithiIndex + 1;
+    const paksha = tithiIndex < 15 ? "Shukla" : "Krishna";
+    const tithiName = PANCHANGA_TITHIS[tithiIndex];
+    const isPurnima = tithiNum === 15;
+    const isAmavasya = tithiNum === 30;
+
+    // Nakshatra & Pada
+    const nakshatraIndex = Math.floor(moonSidereal / (360 / 27)); // 0 to 26
+    const nakshatraName = PANCHANGA_NAKSHATRAS[nakshatraIndex];
+    const nakshatraDeg = moonSidereal % (360 / 27);
+    const pada = Math.floor(nakshatraDeg / (360 / 108)) + 1; // 1 to 4
+
+    // Yoga
+    const yogaSum = (sunSidereal + moonSidereal) % 360;
+    const yogaIndex = Math.floor(yogaSum / (360 / 27)); // 0 to 26
+    const yogaName = PANCHANGA_YOGAS[yogaIndex];
+
+    // Karana
+    const karanaIndex = Math.floor(diff / 6); // 0 to 59
+    let karanaName = "";
+    if (karanaIndex === 0) karanaName = "Kintughna";
+    else if (karanaIndex >= 57) {
+        const fixedK = ["Shakuni", "Chatushpada", "Naga"];
+        karanaName = fixedK[karanaIndex - 57];
+    } else {
+        karanaName = PANCHANGA_KARANAS[(karanaIndex - 1) % 7];
+    }
+
+    // Weekday (Vara)
+    const dt = new Date(y, m - 1, d, 12, 0, 0);
+    const dayOfWeek = dt.getDay(); // 0 Sun ... 6 Sat
+    const vara = PANCHANGA_VARAS[dayOfWeek];
+
+    // Moon Illumination % & Waxing/Waning state
+    const illumPct = Math.round(((1 - Math.cos(diff * Math.PI / 180)) / 2) * 100);
+    const isWaxing = diff < 180;
+    let phaseName = "";
+    if (isAmavasya || illumPct <= 1) phaseName = "New Moon (Amavasya)";
+    else if (isPurnima || illumPct >= 99) phaseName = "Full Moon (Purnima)";
+    else if (isWaxing) {
+        if (illumPct < 45) phaseName = "Waxing Crescent";
+        else if (illumPct <= 55) phaseName = "First Quarter (Shukla Ashtami)";
+        else phaseName = "Waxing Gibbous";
+    } else {
+        if (illumPct > 55) phaseName = "Waning Gibbous";
+        else if (illumPct >= 45) phaseName = "Third Quarter (Krishna Ashtami)";
+        else phaseName = "Waning Crescent";
+    }
+
+    // Dynamic Moon Shading Style on Tile
+    let moonShadingStyle = '';
+    if (isPurnima) {
+        moonShadingStyle = 'background: radial-gradient(circle at center, rgba(254, 240, 138, 0.40) 0%, rgba(253, 230, 138, 0.20) 70%, var(--card-bg) 100%) !important; border-color: rgba(245, 158, 11, 0.55) !important;';
+    } else if (isAmavasya) {
+        moonShadingStyle = 'background: rgba(15, 23, 42, 0.45) !important; border-color: rgba(100, 116, 139, 0.35) !important;';
+    } else if (isWaxing) {
+        // Waxing: light enters from the right
+        moonShadingStyle = `background: linear-gradient(to left, rgba(254, 240, 138, 0.28) 0%, rgba(254, 243, 199, 0.16) ${illumPct}%, var(--card-bg) ${illumPct}%) !important;`;
+    } else {
+        // Waning: light shrinks to left, shadow enters from right
+        moonShadingStyle = `background: linear-gradient(to right, rgba(254, 240, 138, 0.28) 0%, rgba(254, 243, 199, 0.16) ${illumPct}%, var(--card-bg) ${illumPct}%) !important;`;
+    }
+
+    // Masa (Lunar Month) based on solar rashi
+    const sunRashi = Math.floor(sunSidereal / 30); // 0 Mesha ... 11 Meena
+    const masa = PANCHANGA_MASAS[sunRashi % 12];
+    const ritu = PANCHANGA_RITUS[Math.floor((sunRashi % 12) / 2)].name;
+    const ayanam = (sunLong >= 270 || sunLong < 90) ? "Uttarayana (Northern Solar Path)" : "Dakshinayana (Southern Solar Path)";
+
+    // Sunrise & Sunset (approx 6:15 AM to 6:15 PM adjusted by solar declination)
+    const solDec = 23.44 * Math.sin((sunLong - 80) * Math.PI / 180);
+    const dayMinsOffset = Math.round(solDec * 1.8); // +/- ~40 mins seasonal variation
+    const sunriseMins = 375 - dayMinsOffset; // ~06:15 AM
+    const sunsetMins = 1095 + dayMinsOffset; // ~06:15 PM
+    const dayDuration = sunsetMins - sunriseMins;
+    const slot8 = dayDuration / 8;
+    const slot15 = dayDuration / 15;
+
+    // Rahu Kalam (weekday specific slot 1-8)
+    const rahuSlots = [7, 1, 6, 4, 5, 3, 2]; // Sun=slot 7 (0-indexed) -> 8th part
+    const rSlot = rahuSlots[dayOfWeek];
+    const rahuStart = sunriseMins + rSlot * slot8;
+    const rahuEnd = rahuStart + slot8;
+
+    // Yamagandam (weekday specific slot 1-8)
+    const yamaSlots = [4, 3, 2, 1, 0, 6, 5];
+    const ySlot = yamaSlots[dayOfWeek];
+    const yamaStart = sunriseMins + ySlot * slot8;
+    const yamaEnd = yamaStart + slot8;
+
+    // Durmuhurtham (weekday specific slot(s) of 15)
+    const durmuhurtaSlots = [
+        [13], // Sun: 14th slot
+        [8, 11], // Mon: 9th & 12th
+        [5, 10], // Tue: 6th & 11th
+        [7], // Wed: 8th
+        [11, 12], // Thu: 12th & 13th
+        [3, 8], // Fri: 4th & 9th
+        [1, 2] // Sat: 2nd & 3rd
+    ];
+    const dSlots = durmuhurtaSlots[dayOfWeek];
+    const durmuhurtaRanges = dSlots.map(s => ({
+        start: sunriseMins + s * slot15,
+        end: sunriseMins + (s + 1) * slot15
+    }));
+
+    // Abhijit Muhurta (8th slot of 15, centered around local noon, except Wednesday)
+    const abhijitStart = dayOfWeek === 3 ? null : (sunriseMins + 7 * slot15);
+    const abhijitEnd = dayOfWeek === 3 ? null : (sunriseMins + 8 * slot15);
+
+    // Brahma Muhurta (96 mins to 48 mins before sunrise)
+    const brahmaStart = sunriseMins - 96;
+    const brahmaEnd = sunriseMins - 48;
+
+    // Major Hindu Festivals & Vratas Detection
+    let festival = "";
+    if (tithiNum === 11 || tithiNum === 26) festival = "Ekadashi Vrata";
+    else if (tithiNum === 13 || tithiNum === 28) festival = "Pradosham Vrata";
+    else if (tithiNum === 15) festival = isPurnima ? "Purnima (Full Moon)" : "Purnima";
+    else if (tithiNum === 30) festival = isAmavasya ? "Amavasya (New Moon)" : "Amavasya";
+    else if (tithiNum === 19) festival = "Sankashti Chaturthi";
+    else if (tithiNum === 4) festival = "Vinayaka Chaturthi";
+    else if (tithiNum === 29) festival = "Masa Shivaratri";
+
+    return {
+        dateStr: ds,
+        tithi: {
+            index: tithiIndex,
+            num: tithiNum,
+            name: paksha + " " + tithiName,
+            shortName: (paksha === 'Shukla' ? 'Sh. ' : 'Kr. ') + tithiName,
+            paksha: paksha,
+            isPurnima: isPurnima,
+            isAmavasya: isAmavasya
+        },
+        nakshatra: {
+            index: nakshatraIndex,
+            name: nakshatraName,
+            pada: pada
+        },
+        yoga: {
+            index: yogaIndex,
+            name: yogaName
+        },
+        karana: {
+            index: karanaIndex,
+            name: karanaName
+        },
+        vara: vara,
+        moon: {
+            illumPct: illumPct,
+            isWaxing: isWaxing,
+            phaseName: phaseName,
+            shadingStyle: moonShadingStyle
+        },
+        meta: {
+            masa: masa + " Masa",
+            ritu: ritu,
+            ayanam: ayanam
+        },
+        timings: {
+            sunrise: formatMinuteTo12h(sunriseMins),
+            sunset: formatMinuteTo12h(sunsetMins),
+            sunriseMins: sunriseMins,
+            sunsetMins: sunsetMins
+        },
+        rahuKalam: {
+            startMins: rahuStart,
+            endMins: rahuEnd,
+            str: formatMinuteTo12h(rahuStart) + " - " + formatMinuteTo12h(rahuEnd),
+            short: formatMinuteTo12h(rahuStart) + " - " + formatMinuteTo12h(rahuEnd)
+        },
+        yamagandam: {
+            startMins: yamaStart,
+            endMins: yamaEnd,
+            str: formatMinuteTo12h(yamaStart) + " - " + formatMinuteTo12h(yamaEnd)
+        },
+        durmuhurtham: {
+            ranges: durmuhurtaRanges,
+            str: durmuhurtaRanges.map(r => formatMinuteTo12h(r.start) + " - " + formatMinuteTo12h(r.end)).join(', ')
+        },
+        abhijit: {
+            valid: dayOfWeek !== 3,
+            startMins: abhijitStart,
+            endMins: abhijitEnd,
+            str: abhijitStart !== null ? (formatMinuteTo12h(abhijitStart) + " - " + formatMinuteTo12h(abhijitEnd)) : "None (Cancelled on Wednesday)"
+        },
+        brahma: {
+            startMins: brahmaStart,
+            endMins: brahmaEnd,
+            str: formatMinuteTo12h(brahmaStart) + " - " + formatMinuteTo12h(brahmaEnd)
+        },
+        festival: festival
+    };
+}
+
+// 7. Mode Switching: Toggle Panchanga Mode
+function setPanchangaMode(enabled) {
+    if (enabled === panchangaMode) return;
+    if (typeof flushDebounced === 'function') flushDebounced();
+    panchangaMode = !!enabled;
+
+    if (panchangaMode && typeof textCalendarMode !== 'undefined' && textCalendarMode) {
+        if (typeof setTextCalendarMode === 'function') setTextCalendarMode(false);
+    }
+
+    document.body.classList.toggle('panchanga-mode', panchangaMode);
+    const btnPanchanga = document.getElementById('btnPanchanga');
+    if (btnPanchanga) {
+        btnPanchanga.classList.toggle('active', panchangaMode);
+        btnPanchanga.setAttribute('aria-pressed', panchangaMode ? 'true' : 'false');
+        btnPanchanga.title = panchangaMode ? 'Return to Task Calendar' : 'Panchanga Calendar';
+    }
+
+    if (panchangaMode) {
+        selectionMode = 'daily';
+        selectedWeekId = null;
+        activeTaskId = null;
+        if (typeof clearAllSelections === 'function') clearAllSelections();
+        if (!selectedDateStr) selectedDateStr = getTodayStr();
+        window.__tdSelectedDate = selectedDateStr;
+    }
+
+    if (typeof updateDetailPanel === 'function') {
+        const curData = typeof getData === 'function' ? getData(selectedDateStr) : null;
+        updateDetailPanel(curData || { tasks: [], notes: '' }, selectedDateStr);
+    }
+
+    if (typeof renderCalendar === 'function') renderCalendar({ animate: true });
+}
+
+function togglePanchangaMode() {
+    setPanchangaMode(!panchangaMode);
+}
+
+// 8. Generate 24-Hour Circular Muhurta Dial SVG (Green & Red Circle)
+function generateMuhurtaCircleSvg(p, currentMinutesNow) {
+    if (!p) return '';
+
+    // Circle specs
+    const cx = 125, cy = 125, r = 85, strokeW = 28;
+    const totalMinsInDay = 1440; // 24 hours
+
+    // Convert minutes from midnight to angle (0 min = top = -90 deg)
+    function minsToAngle(mins) {
+        return ((mins % 1440) / 1440) * 360 - 90;
+    }
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+        const angleInRadians = (angleInDegrees) * Math.PI / 180.0;
+        return {
+            x: centerX + (radius * Math.cos(angleInRadians)),
+            y: centerY + (radius * Math.sin(angleInRadians))
+        };
+    }
+
+    function describeArc(x, y, radius, startAngle, endAngle) {
+        const start = polarToCartesian(x, y, radius, endAngle);
+        const end = polarToCartesian(x, y, radius, startAngle);
+        let diff = endAngle - startAngle;
+        if (diff < 0) diff += 360;
+        const largeArcFlag = diff <= 180 ? "0" : "1";
+        return [
+            "M", start.x, start.y,
+            "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+        ].join(" ");
+    }
+
+    // Inauspicious Intervals (RED)
+    const inauspiciousIntervals = [
+        { name: "Rahu Kalam", start: p.rahuKalam.startMins, end: p.rahuKalam.endMins },
+        { name: "Yamagandam", start: p.yamagandam.startMins, end: p.yamagandam.endMins }
+    ];
+    if (p.durmuhurtham && Array.isArray(p.durmuhurtham.ranges)) {
+        p.durmuhurtham.ranges.forEach((dr, i) => {
+            inauspiciousIntervals.push({ name: "Durmuhurtham", start: dr.start, end: dr.end });
+        });
+    }
+
+    // Auspicious Intervals (BRIGHT GREEN / GOLD)
+    const auspiciousIntervals = [
+        { name: "Brahma Muhurta", start: p.brahma.startMins, end: p.brahma.endMins }
+    ];
+    if (p.abhijit && p.abhijit.valid && p.abhijit.startMins !== null) {
+        auspiciousIntervals.push({ name: "Abhijit Muhurta", start: p.abhijit.startMins, end: p.abhijit.endMins });
+    }
+
+    // Render SVG
+    let svg = `<svg class="muhurta-circle-svg muhurta-dial-svg" viewBox="0 0 250 250" role="img" aria-label="24-Hour Muhurta Dial">`;
+
+    // 1. Base Green Circle (Safe & Auspicious hours)
+    svg += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#22c55e" stroke-width="${strokeW}" opacity="0.95" />`;
+
+    // 2. Auspicious Highlights (Luminous Emerald / Gold)
+    auspiciousIntervals.forEach(item => {
+        const sAng = minsToAngle(item.start);
+        const eAng = minsToAngle(item.end);
+        const d = describeArc(cx, cy, r, sAng, eAng);
+        svg += `<path d="${d}" fill="none" stroke="#10b981" stroke-width="${strokeW + 2}" title="${escapeAttr(item.name)}" class="muhurta-arc-green" />`;
+    });
+
+    // 3. Inauspicious Intervals (RED Arcs)
+    inauspiciousIntervals.forEach(item => {
+        const sAng = minsToAngle(item.start);
+        const eAng = minsToAngle(item.end);
+        const d = describeArc(cx, cy, r, sAng, eAng);
+        svg += `<path d="${d}" fill="none" stroke="#ef4444" stroke-width="${strokeW + 1}" title="${escapeAttr(item.name)}" class="muhurta-arc-red" />`;
+    });
+
+    // 4. Clock Hour Markings (12 AM, 3 AM, 6 AM, 9 AM, 12 PM, 3 PM, 6 PM, 9 PM)
+    const hoursMarkers = [
+        { label: "12A", mins: 0 },
+        { label: "3A", mins: 180 },
+        { label: "6A", mins: 360 },
+        { label: "9A", mins: 540 },
+        { label: "12P", mins: 720 },
+        { label: "3P", mins: 900 },
+        { label: "6P", mins: 1080 },
+        { label: "9P", mins: 1260 }
+    ];
+    hoursMarkers.forEach(hm => {
+        const ang = minsToAngle(hm.mins);
+        const pt = polarToCartesian(cx, cy, r + strokeW / 2 + 10, ang);
+        svg += `<text x="${pt.x}" y="${pt.y + 3}" font-size="9" font-weight="700" fill="var(--text-secondary)" text-anchor="middle" dominant-baseline="middle">${hm.label}</text>`;
+    });
+
+    // 5. Current Time Pointer / Needle (if viewing today)
+    const todayStr = getTodayStr();
+    const isToday = p.dateStr === todayStr;
+    let isCurrentlyInauspicious = false;
+    let activeKalamName = "";
+
+    if (isToday) {
+        const curMins = (currentMinutesNow !== undefined && currentMinutesNow !== null) ? currentMinutesNow : (new Date().getHours() * 60 + new Date().getMinutes());
+        const curAng = minsToAngle(curMins);
+        const pointerPt = polarToCartesian(cx, cy, r, curAng);
+        const pointerOuter = polarToCartesian(cx, cy, r + strokeW / 2 + 2, curAng);
+
+        // Check if currently inside any inauspicious window
+        inauspiciousIntervals.forEach(k => {
+            if (curMins >= k.start && curMins <= k.end) {
+                isCurrentlyInauspicious = true;
+                activeKalamName = k.name;
+            }
+        });
+
+        // Needle line
+        const needleColor = isCurrentlyInauspicious ? "#ef4444" : "#22c55e";
+        svg += `<line x1="${cx}" y1="${cy}" x2="${pointerPt.x}" y2="${pointerPt.y}" stroke="${needleColor}" stroke-width="3" stroke-linecap="round" class="muhurta-needle" />`;
+        svg += `<circle cx="${pointerOuter.x}" cy="${pointerOuter.y}" r="4" fill="${needleColor}" stroke="#ffffff" stroke-width="1.5" />`;
+    }
+
+    // 6. Central Hub
+    svg += `<circle cx="${cx}" cy="${cy}" r="45" fill="var(--card-bg)" stroke="var(--border)" stroke-width="1.5" />`;
+    const centerStatusText = isToday ? (isCurrentlyInauspicious ? "ASHUBHA" : "SHUBHA") : "24H DIAL";
+    const centerColor = isToday ? (isCurrentlyInauspicious ? "#ef4444" : "#22c55e") : "var(--text)";
+    svg += `<text x="${cx}" y="${cy - 4}" font-size="11" font-weight="800" fill="${centerColor}" text-anchor="middle" dominant-baseline="middle" class="muhurta-hub-status">${centerStatusText}</text>`;
+    svg += `<text x="${cx}" y="${cy + 10}" font-size="8" font-weight="600" fill="var(--text-secondary)" text-anchor="middle" dominant-baseline="middle" class="muhurta-hub-time">${isToday ? (isCurrentlyInauspicious ? activeKalamName : "Safe / Clear") : p.vara.name}</text>`;
+
+    svg += `</svg>`;
+    return svg;
+}
+
+// 9. Render Panchanga Detail Panel
+function renderPanchangaDetailHTML(ds) {
+    const p = getPanchangaForDate(ds);
+    if (!p) return '<div class="panchanga-card"><div class="today-agenda-empty">Select a date to view Vedic Panchanga details.</div></div>';
+
+    const curMins = new Date().getHours() * 60 + new Date().getMinutes();
+    const dialSvg = generateMuhurtaCircleSvg(p, curMins);
+
+    return `
+        <div class="panchanga-detail-container">
+            <!-- 1. Meta Banner (Masa, Ritu, Ayanam) -->
+            <div class="panchanga-meta-banner">
+                <span style="font-weight:750;color:var(--text);">&#128334; ${escapeHtml(p.meta.masa)}</span>
+                <span class="pj-badge purple">${escapeHtml(p.meta.ritu)}</span>
+                <span class="pj-badge accent">${escapeHtml(p.meta.ayanam)}</span>
+            </div>
+
+            <!-- 2. The 24-Hour Circular Muhurta Dial (Green & Red Circle) -->
+            <div class="panchanga-card">
+                <div class="panchanga-card-head">
+                    <span class="panchanga-card-title">&#9775; 24-Hour Muhurta Chakra (Daily Auspicious Dial)</span>
+                    <span class="task-meta-pill" style="font-size:0.68rem;">360° Day Dial</span>
+                </div>
+                
+                <div class="muhurta-dial-wrapper">
+                    ${dialSvg}
+                </div>
+
+                <!-- Legend & Timings Breakdown -->
+                <div class="muhurta-legend-grid">
+                    <div class="muhurta-legend-item ashubha">
+                        <span class="muhurta-legend-title">&#128308; Rahu Kalam</span>
+                        <span class="muhurta-legend-time">${escapeHtml(p.rahuKalam.str)}</span>
+                    </div>
+                    <div class="muhurta-legend-item ashubha">
+                        <span class="muhurta-legend-title">&#128308; Yamagandam</span>
+                        <span class="muhurta-legend-time">${escapeHtml(p.yamagandam.str)}</span>
+                    </div>
+                    ${p.durmuhurtham && p.durmuhurtham.str ? `
+                        <div class="muhurta-legend-item ashubha">
+                            <span class="muhurta-legend-title">&#128308; Durmuhurtham</span>
+                            <span class="muhurta-legend-time">${escapeHtml(p.durmuhurtham.str)}</span>
+                        </div>
+                    ` : ''}
+                    ${p.abhijit && p.abhijit.valid ? `
+                        <div class="muhurta-legend-item shubha">
+                            <span class="muhurta-legend-title">&#128994; Abhijit Muhurta</span>
+                            <span class="muhurta-legend-time">${escapeHtml(p.abhijit.str)}</span>
+                        </div>
+                    ` : ''}
+                    <div class="muhurta-legend-item shubha">
+                        <span class="muhurta-legend-title">&#128994; Brahma Muhurta</span>
+                        <span class="muhurta-legend-time">${escapeHtml(p.brahma.str)}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Five Limbs of Panchanga (Pancha-Angas) -->
+            <div class="panchanga-card">
+                <div class="panchanga-card-head">
+                    <span class="panchanga-card-title">&#127774; Five Limbs of the Day (Pancha-Angas)</span>
+                    <span class="task-meta-pill" style="font-size:0.68rem;">Drik Ganita</span>
+                </div>
+                <div class="panchanga-limbs-grid">
+                    <div class="panchanga-limb-cell">
+                        <span class="panchanga-limb-label">1. Tithi (Lunar Day)</span>
+                        <span class="panchanga-limb-value">${escapeHtml(p.tithi.name)}</span>
+                        <span class="panchanga-limb-extra">Moon Illumination: ${p.moon.illumPct}% (${escapeHtml(p.moon.phaseName)})</span>
+                    </div>
+                    <div class="panchanga-limb-cell">
+                        <span class="panchanga-limb-label">2. Vara (Vedic Solar Day)</span>
+                        <span class="panchanga-limb-value">${escapeHtml(p.vara.name)}</span>
+                        <span class="panchanga-limb-extra">Ruler: ${escapeHtml(p.vara.ruler)}</span>
+                    </div>
+                    <div class="panchanga-limb-cell">
+                        <span class="panchanga-limb-label">3. Nakshatra (Constellation)</span>
+                        <span class="panchanga-limb-value">${escapeHtml(p.nakshatra.name)}</span>
+                        <span class="panchanga-limb-extra">Pada: ${p.nakshatra.pada} of 4</span>
+                    </div>
+                    <div class="panchanga-limb-cell">
+                        <span class="panchanga-limb-label">4. Yoga (Luni-Solar)</span>
+                        <span class="panchanga-limb-value">${escapeHtml(p.yoga.name)}</span>
+                        <span class="panchanga-limb-extra">Yoga ${p.yoga.index + 1} of 27</span>
+                    </div>
+                    <div class="panchanga-limb-cell">
+                        <span class="panchanga-limb-label">5. Karana (Half-Tithi)</span>
+                        <span class="panchanga-limb-value">${escapeHtml(p.karana.name)}</span>
+                        <span class="panchanga-limb-extra">Karana ${p.karana.index + 1} of 60</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. Solar Timings & Festivals -->
+            <div class="panchanga-card">
+                <div class="panchanga-card-head">
+                    <span class="panchanga-card-title">&#9728; Sun Timings & Observances</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                    <div>&#9728; <strong>Sunrise:</strong> ${escapeHtml(p.timings.sunrise)}</div>
+                    <div>&#127749; <strong>Sunset:</strong> ${escapeHtml(p.timings.sunset)}</div>
+                    ${p.festival ? `<div>&#127881; <strong>Vrata / Festival:</strong> <span class="panchanga-festival-badge">${escapeHtml(p.festival)}</span></div>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
     window.__taskPlannerAppBridge = {
         renderCalendar,
         openWeekTimeblocksModal,
@@ -20649,6 +21608,12 @@ document.addEventListener('change', (e) => {
         addTaskInTimeblock,
         TIMEBLOCK_DEFS,
         selectDate: typeof selectDate === 'function' ? selectDate : undefined,
+        panchangaMode: () => panchangaMode,
+        setPanchangaMode: typeof setPanchangaMode === 'function' ? setPanchangaMode : undefined,
+        togglePanchangaMode: typeof togglePanchangaMode === 'function' ? togglePanchangaMode : undefined,
+        getPanchangaForDate: typeof getPanchangaForDate === 'function' ? getPanchangaForDate : undefined,
+        generateMuhurtaCircleSvg: typeof generateMuhurtaCircleSvg === 'function' ? generateMuhurtaCircleSvg : undefined,
+        renderPanchangaDetailHTML: typeof renderPanchangaDetailHTML === 'function' ? renderPanchangaDetailHTML : undefined,
         getData: typeof getData === 'function' ? getData : undefined,
         saveData: typeof saveData === 'function' ? saveData : undefined,
         openTodayAgendaModal: typeof openTodayAgendaModal === 'function' ? openTodayAgendaModal : undefined,
