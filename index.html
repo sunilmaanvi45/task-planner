@@ -6049,6 +6049,58 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
   color: var(--text-secondary) !important;
 }
 
+.panchanga-limb-timing-sub {
+  font-size: 0.72rem !important;
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin-top: 1px !important;
+}
+
+.panchanga-sub-items {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  margin-top: 4px !important;
+}
+
+.panchanga-sub-item {
+  background: var(--surface-2, rgba(255, 255, 255, 0.04)) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--r-sm, 6px) !important;
+  padding: 5px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.panchanga-sub-item.shubha-border {
+  border-left: 3px solid #10b981 !important;
+}
+
+.panchanga-sub-item.ashubha-border {
+  border-left: 3px solid #ef4444 !important;
+}
+
+.panchanga-sub-item-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+}
+
+.panchanga-sub-item-name {
+  font-size: 0.8rem !important;
+  font-weight: 750 !important;
+  color: var(--text) !important;
+}
+
+.panchanga-sub-item-timing {
+  font-size: 0.7rem !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-mono, monospace) !important;
+}
+
 /* Masa, Ritu & Solar Info Banner */
 .panchanga-meta-banner {
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(217, 119, 6, 0.08) 100%) !important;
@@ -21171,6 +21223,226 @@ function formatMinuteTo12h(totalMins) {
     return hr12 + ':' + String(mins).padStart(2, '0') + ' ' + ampm;
 }
 
+// Inauspicious yogas (Ashubha):
+// 0: Vishkambha, 5: Atiganda, 8: Shula, 9: Ganda, 12: Vyaghata, 14: Vajra, 16: Vyatipata, 18: Parigha, 26: Vaidhriti
+const INAUSPICIOUS_YOGAS = [0, 5, 8, 9, 12, 14, 16, 18, 26];
+
+function getPanchangaYogaInfo(idx) {
+    const i = ((idx % 27) + 27) % 27;
+    const name = PANCHANGA_YOGAS[i];
+    const isAshubha = INAUSPICIOUS_YOGAS.indexOf(i) !== -1;
+    return {
+        index: i,
+        num: i + 1,
+        name: name,
+        isAuspicious: !isAshubha,
+        nature: isAshubha ? "Inauspicious" : "Auspicious"
+    };
+}
+
+const PANCHANGA_MOVABLE_KARANAS = [
+    "Bava", "Balava", "Kaulava", "Taitila", "Garija", "Vanija", "Vishti (Bhadra)"
+];
+
+function getPanchangaKaranaInfo(kIdx) {
+    const idx = ((kIdx % 60) + 60) % 60;
+    if (idx === 0) {
+        return { index: 0, num: 1, name: "Kintughna", type: "Fixed (Sthira)", isBhadra: false };
+    }
+    if (idx >= 57) {
+        const fixedK = ["Shakuni", "Chatushpada", "Naga"];
+        const name = fixedK[idx - 57];
+        return { index: idx, num: idx + 1, name: name, type: "Fixed (Sthira)", isBhadra: false };
+    }
+    const mIdx = (idx - 1) % 7;
+    const name = PANCHANGA_MOVABLE_KARANAS[mIdx];
+    const isBhadra = mIdx === 6;
+    return {
+        index: idx,
+        num: idx + 1,
+        name: name,
+        type: isBhadra ? "Vishti (Bhadra)" : "Movable (Chara)",
+        isBhadra: isBhadra
+    };
+}
+
+function calculateDayTransitions(y, m, d, sunriseMins) {
+    function getAnglesAt(offsetMins) {
+        const jd = getPanchangaJD(y, m, d, (sunriseMins + offsetMins) / 60);
+        const sunLong = getPanchangaSunLongitude(jd);
+        const moonLong = getPanchangaMoonLongitude(jd);
+        const ayanamsha = getPanchangaLahiriAyanamsha(jd);
+
+        const sunSidereal = (sunLong - ayanamsha + 360) % 360;
+        const moonSidereal = (moonLong - ayanamsha + 360) % 360;
+
+        let diff = (moonLong - sunLong + 360) % 360;
+        let yogaSum = (sunSidereal + moonSidereal) % 360;
+
+        return {
+            diff: diff,
+            yogaSum: yogaSum,
+            sunSidereal: sunSidereal,
+            moonSidereal: moonSidereal
+        };
+    }
+
+    const yogas = [];
+    const karanas = [];
+    const tithis = [];
+    const nakshatras = [];
+
+    const initAngles = getAnglesAt(0);
+    let curYIdx = Math.floor(initAngles.yogaSum / (360 / 27)) % 27;
+    let curKIdx = Math.floor(initAngles.diff / 6) % 60;
+    let curTIdx = Math.floor(initAngles.diff / 12) % 30;
+    let curNIdx = Math.floor(initAngles.moonSidereal / (360 / 27)) % 27;
+
+    const firstY = getPanchangaYogaInfo(curYIdx);
+    firstY.startMins = sunriseMins;
+    firstY.startTime = formatMinuteTo12h(sunriseMins);
+    yogas.push(firstY);
+
+    const firstK = getPanchangaKaranaInfo(curKIdx);
+    firstK.startMins = sunriseMins;
+    firstK.startTime = formatMinuteTo12h(sunriseMins);
+    karanas.push(firstK);
+
+    tithis.push({
+        index: curTIdx,
+        num: curTIdx + 1,
+        name: (curTIdx < 15 ? "Shukla " : "Krishna ") + PANCHANGA_TITHIS[curTIdx],
+        startMins: sunriseMins,
+        startTime: formatMinuteTo12h(sunriseMins)
+    });
+
+    nakshatras.push({
+        index: curNIdx,
+        name: PANCHANGA_NAKSHATRAS[curNIdx],
+        startMins: sunriseMins,
+        startTime: formatMinuteTo12h(sunriseMins)
+    });
+
+    const step = 10;
+    for (let offset = step; offset <= 1440; offset += step) {
+        const cur = getAnglesAt(offset);
+        const yIdx = Math.floor(cur.yogaSum / (360 / 27)) % 27;
+        const kIdx = Math.floor(cur.diff / 6) % 60;
+        const tIdx = Math.floor(cur.diff / 12) % 30;
+        const nIdx = Math.floor(cur.moonSidereal / (360 / 27)) % 27;
+
+        // Yoga transition
+        if (yIdx !== curYIdx) {
+            let low = offset - step, high = offset;
+            for (let iter = 0; iter < 6; iter++) {
+                const mid = (low + high) / 2;
+                const a = getAnglesAt(mid);
+                if (Math.floor(a.yogaSum / (360 / 27)) % 27 === curYIdx) low = mid;
+                else high = mid;
+            }
+            const transMins = Math.round(sunriseMins + high);
+            yogas[yogas.length - 1].endTime = formatMinuteTo12h(transMins);
+            yogas[yogas.length - 1].endMins = transMins;
+
+            curYIdx = yIdx;
+            const nextY = getPanchangaYogaInfo(curYIdx);
+            nextY.startMins = transMins;
+            nextY.startTime = formatMinuteTo12h(transMins);
+            yogas.push(nextY);
+        }
+
+        // Karana transition
+        if (kIdx !== curKIdx) {
+            let low = offset - step, high = offset;
+            for (let iter = 0; iter < 6; iter++) {
+                const mid = (low + high) / 2;
+                const a = getAnglesAt(mid);
+                if (Math.floor(a.diff / 6) % 60 === curKIdx) low = mid;
+                else high = mid;
+            }
+            const transMins = Math.round(sunriseMins + high);
+            karanas[karanas.length - 1].endTime = formatMinuteTo12h(transMins);
+            karanas[karanas.length - 1].endMins = transMins;
+
+            curKIdx = kIdx;
+            const nextK = getPanchangaKaranaInfo(curKIdx);
+            nextK.startMins = transMins;
+            nextK.startTime = formatMinuteTo12h(transMins);
+            karanas.push(nextK);
+        }
+
+        // Tithi transition
+        if (tIdx !== curTIdx) {
+            let low = offset - step, high = offset;
+            for (let iter = 0; iter < 6; iter++) {
+                const mid = (low + high) / 2;
+                const a = getAnglesAt(mid);
+                if (Math.floor(a.diff / 12) % 30 === curTIdx) low = mid;
+                else high = mid;
+            }
+            const transMins = Math.round(sunriseMins + high);
+            tithis[tithis.length - 1].endTime = formatMinuteTo12h(transMins);
+            tithis[tithis.length - 1].endMins = transMins;
+
+            curTIdx = tIdx;
+            tithis.push({
+                index: curTIdx,
+                num: curTIdx + 1,
+                name: (curTIdx < 15 ? "Shukla " : "Krishna ") + PANCHANGA_TITHIS[curTIdx],
+                startMins: transMins,
+                startTime: formatMinuteTo12h(transMins)
+            });
+        }
+
+        // Nakshatra transition
+        if (nIdx !== curNIdx) {
+            let low = offset - step, high = offset;
+            for (let iter = 0; iter < 6; iter++) {
+                const mid = (low + high) / 2;
+                const a = getAnglesAt(mid);
+                if (Math.floor(a.moonSidereal / (360 / 27)) % 27 === curNIdx) low = mid;
+                else high = mid;
+            }
+            const transMins = Math.round(sunriseMins + high);
+            nakshatras[nakshatras.length - 1].endTime = formatMinuteTo12h(transMins);
+            nakshatras[nakshatras.length - 1].endMins = transMins;
+
+            curNIdx = nIdx;
+            nakshatras.push({
+                index: curNIdx,
+                name: PANCHANGA_NAKSHATRAS[curNIdx],
+                startMins: transMins,
+                startTime: formatMinuteTo12h(transMins)
+            });
+        }
+    }
+
+    function buildTimingStrings(arr) {
+        if (arr.length === 1) {
+            arr[0].timingStr = "Full Day (Till next Sunrise)";
+            arr[0].endTime = "Next Day";
+        } else {
+            arr.forEach((item, i) => {
+                if (i === 0) {
+                    item.timingStr = "Up to " + item.endTime;
+                } else if (i === arr.length - 1) {
+                    item.endTime = item.endTime || "Next Day";
+                    item.timingStr = "From " + item.startTime + " onwards";
+                } else {
+                    item.timingStr = item.startTime + " - " + item.endTime;
+                }
+            });
+        }
+    }
+
+    buildTimingStrings(yogas);
+    buildTimingStrings(karanas);
+    buildTimingStrings(tithis);
+    buildTimingStrings(nakshatras);
+
+    return { yogas: yogas, karanas: karanas, tithis: tithis, nakshatras: nakshatras };
+}
+
 // 6. Comprehensive Panchanga Computation for Date (ds = YYYY-MM-DD)
 function getPanchangaForDate(ds) {
     if (!ds || typeof ds !== 'string') return null;
@@ -21316,6 +21588,9 @@ function getPanchangaForDate(ds) {
     else if (tithiNum === 4) festival = "Vinayaka Chaturthi";
     else if (tithiNum === 29) festival = "Masa Shivaratri";
 
+    // Calculate 24-hour transitions across all limbs
+    const transitions = calculateDayTransitions(y, m, d, sunriseMins);
+
     return {
         dateStr: ds,
         tithi: {
@@ -21325,21 +21600,23 @@ function getPanchangaForDate(ds) {
             shortName: (paksha === 'Shukla' ? 'Sh. ' : 'Kr. ') + tithiName,
             paksha: paksha,
             isPurnima: isPurnima,
-            isAmavasya: isAmavasya
+            isAmavasya: isAmavasya,
+            endTime: transitions.tithis[0] ? transitions.tithis[0].endTime : null,
+            nextTithi: transitions.tithis[1] ? transitions.tithis[1].name : null
         },
+        tithis: transitions.tithis,
         nakshatra: {
             index: nakshatraIndex,
             name: nakshatraName,
-            pada: pada
+            pada: pada,
+            endTime: transitions.nakshatras[0] ? transitions.nakshatras[0].endTime : null,
+            nextNakshatra: transitions.nakshatras[1] ? transitions.nakshatras[1].name : null
         },
-        yoga: {
-            index: yogaIndex,
-            name: yogaName
-        },
-        karana: {
-            index: karanaIndex,
-            name: karanaName
-        },
+        nakshatras: transitions.nakshatras,
+        yoga: transitions.yogas[0] || { index: yogaIndex, name: yogaName },
+        yogas: transitions.yogas,
+        karana: transitions.karanas[0] || { index: karanaIndex, name: karanaName },
+        karanas: transitions.karanas,
         vara: vara,
         moon: {
             illumPct: illumPct,
@@ -21659,6 +21936,9 @@ function renderPanchangaDetailHTML(ds) {
                     <div class="panchanga-limb-cell">
                         <span class="panchanga-limb-label">1. Tithi (Lunar Day)</span>
                         <span class="panchanga-limb-value">${escapeHtml(p.tithi.name)}</span>
+                        ${p.tithi.endTime && p.tithi.endTime !== 'Next Day' ? `
+                            <span class="panchanga-limb-timing-sub">&#8987; Up to ${escapeHtml(p.tithi.endTime)}${p.tithi.nextTithi ? ', then ' + escapeHtml(p.tithi.nextTithi) : ''}</span>
+                        ` : ''}
                         <span class="panchanga-limb-extra">Moon Illumination: ${p.moon.illumPct}% (${escapeHtml(p.moon.phaseName)})</span>
                     </div>
                     <div class="panchanga-limb-cell">
@@ -21669,17 +21949,52 @@ function renderPanchangaDetailHTML(ds) {
                     <div class="panchanga-limb-cell">
                         <span class="panchanga-limb-label">3. Nakshatra (Constellation)</span>
                         <span class="panchanga-limb-value">${escapeHtml(p.nakshatra.name)}</span>
+                        ${p.nakshatra.endTime && p.nakshatra.endTime !== 'Next Day' ? `
+                            <span class="panchanga-limb-timing-sub">&#8987; Up to ${escapeHtml(p.nakshatra.endTime)}${p.nakshatra.nextNakshatra ? ', then ' + escapeHtml(p.nakshatra.nextNakshatra) : ''}</span>
+                        ` : ''}
                         <span class="panchanga-limb-extra">Pada: ${p.nakshatra.pada} of 4</span>
                     </div>
                     <div class="panchanga-limb-cell">
-                        <span class="panchanga-limb-label">4. Yoga (Luni-Solar)</span>
-                        <span class="panchanga-limb-value">${escapeHtml(p.yoga.name)}</span>
-                        <span class="panchanga-limb-extra">Yoga ${p.yoga.index + 1} of 27</span>
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span class="panchanga-limb-label">4. Yoga (Luni-Solar)</span>
+                            <span class="task-meta-pill" style="font-size:0.62rem;padding:1px 6px;">${p.yogas.length} Active Today</span>
+                        </div>
+                        <div class="panchanga-sub-items">
+                            ${p.yogas.map((y, idx) => `
+                                <div class="panchanga-sub-item ${y.isAuspicious ? 'shubha-border' : 'ashubha-border'}">
+                                    <div class="panchanga-sub-item-header">
+                                        <span class="panchanga-sub-item-name">${idx + 1}. ${escapeHtml(y.name)}</span>
+                                        <span class="pj-badge ${y.isAuspicious ? 'green' : 'red'}" style="font-size:0.62rem;padding:2px 6px;">
+                                            ${y.isAuspicious ? '&#128994; Auspicious' : '&#128308; Inauspicious'}
+                                        </span>
+                                    </div>
+                                    <div class="panchanga-sub-item-timing">
+                                        ${escapeHtml(y.timingStr)} <span style="opacity:0.75;">(Yoga ${y.num}/27)</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                     <div class="panchanga-limb-cell">
-                        <span class="panchanga-limb-label">5. Karana (Half-Tithi)</span>
-                        <span class="panchanga-limb-value">${escapeHtml(p.karana.name)}</span>
-                        <span class="panchanga-limb-extra">Karana ${p.karana.index + 1} of 60</span>
+                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                            <span class="panchanga-limb-label">5. Karana (Half-Tithi)</span>
+                            <span class="task-meta-pill" style="font-size:0.62rem;padding:1px 6px;">${p.karanas.length} Active Today</span>
+                        </div>
+                        <div class="panchanga-sub-items">
+                            ${p.karanas.map((k, idx) => `
+                                <div class="panchanga-sub-item ${k.isBhadra ? 'ashubha-border' : ''}">
+                                    <div class="panchanga-sub-item-header">
+                                        <span class="panchanga-sub-item-name">${idx + 1}. ${escapeHtml(k.name)}</span>
+                                        <span class="pj-badge ${k.isBhadra ? 'red' : 'purple'}" style="font-size:0.62rem;padding:2px 6px;">
+                                            ${escapeHtml(k.type)}
+                                        </span>
+                                    </div>
+                                    <div class="panchanga-sub-item-timing">
+                                        ${escapeHtml(k.timingStr)} <span style="opacity:0.75;">(Karana ${k.num}/60)</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
                 </div>
             </div>
