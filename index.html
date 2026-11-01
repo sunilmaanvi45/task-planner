@@ -21735,9 +21735,10 @@ function generateMuhurtaCircleSvg(p, currentMinutesNow) {
     const cx = 125, cy = 125, r = 85, strokeW = 28;
     const totalMinsInDay = 1440; // 24 hours
 
-    // Convert minutes from midnight to angle (0 min = top = -90 deg)
+    // Convert minutes from midnight to angle (12 PM / 720 mins = top = -90 deg)
     function minsToAngle(mins) {
-        return ((mins % 1440) / 1440) * 360 - 90;
+        const norm = (((mins - 720) % 1440) + 1440) % 1440;
+        return (norm / 1440) * 360 - 90;
     }
 
     function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
@@ -21801,21 +21802,21 @@ function generateMuhurtaCircleSvg(p, currentMinutesNow) {
         svg += `<path d="${d}" fill="none" stroke="#ef4444" stroke-width="${strokeW + 1}" title="${escapeAttr(item.name)}" class="muhurta-arc-red" />`;
     });
 
-    // 4. Clock Hour Markings (12 AM, 3 AM, 6 AM, 9 AM, 12 PM, 3 PM, 6 PM, 9 PM)
+    // 4. Clock Hour Markings: 12 PM at top, 6 PM at right, 12 AM at bottom, 6 AM at left
     const hoursMarkers = [
-        { label: "12A", mins: 0 },
-        { label: "3A", mins: 180 },
-        { label: "6A", mins: 360 },
-        { label: "9A", mins: 540 },
-        { label: "12P", mins: 720 },
-        { label: "3P", mins: 900 },
-        { label: "6P", mins: 1080 },
-        { label: "9P", mins: 1260 }
+        { label: "12 PM", mins: 720 },
+        { label: "3 PM", mins: 900 },
+        { label: "6 PM", mins: 1080 },
+        { label: "9 PM", mins: 1260 },
+        { label: "12 AM", mins: 0 },
+        { label: "3 AM", mins: 180 },
+        { label: "6 AM", mins: 360 },
+        { label: "9 AM", mins: 540 }
     ];
     hoursMarkers.forEach(hm => {
         const ang = minsToAngle(hm.mins);
         const pt = polarToCartesian(cx, cy, r + strokeW / 2 + 10, ang);
-        svg += `<text x="${pt.x}" y="${pt.y + 3}" font-size="9" font-weight="700" fill="var(--text-secondary)" text-anchor="middle" dominant-baseline="middle">${hm.label}</text>`;
+        svg += `<text x="${pt.x}" y="${pt.y + 1}" font-size="8.5" font-weight="700" fill="var(--text-secondary)" text-anchor="middle" dominant-baseline="middle">${hm.label}</text>`;
     });
 
     // 5. Current Time Pointer / Needle (if viewing today)
