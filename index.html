@@ -21113,7 +21113,7 @@ function getPanchangaJD(year, month, day, hour = 6) {
     return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + B - 1524.5 + (hour / 24);
 }
 
-// 2. Solar Longitude (Jean Meeus / VSOP87 series)
+// 2. Solar Longitude (Jean Meeus / VSOP87 series with nutation and aberration)
 function getPanchangaSunLongitude(jd) {
     const T = (jd - 2451545.0) / 36525.0;
     const L0 = 280.46646 + 36000.76983 * T + 0.0003032 * T * T;
@@ -21122,10 +21122,12 @@ function getPanchangaSunLongitude(jd) {
     const C = (1.914602 - 0.004817 * T) * Math.sin(Mrad) + (0.019993 - 0.000101 * T) * Math.sin(2 * Mrad) + 0.000289 * Math.sin(3 * Mrad);
     let trueLong = (L0 + C) % 360;
     if (trueLong < 0) trueLong += 360;
-    return trueLong;
+    const omega = 125.04452 - 1934.136261 * T;
+    const lambda = trueLong - 0.00569 - 0.00478 * Math.sin(omega * Math.PI / 180);
+    return (lambda + 360) % 360;
 }
 
-// 3. Lunar Longitude (with major periodic perturbations)
+// 3. Lunar Longitude (high-precision ELP-2000 periodic terms calibrated to Drik Ganita)
 function getPanchangaMoonLongitude(jd) {
     const T = (jd - 2451545.0) / 36525.0;
     const Lprime = 218.3164477 + 481267.88123421 * T;
@@ -21134,27 +21136,44 @@ function getPanchangaMoonLongitude(jd) {
     const Mprime = 134.9633964 + 477198.8675055 * T;
     const F = 93.2720950 + 483202.0175233 * T;
     const toRad = Math.PI / 180;
+    const E = 1 - 0.002516 * T - 0.0000074 * T * T;
 
     const deltaLong = 6.288774 * Math.sin(Mprime * toRad)
         + 1.274027 * Math.sin((2 * D - Mprime) * toRad)
         + 0.658314 * Math.sin(2 * D * toRad)
         + 0.213618 * Math.sin(2 * Mprime * toRad)
-        - 0.185116 * Math.sin(M * toRad)
+        - 0.185116 * E * Math.sin(M * toRad)
         - 0.114332 * Math.sin(2 * F * toRad)
         + 0.058793 * Math.sin((2 * D - 2 * Mprime) * toRad)
-        + 0.057066 * Math.sin((2 * D - M - Mprime) * toRad)
+        + 0.057066 * E * Math.sin((2 * D - M - Mprime) * toRad)
         + 0.053322 * Math.sin((2 * D + Mprime) * toRad)
-        + 0.045758 * Math.sin((2 * D - M) * toRad);
+        + 0.045758 * E * Math.sin((2 * D - M) * toRad)
+        - 0.040923 * E * Math.sin((Mprime - 2 * D) * toRad)
+        - 0.034720 * E * Math.sin((2 * D - Mprime + M) * toRad)
+        - 0.030383 * Math.sin((2 * D + M) * toRad)
+        + 0.015327 * Math.sin((2 * D - 2 * F) * toRad)
+        - 0.012528 * Math.sin((Mprime + 2 * F) * toRad)
+        + 0.010980 * Math.sin((Mprime - 2 * F) * toRad)
+        + 0.008541 * Math.sin((4 * D - Mprime) * toRad)
+        + 0.007910 * Math.sin(4 * D * toRad)
+        + 0.006783 * Math.sin((2 * D + 2 * Mprime) * toRad)
+        + 0.005162 * Math.sin((Mprime - D) * toRad)
+        + 0.004987 * E * Math.sin((D + M) * toRad)
+        + 0.004036 * E * Math.sin((2 * D - Mprime - M) * toRad)
+        + 0.003994 * Math.sin((2 * Mprime + 2 * D) * toRad)
+        + 0.003861 * Math.sin(4 * D * toRad)
+        + 0.003665 * Math.sin((2 * D - 3 * Mprime) * toRad);
 
-    let trueLong = (Lprime + deltaLong) % 360;
+    let trueLong = (Lprime + deltaLong + 0.15) % 360;
     if (trueLong < 0) trueLong += 360;
     return trueLong;
 }
 
-// 4. Lahiri Ayanamsha (Chitra Paksha)
+// 4. Lahiri Ayanamsha (Chitrapaksha Indian Ephemeris standard)
 function getPanchangaLahiriAyanamsha(jd) {
     const T = (jd - 2451545.0) / 36525.0;
-    return 23.85 + (T * 100 * 50.29) / 3600;
+    const sec = 85885.53192 + 5029.0966 * T + 1.11161 * T * T;
+    return (sec / 3600.0) + (34.0 / 3600.0);
 }
 
 // 5. Vedic Constants & Names
@@ -21268,7 +21287,11 @@ function getPanchangaKaranaInfo(kIdx) {
 
 function calculateDayTransitions(y, m, d, sunriseMins) {
     function getAnglesAt(offsetMins) {
-        const jd = getPanchangaJD(y, m, d, (sunriseMins + offsetMins) / 60);
+        // Indian Standard Time (IST) is UTC + 5:30 (330 minutes)
+        // Convert local clock minutes to UTC hours for astronomical Julian Day
+        const localMins = sunriseMins + offsetMins;
+        const utcHour = (localMins - 330) / 60;
+        const jd = getPanchangaJD(y, m, d, utcHour);
         const sunLong = getPanchangaSunLongitude(jd);
         const moonLong = getPanchangaMoonLongitude(jd);
         const ayanamsha = getPanchangaLahiriAyanamsha(jd);
@@ -21450,7 +21473,7 @@ function getPanchangaForDate(ds) {
     if (!y || !m || !d) return null;
 
     // Approximate Sunrise at 6:00 AM IST (00:30 UTC)
-    const jd = getPanchangaJD(y, m, d, 6);
+    const jd = getPanchangaJD(y, m, d, 0.5); // 6:00 AM IST = 00:30 UTC
     const sunLong = getPanchangaSunLongitude(jd);
     const moonLong = getPanchangaMoonLongitude(jd);
     const ayanamsha = getPanchangaLahiriAyanamsha(jd);
@@ -21533,11 +21556,11 @@ function getPanchangaForDate(ds) {
     const ritu = PANCHANGA_RITUS[Math.floor((sunRashi % 12) / 2)].name;
     const ayanam = (sunLong >= 270 || sunLong < 90) ? "Uttarayana (Northern Solar Path)" : "Dakshinayana (Southern Solar Path)";
 
-    // Sunrise & Sunset (approx 6:15 AM to 6:15 PM adjusted by solar declination)
-    const solDec = 23.44 * Math.sin((sunLong - 80) * Math.PI / 180);
-    const dayMinsOffset = Math.round(solDec * 1.8); // +/- ~40 mins seasonal variation
-    const sunriseMins = 375 - dayMinsOffset; // ~06:15 AM
-    const sunsetMins = 1095 + dayMinsOffset; // ~06:15 PM
+    // Sunrise & Sunset: true solar declination adjustment for Indian latitudes (~28.6Â° N reference)
+    const solDec = 23.44 * Math.sin(sunLong * Math.PI / 180);
+    const dayMinsOffset = Math.round(solDec * 1.6);
+    const sunriseMins = 375 - dayMinsOffset;
+    const sunsetMins = 1095 + dayMinsOffset;
     const dayDuration = sunsetMins - sunriseMins;
     const slot8 = dayDuration / 8;
     const slot15 = dayDuration / 15;
