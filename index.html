@@ -5642,6 +5642,100 @@ button:focus-visible {
   }
 }
 
+/* ============================================================
+   3-Way Unified View Switcher Button (Panchanga | Main | People & Text)
+   ============================================================ */
+.view-mode-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  position: relative !important;
+  background: var(--surface-2) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: 9999px !important;
+  padding: 3px !important;
+  gap: 3px !important;
+  user-select: none !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  vertical-align: middle !important;
+  height: 32px !important;
+  box-sizing: border-box !important;
+  margin-left: 2px !important;
+}
+
+.view-mode-toggle .view-toggle-btn {
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+  padding: 0 11px !important;
+  border-radius: 9999px !important;
+  border: none !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  font-family: var(--font-ui) !important;
+  font-size: 0.75rem !important;
+  font-weight: 650 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  outline: none !important;
+  white-space: nowrap !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-sizing: border-box !important;
+  line-height: normal !important;
+}
+
+.view-mode-toggle .view-toggle-btn:hover {
+  color: var(--text) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+.view-mode-toggle .view-toggle-btn.active {
+  color: #ffffff !important;
+  font-weight: 750 !important;
+}
+
+/* Left Position: Panchanga View */
+.view-mode-toggle #btnPanchanga.active {
+  background: linear-gradient(135deg, #7c3aed 0%, #d97706 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 8px rgba(217, 119, 6, 0.35) !important;
+}
+
+/* Center Position: Main Task Calendar View */
+.view-mode-toggle #btnMainView.active {
+  background: var(--accent, #2563eb) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 8px rgba(37, 99, 235, 0.35) !important;
+}
+
+/* Right Position: People & Text View */
+.view-mode-toggle #btnTextCalendar.active {
+  background: linear-gradient(135deg, #059669 0%, #2563eb 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 1px 8px rgba(5, 150, 105, 0.35) !important;
+}
+
+/* Mobile Touch Button Uniformity (<= 900px) */
+@media (max-width: 900px) {
+  .view-mode-toggle {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+    padding: 2px !important;
+  }
+  .view-mode-toggle .view-toggle-btn {
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
+    padding: 0 9px !important;
+    font-size: 0.72rem !important;
+    line-height: 30px !important;
+  }
+}
+
+
 /* Panchanga View Isolation (Hide all main view elements) */
 body.panchanga-mode .stats-bar,
 body.panchanga-mode .pert-section,
@@ -6332,11 +6426,11 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
             <button class="nav-btn" id="btnPrevMonth" aria-label="Previous month">&#10094;</button>
             <span class="calendar-title" id="calendarTitle">June 2026</span>
             <button class="nav-btn" id="btnNextMonth" aria-label="Next month">&#10095;</button>
-            <button class="btn-today" id="btnToday">Today</button><button class="btn-panchanga-toggle" id="btnPanchanga" title="Panchanga Calendar (Vedic Muhurta & Moon Phases)" aria-label="Panchanga Calendar" aria-pressed="false">&#128334; Panchanga</button>
+            <button class="btn-today" id="btnToday">Today</button><div class="view-mode-toggle" id="viewModeToggle" role="group" aria-label="Calendar View Mode"><button type="button" class="view-toggle-btn" id="btnPanchanga" data-view="panchanga" title="Panchanga Calendar (Vedic Muhurta &amp; Moon Phases)" aria-label="Panchanga View" aria-pressed="false">&#128334; Panchanga</button><button type="button" class="view-toggle-btn active" id="btnMainView" data-view="main" title="Main Task Calendar" aria-label="Main View" aria-pressed="true">Main</button><button type="button" class="view-toggle-btn" id="btnTextCalendar" data-view="people-text" title="People &amp; Text Calendar" aria-label="People &amp; Text View" aria-pressed="false">People &amp; Text</button></div>
         </div>
         <div class="header-right">
             <button class="icon-btn" id="btnExport" title="Export JSON" aria-label="Export JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-            <button class="icon-btn text-calendar-btn" id="btnTextCalendar" title="People & Text" aria-label="People & Text" aria-pressed="false">People & Text</button>
+            <!-- btnTextCalendar integrated in 3-way view switcher -->
             <button class="icon-btn" id="btnExportPdf" title="Export PDF" aria-label="Export PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
             <button class="icon-btn" id="btnImport" title="Import JSON" aria-label="Import JSON"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
             <input type="file" id="importFileInput" accept="application/json,.json" style="display:none">
@@ -15921,6 +16015,7 @@ function escapeAttr(s){ return escapeHtml(String(s||'')).replace(/"/g, '&quot;')
         if(enabled && typeof panchangaMode !== "undefined" && panchangaMode){
             setPanchangaMode(false);
         }
+        setTimeout(() => { if (typeof updateViewToggleUI === "function") updateViewToggleUI(); }, 0);
         if(enabled===textCalendarMode)return;
         flushDebounced();
         textCalendarMode=!!enabled;
@@ -19665,9 +19760,14 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         btnNextMonth.addEventListener('click',()=>navigateMonth(1));
         btnToday.addEventListener('click',()=>{ goToToday(); openTodayAgendaModal(); });
         const btnPanchanga = document.getElementById('btnPanchanga');
-        if (btnPanchanga) btnPanchanga.addEventListener('click', togglePanchangaMode);
+        const btnMainView = document.getElementById('btnMainView');
+        const btnTextCalendar = document.getElementById('btnTextCalendar');
+        if (btnPanchanga) btnPanchanga.addEventListener('click', () => switchViewMode('panchanga'));
+        if (btnMainView) btnMainView.addEventListener('click', () => switchViewMode('main'));
+        if (btnTextCalendar) btnTextCalendar.addEventListener('click', () => switchViewMode('people-text'));
+        if (typeof updateViewToggleUI === 'function') updateViewToggleUI();
         btnTheme.addEventListener('click',toggleTheme);
-        btnTextCalendar.addEventListener('click',toggleTextCalendar);
+        // btnTextCalendar listener handled by 3-way switchViewMode
         btnAddTextCalendar.addEventListener('click',addTextCalendarEntry);
         const btnTopAddText=document.getElementById('btnTopAddText');
         if(btnTopAddText)btnTopAddText.addEventListener('click',addTextCalendarEntry);
@@ -21550,10 +21650,14 @@ function getPanchangaForDate(ds) {
         moonShadingStyle = `background: linear-gradient(to right, #ffffff ${illumPct}%, #cbd5e1 ${illumPct}%) !important; border-color: #94a3b8 !important;`;
     }
 
-    // Masa (Lunar Month) based on solar rashi
-    const sunRashi = Math.floor(sunSidereal / 30); // 0 Mesha ... 11 Meena
-    const masa = PANCHANGA_MASAS[sunRashi % 12];
-    const ritu = PANCHANGA_RITUS[Math.floor((sunRashi % 12) / 2)].name;
+    // Amanta Masa (Lunar Month ends on Amavasya; Shukla Paksha followed by Krishna Paksha)
+    // Elongation diff (0 to 360 deg) indicates angle from preceding Amavasya
+    const daysSinceAmavasya = diff / 12.190747;
+    const sunSidAtAmavasya = (sunSidereal - (daysSinceAmavasya * 0.985647) + 360) % 360;
+    const amantaRashi = Math.floor(sunSidAtAmavasya / 30);
+    const amantaMasaIndex = (amantaRashi + 1) % 12;
+    const amantaMasaName = PANCHANGA_MASAS[amantaMasaIndex];
+    const ritu = PANCHANGA_RITUS[Math.floor(amantaMasaIndex / 2)].name;
     const ayanam = (sunLong >= 270 || sunLong < 90) ? "Uttarayana (Northern Solar Path)" : "Dakshinayana (Southern Solar Path)";
 
     // Sunrise & Sunset: true solar declination adjustment for Indian latitudes (~28.6Â° N reference)
@@ -21648,7 +21752,7 @@ function getPanchangaForDate(ds) {
             shadingStyle: moonShadingStyle
         },
         meta: {
-            masa: masa + " Masa",
+            masa: amantaMasaName + " (Amanta) Masa",
             ritu: ritu,
             ayanam: ayanam
         },
@@ -21688,23 +21792,16 @@ function getPanchangaForDate(ds) {
     };
 }
 
-// 7. Mode Switching: Toggle Panchanga Mode
+// 7. Mode Switching: 3-Way Unified View Switcher (Panchanga | Main | People & Text)
 function setPanchangaMode(enabled) {
+    if (enabled && typeof textCalendarMode !== 'undefined' && textCalendarMode) {
+        if (typeof setTextCalendarMode === 'function') setTextCalendarMode(false);
+    }
     if (enabled === panchangaMode) return;
     if (typeof flushDebounced === 'function') flushDebounced();
     panchangaMode = !!enabled;
 
-    if (panchangaMode && typeof textCalendarMode !== 'undefined' && textCalendarMode) {
-        if (typeof setTextCalendarMode === 'function') setTextCalendarMode(false);
-    }
-
     document.body.classList.toggle('panchanga-mode', panchangaMode);
-    const btnPanchanga = document.getElementById('btnPanchanga');
-    if (btnPanchanga) {
-        btnPanchanga.classList.toggle('active', panchangaMode);
-        btnPanchanga.setAttribute('aria-pressed', panchangaMode ? 'true' : 'false');
-        btnPanchanga.title = panchangaMode ? 'Return to Task Calendar' : 'Panchanga Calendar';
-    }
 
     if (panchangaMode) {
         selectionMode = 'daily';
@@ -21721,10 +21818,66 @@ function setPanchangaMode(enabled) {
     }
 
     if (typeof renderCalendar === 'function') renderCalendar({ animate: true });
+    if (typeof updateViewToggleUI === 'function') updateViewToggleUI();
 }
 
 function togglePanchangaMode() {
-    setPanchangaMode(!panchangaMode);
+    switchViewMode(panchangaMode ? 'main' : 'panchanga');
+}
+
+function toggleTextCalendar() {
+    switchViewMode(textCalendarMode ? 'main' : 'people-text');
+}
+
+function switchViewMode(mode) {
+    if (mode === 'panchanga') {
+        if (typeof textCalendarMode !== 'undefined' && textCalendarMode && typeof setTextCalendarMode === 'function') {
+            setTextCalendarMode(false);
+        }
+        setPanchangaMode(true);
+    } else if (mode === 'people-text') {
+        if (typeof panchangaMode !== 'undefined' && panchangaMode && typeof setPanchangaMode === 'function') {
+            setPanchangaMode(false);
+        }
+        if (typeof setTextCalendarMode === 'function') {
+            setTextCalendarMode(true);
+        }
+    } else { // 'main'
+        if (typeof panchangaMode !== 'undefined' && panchangaMode && typeof setPanchangaMode === 'function') {
+            setPanchangaMode(false);
+        }
+        if (typeof textCalendarMode !== 'undefined' && textCalendarMode && typeof setTextCalendarMode === 'function') {
+            setTextCalendarMode(false);
+        }
+    }
+    if (typeof updateViewToggleUI === 'function') updateViewToggleUI();
+}
+
+function updateViewToggleUI() {
+    const isPanchanga = typeof panchangaMode !== 'undefined' && panchangaMode;
+    const isPeopleText = typeof textCalendarMode !== 'undefined' && textCalendarMode;
+    const isMain = !isPanchanga && !isPeopleText;
+
+    const btnP = document.getElementById('btnPanchanga');
+    const btnM = document.getElementById('btnMainView');
+    const btnT = document.getElementById('btnTextCalendar');
+    const toggleGroup = document.getElementById('viewModeToggle');
+
+    if (btnP) {
+        btnP.classList.toggle('active', isPanchanga);
+        btnP.setAttribute('aria-pressed', isPanchanga ? 'true' : 'false');
+    }
+    if (btnM) {
+        btnM.classList.toggle('active', isMain);
+        btnM.setAttribute('aria-pressed', isMain ? 'true' : 'false');
+    }
+    if (btnT) {
+        btnT.classList.toggle('active', isPeopleText);
+        btnT.setAttribute('aria-pressed', isPeopleText ? 'true' : 'false');
+    }
+    if (toggleGroup) {
+        toggleGroup.setAttribute('data-active-view', isPanchanga ? 'panchanga' : (isPeopleText ? 'people-text' : 'main'));
+    }
 }
 
 // 8. Generate 24-Hour Circular Muhurta Dial SVG (Green & Red Circle)
@@ -22158,6 +22311,8 @@ function renderPanchangaDetailHTML(ds) {
         TIMEBLOCK_DEFS,
         selectDate: typeof selectDate === 'function' ? selectDate : undefined,
         panchangaMode: () => panchangaMode,
+        switchViewMode: typeof switchViewMode === 'function' ? switchViewMode : undefined,
+        updateViewToggleUI: typeof updateViewToggleUI === 'function' ? updateViewToggleUI : undefined,
         setPanchangaMode: typeof setPanchangaMode === 'function' ? setPanchangaMode : undefined,
         togglePanchangaMode: typeof togglePanchangaMode === 'function' ? togglePanchangaMode : undefined,
         getPanchangaForDate: typeof getPanchangaForDate === 'function' ? getPanchangaForDate : undefined,
