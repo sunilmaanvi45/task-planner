@@ -2355,6 +2355,8 @@ body.text-calendar-mode .calendar-panel .calendar-title{color:var(--accent)}
   .calendar-cell:hover,.week-cell:hover,.learning-tile:hover,.stat-item:hover,.eisen-chip:hover{transform:none}
 }
 
+#progressSection, #progressViz, .progress-viz { display: none !important; }
+
 /* ============================================================
    PEOPLE & TEXT CALENDAR INTEGRATION (v21)
    ============================================================ */
@@ -5717,21 +5719,64 @@ button:focus-visible {
   box-shadow: 0 1px 8px rgba(5, 150, 105, 0.35) !important;
 }
 
-/* Mobile Touch Button Uniformity (<= 900px) */
+/* Mobile Responsive Header & Touch Button Uniformity (<= 900px) */
 @media (max-width: 900px) {
+  .calendar-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .header-left {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+  .header-right {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    align-self: center !important;
+  }
   .view-mode-toggle {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    display: flex !important;
+    justify-content: stretch !important;
+    box-sizing: border-box !important;
+    margin: 4px 0 0 0 !important;
     height: 36px !important;
     min-height: 36px !important;
     max-height: 36px !important;
     padding: 2px !important;
   }
-  .view-mode-toggle .view-toggle-btn {
+  #viewModeToggle .view-toggle-btn,
+  #viewModeToggle #btnPanchanga,
+  #viewModeToggle #btnMainView,
+  #viewModeToggle #btnTextCalendar {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
     height: 30px !important;
     min-height: 30px !important;
     max-height: 30px !important;
-    padding: 0 9px !important;
-    font-size: 0.72rem !important;
     line-height: 30px !important;
+    padding: 0 4px !important;
+    font-size: clamp(0.68rem, 2.5vw, 0.74rem) !important;
+    justify-content: center !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    box-sizing: border-box !important;
+  }
+  .calendar-title {
+    min-width: 0 !important;
+    font-size: clamp(0.95rem, 3.5vw, 1.15rem) !important;
   }
 }
 
@@ -6257,9 +6302,9 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
 
   /* 2. Standard Text & Action Buttons (Uniform 36px Height, 12px Font) */
   .btn-today,
-  .text-calendar-btn,
-  .btn-panchanga-toggle,
-  #btnPanchanga,
+  .text-calendar-btn:not(.view-toggle-btn),
+  .btn-panchanga-toggle:not(.view-toggle-btn),
+  #btnPanchanga:not(.view-toggle-btn),
   .pj-top-btn,
   .pj-toolbar-pill,
   .destination-add-btn,
@@ -6578,15 +6623,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
 
         <div class="detail-panel" id="detailPanel">
     <div class="detail-date" id="detailDate">—</div>
-    <div class="progress-viz" id="progressViz">
-        <div class="progress-header"><span class="progress-title">Task Progress</span><span class="progress-percent" id="progressPercent">0%</span></div>
-        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
-        <div class="progress-stats">
-            <span><span class="dot" style="background:var(--success)"></span> Done</span>
-            <span><span class="dot" style="background:var(--warning)"></span> Pending</span>
-            <span><span class="dot" style="background:var(--danger)"></span> High Priority</span>
-        </div>
-    </div>
+    <!-- progressViz removed -->
     <div class="day-title-row daily-only">
         <input type="text" class="day-title-input" id="inputDayTitle" placeholder="Day title (e.g., Deep Work)" maxlength="80">
     </div>
@@ -7782,7 +7819,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     function showSaved(){saveIndicator.textContent='✓ Saved';saveIndicator.classList.remove('saving');saveIndicator.classList.add('visible');if(savedFlashTimeout)clearTimeout(savedFlashTimeout);savedFlashTimeout=setTimeout(()=>{saveIndicator.classList.remove('visible')},1400)}
     function getTaskStats(data){const tasks=data?.tasks||[];const total=tasks.length;const done=tasks.filter(t=>t.status==='done').length;const pending=total-done;const high=tasks.filter(t=>t.priority==='high'&&t.status!=='done').length;return{total,done,pending,high,rate:total>0?Math.round((done/total)*100):0}}
     function countAllAttachments(data){let c=(data?.attachments||[]).length;(data?.tasks||[]).forEach(t=>{c+=(t.attachments||[]).length});return c}
-    function updateProgressViz(data){const s=getTaskStats(data);progressPercent.textContent=s.rate+'%';progressFill.style.width=s.rate+'%';progressPercent.style.color=s.rate===100?'var(--success)':(s.rate>50?'var(--accent)':'var(--warning)')}
+    function updateProgressViz(data){}
 
     function renderMarkdown(text){
         if(text===undefined||text===null||text==='')return '';
@@ -19702,7 +19739,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         const fileInputEl=document.getElementById('fileInput');
         const preview=document.getElementById('attachmentsPreview');
 
-        if(progress)make('progressSection','Task Progress','📊',[progress]);
+        // progressSection removed;
         if(addTask||toolbar||taskListEl||textCalActions){
             make('tasksSection','Tasks','📝',[addTask,toolbar,textCalActions,taskListEl]);
         }
