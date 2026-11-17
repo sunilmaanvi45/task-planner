@@ -6438,6 +6438,187 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     gap: 6px !important;
   }
 }
+
+/* Step 6ff: Learning Card Deck Switcher Button & Popover */
+.learning-deck-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.62rem;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 2px 7px;
+    border-radius: var(--r-full, 9999px);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    text-transform: none;
+    transition: all var(--dur-fast, 0.15s) ease;
+    user-select: none;
+    font-family: inherit;
+    box-sizing: border-box;
+    max-width: 130px;
+    border: 1px solid rgba(124, 92, 240, 0.28);
+}
+.learning-deck-btn .deck-btn-icon {
+    font-size: 0.65rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.learning-deck-btn .deck-btn-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 85px;
+}
+.learning-deck-btn .deck-btn-arrow {
+    font-size: 0.55rem;
+    opacity: 0.7;
+    margin-left: 1px;
+    flex-shrink: 0;
+}
+.learning-deck-btn.has-deck {
+    background: var(--week-tint-strong, rgba(124, 92, 240, 0.12));
+    color: var(--week-accent, #7c5cf0);
+    border-color: rgba(124, 92, 240, 0.35);
+}
+.learning-deck-btn.has-deck:hover {
+    background: var(--week-tint, rgba(124, 92, 240, 0.22));
+    border-color: var(--week-accent, #7c5cf0);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(124, 92, 240, 0.15);
+}
+.learning-deck-btn.no-deck {
+    background: transparent;
+    color: var(--text-tertiary, #888);
+    border: 1px dashed var(--border, #ccc);
+    opacity: 0.85;
+}
+.learning-deck-btn.no-deck:hover {
+    opacity: 1;
+    color: var(--week-accent, #7c5cf0);
+    border-color: var(--week-accent, #7c5cf0);
+    background: rgba(124, 92, 240, 0.08);
+    transform: translateY(-1px);
+}
+.learning-deck-picker-menu {
+    position: fixed;
+    z-index: 10500;
+    min-width: 175px;
+    max-width: 260px;
+    max-height: 320px;
+    background: var(--bg-card, #ffffff);
+    color: var(--text-primary, #1e293b);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+    border-radius: var(--r-md, 8px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    animation: deckPickerFadeIn 0.12s ease-out;
+    box-sizing: border-box;
+}
+@keyframes deckPickerFadeIn {
+    from { opacity: 0; transform: scale(0.96) translateY(-4px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.deck-picker-header {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary, #888);
+    padding: 4px 8px 2px;
+}
+.deck-picker-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 180px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.deck-picker-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-primary, inherit);
+    background: transparent;
+    border: none;
+    border-radius: var(--r-sm, 5px);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease;
+    box-sizing: border-box;
+    gap: 8px;
+}
+.deck-picker-item:hover, .deck-picker-item:focus-visible {
+    background: var(--hover-bg, rgba(124, 92, 240, 0.1));
+    color: var(--week-accent, #7c5cf0);
+    outline: none;
+}
+.deck-picker-item.active {
+    font-weight: 700;
+    color: var(--week-accent, #7c5cf0);
+    background: rgba(124, 92, 240, 0.12);
+}
+.deck-picker-item-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+.deck-picker-check {
+    font-size: 0.75rem;
+    color: var(--week-accent, #7c5cf0);
+    flex-shrink: 0;
+}
+.deck-picker-empty {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    color: var(--text-tertiary, #999);
+    font-style: italic;
+}
+.deck-picker-divider {
+    height: 1px;
+    background: var(--border, rgba(0, 0, 0, 0.08));
+    margin: 4px 0;
+}
+.deck-picker-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--text-secondary, #555);
+    background: transparent;
+    border: none;
+    border-radius: var(--r-sm, 5px);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.1s ease, color 0.1s ease;
+    box-sizing: border-box;
+}
+.deck-picker-action-btn:hover, .deck-picker-action-btn:focus-visible {
+    background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+    color: var(--text-primary, #000);
+    outline: none;
+}
+.deck-picker-action-btn.new-deck:hover {
+    color: var(--accent, #3b82f6);
+    background: rgba(59, 130, 246, 0.1);
+}
+.deck-picker-action-btn.remove-deck:hover {
+    color: var(--danger, #ef4444);
+    background: rgba(239, 68, 68, 0.1);
+}
 </style>
 </head>
 <body>
@@ -9825,12 +10006,23 @@ function renderHabitMiniCalendar() {
         const ac=ia?' active-learning':'';
         const sk=l.id+'|'+l._sourceDate;
         const is=selectedLearningKeys.has(sk);
-        const deckBadge=(l.deck&&String(l.deck).trim())?`<span class="deck-badge" title="Deck: ${escapeHtml(l.deck)}">&#128218; ${escapeHtml(l.deck)}</span>`:'';
+        const hasDeck=(l.deck&&String(l.deck).trim().length>0);
+        const deckDisplay=hasDeck?String(l.deck).trim():'+ Deck';
+        const deckTitle=hasDeck?('Switch Deck (Current: '+escapeHtml(String(l.deck).trim())+')'):'Assign to Deck';
+        const deckSrc=(l._sourceDate||l.currentDate||l.createdDate||(typeof selectedDateStr!=='undefined'?selectedDateStr:''));
+        const deckBtn=`<button type="button" class="learning-deck-btn ${hasDeck?'has-deck':'no-deck'}" data-learning-id="${l.id}" data-source-date="${deckSrc}" title="${deckTitle}"><span class="deck-btn-icon">&#128218;</span> <span class="deck-btn-text">${escapeHtml(deckDisplay)}</span> <span class="deck-btn-arrow">&#9662;</span></button>`;
         const durBadge=(l.duration&&!isNaN(l.duration)&&Number(l.duration)>0)?`<span class="task-meta-pill" title="Duration: ${l.duration}m">&#9201; ${l.duration}m</span>`:'';
         const previewHTML=(l.type==='text'||!l.type)?renderInlineMarkdown(tp):escapeHtml(tp);
         const titleHTML=renderInlineMarkdown(title);
-        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBadge}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
+        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBtn}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
     }function handleLearningsGridClick(e){
+        const db=e.target.closest('.learning-deck-btn');
+        if(db){
+            e.stopPropagation();
+            e.preventDefault();
+            openDeckPickerMenu(db,db.dataset.learningId,db.dataset.sourceDate);
+            return;
+        }
         const sb=e.target.closest('.learning-select-box');
         if(sb){e.stopPropagation();toggleLearningSelection(sb.dataset.selectLearning,sb.dataset.selectSource);return}
         if(e.target.closest('.learning-tile-drag'))return;if(e.target.closest('a'))return;
@@ -22228,6 +22420,159 @@ function renderPanchangaDetailHTML(ds) {
     `;
 }
 
+        // ============================================================
+    // Step 6ff: Learning Card Deck Switcher Engine
+    // ============================================================
+    let activeDeckSwitchTarget = null;
+
+    function closeDeckPickerMenu(){
+        const menu = document.getElementById('learningDeckPickerMenu');
+        if(menu) menu.style.display = 'none';
+        activeDeckSwitchTarget = null;
+    }
+
+    function switchLearningDeck(learningId, sourceDate, newDeckName){
+        const sanitized = (newDeckName && typeof newDeckName === 'string') ? newDeckName.trim() : '';
+        pushUndo('Switch Learning Deck');
+        const sDate = sourceDate || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : '');
+        const ok = updateLearningInDate(sDate, learningId, { deck: sanitized });
+        closeDeckPickerMenu();
+        if(!ok) return;
+        renderLearningsSection();
+        renderCalendar();
+        refreshDetailAfterLearningChange(sDate);
+        const em = document.getElementById('eisenOverlay');
+        if(em && em.classList.contains('active') && typeof renderEisen === 'function'){
+            renderEisen();
+        }
+    }
+
+    function openDeckPickerMenu(btnEl, learningId, sourceDate){
+        const menu = document.getElementById('learningDeckPickerMenu');
+        const list = document.getElementById('deckPickerList');
+        if(!menu || !list || !btnEl) return;
+
+        const sDate = sourceDate || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : '');
+        activeDeckSwitchTarget = { id: learningId, sourceDate: sDate };
+
+        // Find current deck of this learning
+        let curDeck = '';
+        const data = (typeof getData === 'function' && sDate) ? getData(sDate) : null;
+        if(data && Array.isArray(data.learnings)){
+            const l = data.learnings.find(x => x.id === learningId);
+            if(l && l.deck) curDeck = String(l.deck).trim();
+        } else if(typeof findLearningById === 'function'){
+            const found = findLearningById(learningId);
+            if(found && found.learning && found.learning.deck){
+                curDeck = String(found.learning.deck).trim();
+                if(!activeDeckSwitchTarget.sourceDate && found.dateStr){
+                    activeDeckSwitchTarget.sourceDate = found.dateStr;
+                }
+            }
+        }
+
+        // Get all decks in storage
+        const allDecks = typeof getAllDecks === 'function' ? getAllDecks() : [];
+        let html = '';
+        if(allDecks.length === 0){
+            html = '<div class="deck-picker-empty">No decks created yet</div>';
+        } else {
+            allDecks.forEach(d => {
+                const isCur = (d.toLowerCase() === curDeck.toLowerCase());
+                html += `<button type="button" class="deck-picker-item${isCur ? ' active' : ''}" data-deck="${escapeHtml(d)}">` +
+                        `<span class="deck-picker-item-name">&#128218; ${escapeHtml(d)}</span>` +
+                        `${isCur ? '<span class="deck-picker-check">&#10003;</span>' : ''}` +
+                        `</button>`;
+            });
+        }
+        list.innerHTML = html;
+
+        // Position menu anchored to button
+        menu.style.display = 'flex';
+        menu.style.visibility = 'hidden';
+
+        const rect = btnEl.getBoundingClientRect();
+        const menuWidth = menu.offsetWidth || 190;
+        const menuHeight = menu.offsetHeight || 200;
+
+        let top = rect.bottom + 4;
+        let left = rect.left;
+
+        if(top + menuHeight > window.innerHeight - 10){
+            top = Math.max(10, rect.top - menuHeight - 4);
+        }
+        if(left + menuWidth > window.innerWidth - 10){
+            left = Math.max(10, window.innerWidth - menuWidth - 10);
+        }
+
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.visibility = 'visible';
+    }
+
+    function initDeckPickerMenuEvents(){
+        const menu = document.getElementById('learningDeckPickerMenu');
+        if(!menu) return;
+
+        menu.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(!activeDeckSwitchTarget) return;
+
+            const item = (e.target && typeof e.target.closest === 'function') ? e.target.closest('.deck-picker-item') : null;
+            if(item){
+                const d = item.dataset.deck;
+                switchLearningDeck(activeDeckSwitchTarget.id, activeDeckSwitchTarget.sourceDate, d);
+                return;
+            }
+
+            const newBtn = (e.target && typeof e.target.closest === 'function') ? e.target.closest('#btnDeckPickerNew') : null;
+            if(newBtn){
+                const entered = prompt('Enter new deck name:');
+                if(entered !== null && entered.trim() !== ''){
+                    switchLearningDeck(activeDeckSwitchTarget.id, activeDeckSwitchTarget.sourceDate, entered.trim());
+                }
+                return;
+            }
+
+            const removeBtn = (e.target && typeof e.target.closest === 'function') ? e.target.closest('#btnDeckPickerRemove') : null;
+            if(removeBtn){
+                switchLearningDeck(activeDeckSwitchTarget.id, activeDeckSwitchTarget.sourceDate, '');
+                return;
+            }
+        });
+
+        function handleOutsideDismiss(e){
+            if(menu.style.display === 'none') return;
+            if(e.target && typeof e.target.closest === 'function'){
+                if(e.target.closest('#learningDeckPickerMenu') || e.target.closest('.learning-deck-btn')) return;
+            }
+            closeDeckPickerMenu();
+        }
+
+        document.addEventListener('pointerdown', handleOutsideDismiss, true);
+        document.addEventListener('mousedown', handleOutsideDismiss, true);
+
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape' && menu.style.display !== 'none'){
+                closeDeckPickerMenu();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if(menu.style.display !== 'none') closeDeckPickerMenu();
+        }, { passive: true });
+
+        window.addEventListener('scroll', () => {
+            if(menu.style.display !== 'none') closeDeckPickerMenu();
+        }, { passive: true, capture: true });
+    }
+
+    if(document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', initDeckPickerMenuEvents);
+    } else {
+        initDeckPickerMenuEvents();
+    }
+
     window.__taskPlannerAppBridge = {
         renderCalendar,
         openWeekTimeblocksModal,
@@ -22244,6 +22589,10 @@ function renderPanchangaDetailHTML(ds) {
         renderLearningsSection,
         renderHabits,
         renderDestinationTimes,
+        getAllDecks: typeof getAllDecks === 'function' ? getAllDecks : undefined,
+        openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
+        closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
+        switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
         renderEisen,
         selectDate,
         selectWeek,
@@ -22384,6 +22733,10 @@ function renderPanchangaDetailHTML(ds) {
         renderLearningsSection,
         renderHabits,
         renderDestinationTimes,
+        getAllDecks: typeof getAllDecks === 'function' ? getAllDecks : undefined,
+        openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
+        closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
+        switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
         renderEisen,
         selectDate,
         selectWeek,
@@ -27317,5 +27670,12 @@ function renderPanchangaDetailHTML(ds) {
 })();
 
     </script>
+<div id="learningDeckPickerMenu" class="learning-deck-picker-menu" style="display:none;" role="menu">
+  <div class="deck-picker-header">Switch Deck</div>
+  <div class="deck-picker-list" id="deckPickerList"></div>
+  <div class="deck-picker-divider"></div>
+  <button type="button" class="deck-picker-action-btn new-deck" id="btnDeckPickerNew">&#10133; New Deck...</button>
+  <button type="button" class="deck-picker-action-btn remove-deck" id="btnDeckPickerRemove">&#10006; Remove from Deck</button>
+</div>
 </body>
 </html>
