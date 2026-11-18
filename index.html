@@ -6504,8 +6504,8 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
 .learning-deck-picker-menu {
     position: fixed;
     z-index: 10500;
-    min-width: 175px;
-    max-width: 260px;
+    min-width: 185px;
+    max-width: 270px;
     max-height: 320px;
     background: var(--bg-card, #ffffff);
     color: var(--text-primary, #1e293b);
@@ -6542,11 +6542,17 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
 }
+.deck-picker-item-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 100%;
+}
 .deck-picker-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    width: 100%;
+    flex: 1;
     padding: 6px 8px;
     font-size: 0.78rem;
     font-weight: 500;
@@ -6575,11 +6581,40 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.deck-picker-count {
+    font-size: 0.7rem;
+    font-weight: 500;
+    opacity: 0.75;
 }
 .deck-picker-check {
     font-size: 0.75rem;
     color: var(--week-accent, #7c5cf0);
     flex-shrink: 0;
+}
+.deck-picker-del-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: var(--r-sm, 5px);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary, #999);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    transition: all 0.12s ease;
+    flex-shrink: 0;
+    padding: 0;
+}
+.deck-picker-del-btn:hover {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--danger, #ef4444);
+    transform: scale(1.08);
 }
 .deck-picker-empty {
     padding: 6px 8px;
@@ -9961,10 +9996,26 @@ function renderHabitMiniCalendar() {
 
         const allDecks=getAllDecks();
         if(deckFilter&&deckFilter!=='__none__'&&allDecks.indexOf(deckFilter)===-1)deckFilter='';
+        const baseLearnings = Array.isArray(learnings) ? learnings : [];
+        const deckCounts = {};
+        let undeckedCount = 0;
+        baseLearnings.forEach(l => {
+            const d = (l && l.deck && String(l.deck).trim()) || '';
+            if(d){
+                const match = allDecks.find(x => x.toLowerCase() === d.toLowerCase()) || d;
+                deckCounts[match] = (deckCounts[match] || 0) + 1;
+            } else {
+                undeckedCount++;
+            }
+        });
+
         if(deckFilterSelect){
-            let opts='<option value="">📚 All decks</option>';
-            allDecks.forEach(d=>{opts+=`<option value="${escapeHtml(d)}"${d===deckFilter?' selected':''}>📚 ${escapeHtml(d)}</option>`});
-            opts+=`<option value="__none__"${deckFilter==='__none__'?' selected':''}>— No deck —</option>`;
+            let opts=`<option value="">📚 All decks (${baseLearnings.length})</option>`;
+            allDecks.forEach(d=>{
+                const cnt = deckCounts[d] || 0;
+                opts+=`<option value="${escapeHtml(d)}"${d===deckFilter?' selected':''}>📚 ${escapeHtml(d)} (${cnt})</option>`;
+            });
+            opts+=`<option value="__none__"${deckFilter==='__none__'?' selected':''}>— No deck — (${undeckedCount})</option>`;
             deckFilterSelect.innerHTML=opts;
             deckFilterSelect.classList.toggle('active',deckFilter!=='');
         }
@@ -22435,15 +22486,71 @@ function renderPanchangaDetailHTML(ds) {
     }
 
     function switchLearningDeck(learningId, sourceDate, newDeckName){
-        const sanitized = (newDeckName && typeof newDeckName === 'string') ? newDeckName.trim() : '';
+        let sDate = sourceDate;
+        let targetDeck = newDeckName;
+        if(arguments.length === 2 || (typeof targetDeck === 'undefined' && typeof sDate === 'string' && !/^\d{4}-\d{2}-\d{2}$/.test(sDate))){
+            targetDeck = sDate;
+            sDate = '';
+        }
+        if(!sDate){
+            if(typeof selectedDateStr !== 'undefined' && selectedDateStr) sDate = selectedDateStr;
+            else if(typeof findLearningById === 'function'){
+                const found = findLearningById(learningId);
+                if(found) sDate = found.dateStr;
+            }
+        }
+        const sanitized = (targetDeck && typeof targetDeck === 'string') ? targetDeck.trim() : '';
         pushUndo('Switch Learning Deck');
-        const sDate = sourceDate || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : '');
         const ok = updateLearningInDate(sDate, learningId, { deck: sanitized });
         closeDeckPickerMenu();
         if(!ok) return;
         renderLearningsSection();
         renderCalendar();
         refreshDetailAfterLearningChange(sDate);
+        const em = document.getElementById('eisenOverlay');
+        if(em && em.classList.contains('active') && typeof renderEisen === 'function'){
+            renderEisen();
+        }
+    }
+
+    function deleteDeck(deckName){
+        if(!deckName) return;
+        const sanitized = deckName.trim();
+        const msg = `Delete deck "${sanitized}"?\n\nLearnings attached to this deck will NOT be deleted — they will become undecked (No deck).`;
+        if(!confirm(msg)) return;
+
+        pushUndo('Delete Deck ' + sanitized);
+
+        for(let i=0; i<appStorage.length; i++){
+            const k = appStorage.key(i);
+            if(!k || !k.startsWith(STORAGE_PREFIX) || k.startsWith(WEEK_PREFIX)) continue;
+            const ds = k.slice(STORAGE_PREFIX.length);
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)) continue;
+            const data = getData(ds);
+            if(data && Array.isArray(data.learnings)){
+                let changed = false;
+                data.learnings.forEach(l => {
+                    if(l && l.deck && l.deck.trim().toLowerCase() === sanitized.toLowerCase()){
+                        l.deck = '';
+                        changed = true;
+                    }
+                });
+                if(changed){
+                    saveData(ds, data);
+                }
+            }
+        }
+
+        if(typeof deckFilter !== 'undefined' && deckFilter && deckFilter.toLowerCase() === sanitized.toLowerCase()){
+            deckFilter = '';
+        }
+
+        closeDeckPickerMenu();
+        renderLearningsSection();
+        renderCalendar();
+        if(typeof selectedDateStr !== 'undefined' && selectedDateStr){
+            refreshDetailAfterLearningChange(selectedDateStr);
+        }
         const em = document.getElementById('eisenOverlay');
         if(em && em.classList.contains('active') && typeof renderEisen === 'function'){
             renderEisen();
@@ -22476,16 +22583,32 @@ function renderPanchangaDetailHTML(ds) {
 
         // Get all decks in storage
         const allDecks = typeof getAllDecks === 'function' ? getAllDecks() : [];
+
+        // Count learnings due for that date per deck
+        const dayLearnings = (typeof getData === 'function' && sDate) ? ((getData(sDate) && getData(sDate).learnings) || []) : [];
+        const dayDeckCounts = {};
+        dayLearnings.forEach(l => {
+            const d = (l && l.deck && String(l.deck).trim()) || '';
+            if(d){
+                const match = allDecks.find(x => x.toLowerCase() === d.toLowerCase()) || d;
+                dayDeckCounts[match] = (dayDeckCounts[match] || 0) + 1;
+            }
+        });
+
         let html = '';
         if(allDecks.length === 0){
             html = '<div class="deck-picker-empty">No decks created yet</div>';
         } else {
             allDecks.forEach(d => {
                 const isCur = (d.toLowerCase() === curDeck.toLowerCase());
-                html += `<button type="button" class="deck-picker-item${isCur ? ' active' : ''}" data-deck="${escapeHtml(d)}">` +
-                        `<span class="deck-picker-item-name">&#128218; ${escapeHtml(d)}</span>` +
+                const cnt = dayDeckCounts[d] || 0;
+                html += `<div class="deck-picker-item-row">` +
+                        `<button type="button" class="deck-picker-item${isCur ? ' active' : ''}" data-deck="${escapeHtml(d)}" title="Switch to ${escapeHtml(d)} (${cnt} today)">` +
+                        `<span class="deck-picker-item-name">&#128218; ${escapeHtml(d)} <span class="deck-picker-count">(${cnt})</span></span>` +
                         `${isCur ? '<span class="deck-picker-check">&#10003;</span>' : ''}` +
-                        `</button>`;
+                        `</button>` +
+                        `<button type="button" class="deck-picker-del-btn" data-delete-deck="${escapeHtml(d)}" title="Delete deck &quot;${escapeHtml(d)}&quot;">&#128465;</button>` +
+                        `</div>`;
             });
         }
         list.innerHTML = html;
@@ -22495,7 +22618,7 @@ function renderPanchangaDetailHTML(ds) {
         menu.style.visibility = 'hidden';
 
         const rect = btnEl.getBoundingClientRect();
-        const menuWidth = menu.offsetWidth || 190;
+        const menuWidth = menu.offsetWidth || 200;
         const menuHeight = menu.offsetHeight || 200;
 
         let top = rect.bottom + 4;
@@ -22519,6 +22642,16 @@ function renderPanchangaDetailHTML(ds) {
 
         menu.addEventListener('click', (e) => {
             e.stopPropagation();
+
+            const delBtn = (e.target && typeof e.target.closest === 'function') ? e.target.closest('.deck-picker-del-btn') : null;
+            if(delBtn){
+                const d = delBtn.dataset.deleteDeck;
+                if(d){
+                    deleteDeck(d);
+                }
+                return;
+            }
+
             if(!activeDeckSwitchTarget) return;
 
             const item = (e.target && typeof e.target.closest === 'function') ? e.target.closest('.deck-picker-item') : null;
@@ -22544,7 +22677,7 @@ function renderPanchangaDetailHTML(ds) {
             }
         });
 
-        // Prevent wheel events inside the menu from propagating to parent containers
+        // Prevent wheel & touchmove inside the menu from propagating to parent containers
         menu.addEventListener('wheel', (e) => {
             e.stopPropagation();
         }, { passive: true });
@@ -22610,6 +22743,7 @@ function renderPanchangaDetailHTML(ds) {
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
+        deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
         renderEisen,
         selectDate,
         selectWeek,
@@ -22754,6 +22888,7 @@ function renderPanchangaDetailHTML(ds) {
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
+        deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
         renderEisen,
         selectDate,
         selectWeek,
