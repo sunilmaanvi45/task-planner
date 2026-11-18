@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = 'task-planner-v36';
+﻿const CACHE_NAME = 'task-planner-v37';
 const urlsToCache = [
   './',
   './index.html',

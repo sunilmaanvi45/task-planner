@@ -6518,6 +6518,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     gap: 3px;
     animation: deckPickerFadeIn 0.12s ease-out;
     box-sizing: border-box;
+    overscroll-behavior: contain;
 }
 @keyframes deckPickerFadeIn {
     from { opacity: 0; transform: scale(0.96) translateY(-4px); }
@@ -6538,6 +6539,8 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     max-height: 180px;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
 }
 .deck-picker-item {
     display: flex;
@@ -22541,6 +22544,15 @@ function renderPanchangaDetailHTML(ds) {
             }
         });
 
+        // Prevent wheel events inside the menu from propagating to parent containers
+        menu.addEventListener('wheel', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
+        menu.addEventListener('touchmove', (e) => {
+            e.stopPropagation();
+        }, { passive: true });
+
         function handleOutsideDismiss(e){
             if(menu.style.display === 'none') return;
             if(e.target && typeof e.target.closest === 'function'){
@@ -22562,8 +22574,13 @@ function renderPanchangaDetailHTML(ds) {
             if(menu.style.display !== 'none') closeDeckPickerMenu();
         }, { passive: true });
 
-        window.addEventListener('scroll', () => {
-            if(menu.style.display !== 'none') closeDeckPickerMenu();
+        window.addEventListener('scroll', (e) => {
+            if(menu.style.display === 'none') return;
+            // Crucial fix: do NOT close menu when scrolling INSIDE the dropdown menu itself!
+            if(e.target && (e.target === menu || (menu.contains && menu.contains(e.target)))) {
+                return;
+            }
+            closeDeckPickerMenu();
         }, { passive: true, capture: true });
     }
 
