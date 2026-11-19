@@ -6502,6 +6502,52 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     background: rgba(124, 92, 240, 0.08);
     transform: translateY(-1px);
 }
+.learning-deck-revert-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: var(--r-full, 9999px);
+    border: 1px solid rgba(124, 92, 240, 0.35);
+    background: var(--week-tint, rgba(124, 92, 240, 0.08));
+    color: var(--week-accent, #7c5cf0);
+    font-size: 0.72rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: all var(--dur-fast, 0.15s) ease;
+    user-select: none;
+    box-sizing: border-box;
+}
+.learning-deck-revert-btn:hover {
+    background: var(--week-accent, #7c5cf0);
+    color: #ffffff;
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px rgba(124, 92, 240, 0.2);
+}
+.deck-picker-revert-row {
+    margin-bottom: 4px;
+}
+.deck-picker-revert-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 8px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--week-accent, #7c5cf0);
+    background: var(--week-tint, rgba(124, 92, 240, 0.08));
+    border: 1px dashed rgba(124, 92, 240, 0.4);
+    border-radius: var(--r-sm, 6px);
+    cursor: pointer;
+    transition: all var(--dur-fast, 0.15s) ease;
+    box-sizing: border-box;
+}
+.deck-picker-revert-btn:hover {
+    background: var(--week-accent, #7c5cf0);
+    color: #ffffff;
+}
 .learning-deck-picker-menu {
     position: fixed;
     z-index: 10500;
@@ -6657,6 +6703,63 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
 .deck-picker-action-btn.remove-deck:hover {
     color: var(--danger, #ef4444);
     background: rgba(239, 68, 68, 0.1);
+}
+/* Step 6hh: Learnings Global Search */
+.learnings-search-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+.learnings-search-input {
+    padding: 4px 26px 4px 10px;
+    border-radius: var(--r-full);
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: var(--fs-2xs);
+    font-weight: 500;
+    font-family: inherit;
+    outline: none;
+    width: 200px;
+    min-width: 140px;
+    transition: border-color var(--dur-fast) var(--ease-in-out), box-shadow var(--dur-fast) var(--ease-out), width var(--dur-fast) var(--ease-out);
+    box-sizing: border-box;
+}
+.learnings-search-input:focus {
+    border-color: var(--accent-border);
+    box-shadow: var(--focus-ring);
+    width: 250px;
+}
+.learnings-search-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.75;
+}
+.learnings-search-clear {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+.learnings-search-clear:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: var(--text);
+}
+@media (max-width: 600px) {
+    .learnings-search-input { width: 140px; }
+    .learnings-search-input:focus { width: 180px; }
 }
 </style>
 </head>
@@ -6818,6 +6921,10 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
         <div class="ui-section-header learnings-header">
             <div class="ui-section-title learnings-title"><button class="ui-section-chevron" type="button">&#9662;</button><span>🧠 Learnings <span class="learnings-count" id="learningsCount"></span></span></div>
             <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                <div class="learnings-search-wrap" id="learningsSearchWrap">
+                    <input type="text" class="learnings-search-input" id="learningsSearchInput" placeholder="&#128269; Search all learnings..." title="Search all learnings across all dates (title, content, url, deck)" autocomplete="off" />
+                    <button type="button" class="learnings-search-clear" id="learningsSearchClear" title="Clear search" style="display:none;">&#10005;</button>
+                </div>
                 <input type="text" class="quick-learning-input" id="quickLearningInput" placeholder="Quick add: title;duration;link" title="Quick add: title;duration;link (e.g. Docker Basics;25;https://docker.com)" autocomplete="off" />
                 <select class="learnings-deck-filter" id="deckFilterSelect" title="Filter by deck"></select>
                 <button class="btn-oldest-due" id="btnOldestDue">⏳ Oldest Due</button>
@@ -10093,10 +10200,46 @@ function renderHabitMiniCalendar() {
     function voteLearning(id,sd,delta){const data=getData(sd);if(!data||!data.learnings)return;const l=data.learnings.find(x=>x.id===id);if(!l)return;l.votes=Math.max(0,(l.votes||0)+delta);saveData(sd,data);renderLearningsSection();refreshDetailAfterLearningChange(sd)}
     function setLearningVotes(id,sd,votes){const data=getData(sd);if(!data||!data.learnings)return;const l=data.learnings.find(x=>x.id===id);if(!l)return;const p=parseInt(votes);l.votes=isNaN(p)?0:Math.max(0,p);saveData(sd,data);renderLearningsSection();refreshDetailAfterLearningChange(sd)}
 
+    let learningsSearchQuery = '';
+
+    function getAllLearningsAcrossDates(){
+        const all = [];
+        const seenIds = new Set();
+        for(let i = 0; i < appStorage.length; i++){
+            const k = appStorage.key(i);
+            if(!k || !k.startsWith(STORAGE_PREFIX) || k.startsWith(WEEK_PREFIX)) continue;
+            const ds = k.slice(STORAGE_PREFIX.length);
+            if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)) continue;
+            const data = getData(ds);
+            if(data && Array.isArray(data.learnings)){
+                data.learnings.forEach(l => {
+                    if(l && l.id && !seenIds.has(l.id)){
+                        seenIds.add(l.id);
+                        all.push({ ...l, _sourceDate: ds, _dueDate: ds });
+                    }
+                });
+            }
+        }
+        return all;
+    }
+
     function renderLearningsSection(){
         let learnings=[];
-        if(selectionMode==='daily'&&selectedDateStr)learnings=getLearningsDueForDate(selectedDateStr);
-        else if(selectionMode==='weekly'&&selectedWeekId){const weeks=computeWeeksForMonth(currentYear,currentMonth);const wk=weeks.find(w=>w.id===selectedWeekId);if(wk)learnings=getLearningsDueForWeek(wk.days)}
+        const isSearching = (typeof learningsSearchQuery === 'string' && learningsSearchQuery.trim().length > 0);
+        if(isSearching){
+            const q = learningsSearchQuery.trim().toLowerCase();
+            const allItems = getAllLearningsAcrossDates();
+            learnings = allItems.filter(l => {
+                const title = (l.title || '').toLowerCase();
+                const content = (l.content || '').toLowerCase();
+                const url = (l.url || l.filePath || '').toLowerCase();
+                const deck = (l.deck || '').toLowerCase();
+                return title.includes(q) || content.includes(q) || url.includes(q) || deck.includes(q);
+            });
+        } else {
+            if(selectionMode==='daily'&&selectedDateStr)learnings=getLearningsDueForDate(selectedDateStr);
+            else if(selectionMode==='weekly'&&selectedWeekId){const weeks=computeWeeksForMonth(currentYear,currentMonth);const wk=weeks.find(w=>w.id===selectedWeekId);if(wk)learnings=getLearningsDueForWeek(wk.days)}
+        }
 
         const allDecks=getAllDecks();
         if(deckFilter&&deckFilter!=='__none__'&&allDecks.indexOf(deckFilter)===-1)deckFilter='';
@@ -10141,13 +10284,23 @@ function renderHabitMiniCalendar() {
         if(deckFilter==='__none__')learnings=learnings.filter(l=>!l.deck||!String(l.deck).trim());
         else if(deckFilter)learnings=learnings.filter(l=>l.deck===deckFilter);
 
-        learningsCount.textContent=learnings.length>0?`(${learnings.length})`:'';
+        if(isSearching){
+            learningsCount.textContent = `(${learnings.length} found)`;
+        } else {
+            learningsCount.textContent = learnings.length > 0 ? `(${learnings.length})` : '';
+        }
         let al=null,ol=[...learnings];
-        if(learnings.length>0){const v=learnings.filter(l=>!l.completed&&(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>{const diff=(b.votes||0)-(a.votes||0);if(diff!==0)return diff;const dA=(a.duration&&!isNaN(a.duration))?Number(a.duration):Infinity;const dB=(b.duration&&!isNaN(b.duration))?Number(b.duration):Infinity;return dA-dB});al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
-        if(al){learningsActiveSection.style.display='block';learningsActiveGrid.innerHTML=buildLearningTileHTML(al,true)}
-        else{learningsActiveSection.style.display='none';learningsActiveGrid.innerHTML=''}
+        if(isSearching){
+            learningsActiveSection.style.display='none';
+            learningsActiveGrid.innerHTML='';
+            ol = [...learnings];
+        } else {
+            if(learnings.length>0){const v=learnings.filter(l=>!l.completed&&(l.votes||0)>0);if(v.length>0){v.sort((a,b)=>{const diff=(b.votes||0)-(a.votes||0);if(diff!==0)return diff;const dA=(a.duration&&!isNaN(a.duration))?Number(a.duration):Infinity;const dB=(b.duration&&!isNaN(b.duration))?Number(b.duration):Infinity;return dA-dB});al=v[0];ol=learnings.filter(l=>l.id!==al.id)}}
+            if(al){learningsActiveSection.style.display='block';learningsActiveGrid.innerHTML=buildLearningTileHTML(al,true)}
+            else{learningsActiveSection.style.display='none';learningsActiveGrid.innerHTML=''}
+        }
         if(ol.length===0){
-            const msg=deckFilter?(deckFilter==='__none__'?'No undecked learnings here.':'No learnings in this deck here.'):'No other learnings.';
+            const msg = isSearching ? (`No learnings matching "${escapeHtml(learningsSearchQuery.trim())}" across all dates.`) : (deckFilter?(deckFilter==='__none__'?'No undecked learnings here.':'No learnings in this deck here.'):'No other learnings.');
             learningsGrid.innerHTML='<div class="learnings-empty">'+msg+'</div>';
         }else{
             let html='';ol.forEach(l=>{html+=buildLearningTileHTML(l,false)});
@@ -10182,12 +10335,23 @@ function renderHabitMiniCalendar() {
         const deckDisplay=hasDeck?String(l.deck).trim():'+ Deck';
         const deckTitle=hasDeck?('Switch Deck (Current: '+escapeHtml(String(l.deck).trim())+')'):'Assign to Deck';
         const deckSrc=(l._sourceDate||l.currentDate||l.createdDate||(typeof selectedDateStr!=='undefined'?selectedDateStr:''));
-        const deckBtn=`<button type="button" class="learning-deck-btn ${hasDeck?'has-deck':'no-deck'}" data-learning-id="${l.id}" data-source-date="${deckSrc}" title="${deckTitle}"><span class="deck-btn-icon">&#128218;</span> <span class="deck-btn-text">${escapeHtml(deckDisplay)}</span> <span class="deck-btn-arrow">&#9662;</span></button>`;
+        const hasPrevDeck=(l.prevDeck!==undefined&&l.prevDeck!==null&&String(l.prevDeck).trim()!==(l.deck?String(l.deck).trim():''));
+        const prevDeckVal=hasPrevDeck?String(l.prevDeck).trim():'';
+        const prevDeckBtn=hasPrevDeck?`<button type="button" class="learning-deck-revert-btn" data-learning-id="${l.id}" data-source-date="${deckSrc}" data-revert-deck="${escapeHtml(prevDeckVal)}" title="Switch back to previous deck: ${escapeHtml(prevDeckVal||'No deck')}">&#8592;</button>`:'';
+        const deckBtn=`${prevDeckBtn}<button type="button" class="learning-deck-btn ${hasDeck?'has-deck':'no-deck'}" data-learning-id="${l.id}" data-source-date="${deckSrc}" title="${deckTitle}"><span class="deck-btn-icon">&#128218;</span> <span class="deck-btn-text">${escapeHtml(deckDisplay)}</span> <span class="deck-btn-arrow">&#9662;</span></button>`;
         const durBadge=(l.duration&&!isNaN(l.duration)&&Number(l.duration)>0)?`<span class="task-meta-pill" title="Duration: ${l.duration}m">&#9201; ${l.duration}m</span>`:'';
         const previewHTML=(l.type==='text'||!l.type)?renderInlineMarkdown(tp):escapeHtml(tp);
         const titleHTML=renderInlineMarkdown(title);
         return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBtn}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
     }function handleLearningsGridClick(e){
+        const rb=e.target.closest('.learning-deck-revert-btn');
+        if(rb){
+            e.stopPropagation();
+            e.preventDefault();
+            const targetDeck = rb.dataset.revertDeck || '';
+            switchLearningDeck(rb.dataset.learningId, rb.dataset.sourceDate, targetDeck);
+            return;
+        }
         const db=e.target.closest('.learning-deck-btn');
         if(db){
             e.stopPropagation();
@@ -10827,10 +10991,11 @@ function renderHabitMiniCalendar() {
         const duration=(durVal&&!isNaN(durVal)&&Number(durVal)>0)?Number(durVal):null;
         const content=document.getElementById('learningFormContent')?.value?.trim()||'';
         if(!title&&!content){alert('Please enter a title or content.');return}
+        let editPrevDeck = undefined; try { const curL = (typeof findLearningById === 'function' && editingLearningInfo) ? findLearningById(editingLearningInfo.id) : null; if(curL && curL.learning){ const curD = (curL.learning.deck && String(curL.learning.deck).trim()) || ''; if(curD.toLowerCase() !== deck.toLowerCase()){ editPrevDeck = curD; } } } catch(e){}
         if(deck){ if(typeof registerDeck === 'function') registerDeck(deck); if(typeof recordDeckUsage === 'function') recordDeckUsage(deck); }
         pushUndo('Edit learning');
         rememberLearningType(type);
-        const updated={type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',deck,duration};
+        const updated={type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',deck,duration,...(typeof editPrevDeck !== 'undefined' ? { prevDeck: editPrevDeck } : {})};
         const ok=updateLearningInDate(editingLearningInfo.sourceDate,editingLearningInfo.id,updated);
         if(!ok){alert('Failed to update.');return}
         const src=editingLearningInfo.sourceDate;
@@ -20586,6 +20751,42 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         btnAddLearning.addEventListener('click',openAddLearningModal);
         btnOldestDue.addEventListener('click',goToOldestDue);
         if(deckFilterSelect){deckFilterSelect.addEventListener('click',e=>e.stopPropagation());deckFilterSelect.addEventListener('mousedown',e=>e.stopPropagation());deckFilterSelect.addEventListener('pointerdown',e=>e.stopPropagation());deckFilterSelect.addEventListener('change',()=>{deckFilter=deckFilterSelect.value;renderLearningsSection()});}
+        const lSearchInput = document.getElementById('learningsSearchInput');
+        const lSearchClear = document.getElementById('learningsSearchClear');
+        if(lSearchInput){
+            lSearchInput.addEventListener('click', e => e.stopPropagation());
+            lSearchInput.addEventListener('mousedown', e => e.stopPropagation());
+            lSearchInput.addEventListener('pointerdown', e => e.stopPropagation());
+            lSearchInput.addEventListener('input', () => {
+                learningsSearchQuery = lSearchInput.value;
+                if(lSearchClear){
+                    lSearchClear.style.display = lSearchInput.value.trim().length > 0 ? 'flex' : 'none';
+                }
+                renderLearningsSection();
+            });
+            lSearchInput.addEventListener('keydown', e => {
+                e.stopPropagation();
+                if(e.key === 'Escape'){
+                    lSearchInput.value = '';
+                    learningsSearchQuery = '';
+                    if(lSearchClear) lSearchClear.style.display = 'none';
+                    lSearchInput.blur();
+                    renderLearningsSection();
+                }
+            });
+        }
+        if(lSearchClear){
+            lSearchClear.addEventListener('click', e => {
+                e.stopPropagation();
+                if(lSearchInput){
+                    lSearchInput.value = '';
+                    lSearchInput.focus();
+                }
+                learningsSearchQuery = '';
+                lSearchClear.style.display = 'none';
+                renderLearningsSection();
+            });
+        }
         if(quickLearningInput){
             quickLearningInput.addEventListener('click',e=>e.stopPropagation());
             quickLearningInput.addEventListener('mousedown',e=>e.stopPropagation());
@@ -22707,8 +22908,27 @@ function renderPanchangaDetailHTML(ds) {
             if(typeof registerDeck === 'function') registerDeck(sanitized);
             if(typeof recordDeckUsage === 'function') recordDeckUsage(sanitized);
         }
+
+        // Remember previous deck
+        let currentDeck = '';
+        const curData = (typeof getData === 'function' && sDate) ? getData(sDate) : null;
+        if(curData && Array.isArray(curData.learnings)){
+            const curL = curData.learnings.find(x => x.id === learningId);
+            if(curL && curL.deck) currentDeck = String(curL.deck).trim();
+        } else if(typeof findLearningById === 'function'){
+            const found = findLearningById(learningId);
+            if(found && found.learning && found.learning.deck){
+                currentDeck = String(found.learning.deck).trim();
+            }
+        }
+
+        const updatePayload = { deck: sanitized };
+        if(currentDeck.toLowerCase() !== sanitized.toLowerCase()){
+            updatePayload.prevDeck = currentDeck;
+        }
+
         pushUndo('Switch Learning Deck');
-        const ok = updateLearningInDate(sDate, learningId, { deck: sanitized });
+        const ok = updateLearningInDate(sDate, learningId, updatePayload);
         closeDeckPickerMenu();
         if(!ok) return;
         renderLearningsSection();
@@ -22781,16 +23001,21 @@ function renderPanchangaDetailHTML(ds) {
         const sDate = sourceDate || (typeof selectedDateStr !== 'undefined' ? selectedDateStr : '');
         activeDeckSwitchTarget = { id: learningId, sourceDate: sDate };
 
-        // Find current deck of this learning
+        // Find current deck and prevDeck of this learning
         let curDeck = '';
+        let prevDeck = null;
         const data = (typeof getData === 'function' && sDate) ? getData(sDate) : null;
         if(data && Array.isArray(data.learnings)){
             const l = data.learnings.find(x => x.id === learningId);
-            if(l && l.deck) curDeck = String(l.deck).trim();
+            if(l){
+                if(l.deck) curDeck = String(l.deck).trim();
+                if(l.prevDeck !== undefined && l.prevDeck !== null) prevDeck = String(l.prevDeck).trim();
+            }
         } else if(typeof findLearningById === 'function'){
             const found = findLearningById(learningId);
-            if(found && found.learning && found.learning.deck){
-                curDeck = String(found.learning.deck).trim();
+            if(found && found.learning){
+                if(found.learning.deck) curDeck = String(found.learning.deck).trim();
+                if(found.learning.prevDeck !== undefined && found.learning.prevDeck !== null) prevDeck = String(found.learning.prevDeck).trim();
                 if(!activeDeckSwitchTarget.sourceDate && found.dateStr){
                     activeDeckSwitchTarget.sourceDate = found.dateStr;
                 }
@@ -22821,6 +23046,13 @@ function renderPanchangaDetailHTML(ds) {
         });
 
         let html = '';
+        if(prevDeck !== null && prevDeck.toLowerCase() !== curDeck.toLowerCase()){
+            html += `<div class="deck-picker-revert-row">` +
+                    `<button type="button" class="deck-picker-revert-btn" data-revert-deck="${escapeHtml(prevDeck)}" title="Switch back to previous deck: ${escapeHtml(prevDeck || 'No deck')}">` +
+                    `<span style="margin-right:4px;">&#8592;</span> <span>Switch back to <strong>${escapeHtml(prevDeck || 'No deck')}</strong></span>` +
+                    `</button>` +
+                    `</div><div class="deck-picker-divider"></div>`;
+        }
         if(sortedDecksForMenu.length === 0){
             html = '<div class="deck-picker-empty">No decks created yet</div>';
         } else {
@@ -22871,6 +23103,15 @@ function renderPanchangaDetailHTML(ds) {
                 const d = delBtn.dataset.deleteDeck;
                 if(d){
                     deleteDeck(d);
+                }
+                return;
+            }
+
+            const revBtn = (e.target && typeof e.target.closest === 'function') ? e.target.closest('.deck-picker-revert-btn') : null;
+            if(revBtn){
+                const d = revBtn.dataset.revertDeck || '';
+                if(activeDeckSwitchTarget && activeDeckSwitchTarget.id){
+                    switchLearningDeck(activeDeckSwitchTarget.id, activeDeckSwitchTarget.sourceDate, d);
                 }
                 return;
             }
@@ -22981,6 +23222,18 @@ function renderPanchangaDetailHTML(ds) {
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
+        getAllLearningsAcrossDates: typeof getAllLearningsAcrossDates === 'function' ? getAllLearningsAcrossDates : undefined,
+        getLearningsSearchQuery: () => typeof learningsSearchQuery !== 'undefined' ? learningsSearchQuery : '',
+        setLearningsSearchQuery: (q) => {
+            if(typeof learningsSearchQuery !== 'undefined'){
+                learningsSearchQuery = q;
+                const el = document.getElementById('learningsSearchInput');
+                if(el) el.value = q;
+                const clr = document.getElementById('learningsSearchClear');
+                if(clr) clr.style.display = q && q.trim().length > 0 ? 'flex' : 'none';
+                renderLearningsSection();
+            }
+        },
         deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
         clearLearningSelections: typeof clearLearningSelections === 'function' ? clearLearningSelections : undefined,
         computeSelectedLearningsDuration: typeof computeSelectedLearningsDuration === 'function' ? computeSelectedLearningsDuration : undefined,
@@ -23134,6 +23387,18 @@ function renderPanchangaDetailHTML(ds) {
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
+        getAllLearningsAcrossDates: typeof getAllLearningsAcrossDates === 'function' ? getAllLearningsAcrossDates : undefined,
+        getLearningsSearchQuery: () => typeof learningsSearchQuery !== 'undefined' ? learningsSearchQuery : '',
+        setLearningsSearchQuery: (q) => {
+            if(typeof learningsSearchQuery !== 'undefined'){
+                learningsSearchQuery = q;
+                const el = document.getElementById('learningsSearchInput');
+                if(el) el.value = q;
+                const clr = document.getElementById('learningsSearchClear');
+                if(clr) clr.style.display = q && q.trim().length > 0 ? 'flex' : 'none';
+                renderLearningsSection();
+            }
+        },
         deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
         clearLearningSelections: typeof clearLearningSelections === 'function' ? clearLearningSelections : undefined,
         computeSelectedLearningsDuration: typeof computeSelectedLearningsDuration === 'function' ? computeSelectedLearningsDuration : undefined,
