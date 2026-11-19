@@ -944,6 +944,7 @@ body{
 .learning-select-box:hover{border-color:var(--accent);transform:scale(1.12)}
 .learning-select-box.selected{background:var(--accent);border-color:var(--accent)}
 .learning-select-box.selected::after{content:'✓';color:#fff;font-size:.5rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);line-height:1}
+.learning-total-duration-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;font-size:var(--fs-xs,0.72rem);font-weight:700;color:var(--accent);background:var(--accent-light);border:1px solid var(--accent-border);border-radius:var(--r-full,9999px);line-height:1.2;white-space:nowrap;user-select:none;margin-left:2px}
 
 /* ============================================================
    11 · MODALS
@@ -8409,7 +8410,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
             setLocalKeyTimestamp('td_'+toDate,Date.now());
         }
 
-        pruneEisenItemGlobal('learning',learningId,toDate);
+        pruneEisenItemGlobal('learning',learningId,toDate); if(typeof clearLearningSelections==='function')clearLearningSelections();
 
         selectedLearningKeys.clear();
 
@@ -8747,7 +8748,7 @@ function executeEisenMoveToDate(target, keepQuadrant) {
     }
 
     // Clear selections and cache
-    if (selectedEisenIds) selectedEisenIds.clear();
+    if (selectedEisenIds) selectedEisenIds.clear(); if (typeof clearLearningSelections === 'function') clearLearningSelections();
     if (selectedEisenSourceIds) selectedEisenSourceIds.clear();
     resetEisenCaches();
     currentDataCache = null;
@@ -10038,7 +10039,7 @@ function renderHabitMiniCalendar() {
     function computeLearningDueMap(y,m){const map={};const dim=getDaysInMonth(y,m);for(let d=1;d<=dim;d++)map[formatDateStr(y,m,d)]=0;const mPre=y+'-'+String(m).padStart(2,'0')+'-';const s=new Set();const len=appStorage.length;for(let i=0;i<len;i++){const k=appStorage.key(i);if(!k||!k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX))continue;const ds=k.slice(STORAGE_PREFIX.length);if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))continue;const data=getData(ds);if(!data||!Array.isArray(data.learnings)||!data.learnings.length)continue;data.learnings.forEach(l=>{if(!l||!l.id||s.has(l.id))return;const target=l.currentDate||ds;if(target&&target.startsWith(mPre)&&!l.completed){s.add(l.id);if(map[target]!==undefined)map[target]++}})}return map}
 
     function rateLearning(id,storageDate,rating){pushUndo('Rate learning');const data=getData(storageDate);if(!data||!data.learnings)return;const idx=data.learnings.findIndex(l=>l.id===id);if(idx===-1)return;const l=data.learnings[idx];l.completed=false;const dm={'4h':0,'1d':1,'1w':7,'1mo':30};const da=dm[rating]||1;const oc=l.currentDate||getTodayStr();const nc=addDaysToDateStr(oc,da);l.currentDate=nc;if(!l.srs)l.srs={};l.srs.repetitions=(l.srs.repetitions||0)+1;l.srs.lastRating=rating;l.srs.lastReviewed=Date.now();data.learnings.splice(idx,1);const sc=data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length;if(sc)saveData(storageDate,data);else deleteData(storageDate);const td=getData(nc)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings.push(l);saveData(nc,td);pruneEisenItemGlobal('learning',id,nc);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(nc)}
-                function deferLearning(id,days,sourceDate){if(typeof flushDebounced==='function')flushDebounced();if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}pushUndo('Defer learning');let found=null;if(sourceDate){const sdData=getData(sourceDate);if(sdData&&Array.isArray(sdData.learnings)){const item=sdData.learnings.find(x=>x.id===id);if(item)found={dateStr:sourceDate,learning:item}}}if(!found)found=findLearningById(id);if(!found)return;const l=found.learning;const originDate=found.dateStr;const baseDate=(selectionMode==='daily'&&selectedDateStr)?selectedDateStr:(l.currentDate||found.dateStr||getTodayStr());let newDate=addDaysToDateStr(baseDate,days);if(days>0&&newDate<=baseDate){newDate=addDaysToDateStr(baseDate,1)}const origData=getData(originDate);if(origData&&Array.isArray(origData.learnings)){origData.learnings=origData.learnings.filter(x=>x.id!==id);const sc=origData.learnings.length>0||origData.tasks?.length||origData.notes?.trim()||origData.dayTitle?.trim()||origData.holiday||origData.attachments?.length||origData.habits?.length||origData.textCalendar?.length;if(sc)saveData(originDate,origData);else deleteData(originDate)}if(sourceDate&&sourceDate!==originDate){const sData=getData(sourceDate);if(sData&&Array.isArray(sData.learnings)){sData.learnings=sData.learnings.filter(x=>x.id!==id);const sc=sData.learnings.length>0||sData.tasks?.length||sData.notes?.trim()||sData.dayTitle?.trim()||sData.holiday||sData.attachments?.length||sData.habits?.length||sData.textCalendar?.length;if(sc)saveData(sourceDate,sData);else deleteData(sourceDate)}}for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==newDate&&ds!==originDate&&ds!==sourceDate){const otherData=getData(ds);if(otherData&&Array.isArray(otherData.learnings)&&otherData.learnings.some(x=>x.id===id)){otherData.learnings=otherData.learnings.filter(x=>x.id!==id);const sc=otherData.learnings.length>0||otherData.tasks?.length||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.habits?.length||otherData.textCalendar?.length;if(sc)saveData(ds,otherData);else deleteData(ds)}}}}const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings=td.learnings.filter(x=>x.id!==id);l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);pruneEisenItemGlobal('learning',id,newDate);selectedLearningKeys.clear();currentDataCache=null;if(selectionMode==='daily'&&selectedDateStr){const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};currentDataCache=JSON.parse(JSON.stringify(curD))}closeLearningModal();renderLearningsSection();renderCalendar();renderLearningsToolbar();if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}updateSingleCell(originDate,{pop:true});if(sourceDate&&sourceDate!==originDate)updateSingleCell(sourceDate,{pop:true});if(originDate!==newDate)updateSingleCell(newDate,{pop:true});if(eisenOverlay.classList.contains('active'))renderEisen();showSaved();if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);window.dispatchEvent(new CustomEvent('td-tasks-changed'))}
+                function deferLearning(id,days,sourceDate){if(typeof flushDebounced==='function')flushDebounced();if(debounceTimeout){clearTimeout(debounceTimeout);debounceTimeout=null}pushUndo('Defer learning');let found=null;if(sourceDate){const sdData=getData(sourceDate);if(sdData&&Array.isArray(sdData.learnings)){const item=sdData.learnings.find(x=>x.id===id);if(item)found={dateStr:sourceDate,learning:item}}}if(!found)found=findLearningById(id);if(!found)return;const l=found.learning;const originDate=found.dateStr;const baseDate=(selectionMode==='daily'&&selectedDateStr)?selectedDateStr:(l.currentDate||found.dateStr||getTodayStr());let newDate=addDaysToDateStr(baseDate,days);if(days>0&&newDate<=baseDate){newDate=addDaysToDateStr(baseDate,1)}const origData=getData(originDate);if(origData&&Array.isArray(origData.learnings)){origData.learnings=origData.learnings.filter(x=>x.id!==id);const sc=origData.learnings.length>0||origData.tasks?.length||origData.notes?.trim()||origData.dayTitle?.trim()||origData.holiday||origData.attachments?.length||origData.habits?.length||origData.textCalendar?.length;if(sc)saveData(originDate,origData);else deleteData(originDate)}if(sourceDate&&sourceDate!==originDate){const sData=getData(sourceDate);if(sData&&Array.isArray(sData.learnings)){sData.learnings=sData.learnings.filter(x=>x.id!==id);const sc=sData.learnings.length>0||sData.tasks?.length||sData.notes?.trim()||sData.dayTitle?.trim()||sData.holiday||sData.attachments?.length||sData.habits?.length||sData.textCalendar?.length;if(sc)saveData(sourceDate,sData);else deleteData(sourceDate)}}for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&k.startsWith(STORAGE_PREFIX)&&!k.startsWith(WEEK_PREFIX)){const ds=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(ds)&&ds!==newDate&&ds!==originDate&&ds!==sourceDate){const otherData=getData(ds);if(otherData&&Array.isArray(otherData.learnings)&&otherData.learnings.some(x=>x.id===id)){otherData.learnings=otherData.learnings.filter(x=>x.id!==id);const sc=otherData.learnings.length>0||otherData.tasks?.length||otherData.notes?.trim()||otherData.dayTitle?.trim()||otherData.holiday||otherData.attachments?.length||otherData.habits?.length||otherData.textCalendar?.length;if(sc)saveData(ds,otherData);else deleteData(ds)}}}}const td=getData(newDate)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};td.learnings=td.learnings||[];td.learnings=td.learnings.filter(x=>x.id!==id);l.currentDate=newDate;td.learnings.push(l);saveData(newDate,td);pruneEisenItemGlobal('learning',id,newDate);if(typeof clearLearningSelections==='function')clearLearningSelections();else selectedLearningKeys.clear();currentDataCache=null;if(selectionMode==='daily'&&selectedDateStr){const curD=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};currentDataCache=JSON.parse(JSON.stringify(curD))}closeLearningModal();renderLearningsSection();renderCalendar();renderLearningsToolbar();if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}updateSingleCell(originDate,{pop:true});if(sourceDate&&sourceDate!==originDate)updateSingleCell(sourceDate,{pop:true});if(originDate!==newDate)updateSingleCell(newDate,{pop:true});if(eisenOverlay.classList.contains('active'))renderEisen();showSaved();if(typeof scheduleCloudPush==='function')scheduleCloudPush(100);window.dispatchEvent(new CustomEvent('td-tasks-changed'))}
     function markLearningDone(id,storageDate){pushUndo('Mark learning done');const data=getData(storageDate);if(!data||!data.learnings)return;const l=data.learnings.find(x=>x.id===id);if(!l)return;l.completed=true;l.completedAt=Date.now();saveData(storageDate,data);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(storageDate);if(eisenOverlay.classList.contains('active'))renderEisen()}
     function deleteLearning(id,storageDate){pushUndo('Delete learning');const data=getData(storageDate);if(!data||!data.learnings)return;data.learnings=data.learnings.filter(l=>l.id!==id);if(data.learnings.length>0||data.tasks?.length||data.notes?.trim()||data.dayTitle?.trim()||data.holiday||data.attachments?.length||data.habits?.length||data.textCalendar?.length)saveData(storageDate,data);else deleteData(storageDate);pruneEisenItemGlobal('learning',id,null);renderLearningsSection();renderCalendar();refreshDetailAfterLearningChange(storageDate)}
     function refreshDetailAfterLearningChange(s){if(selectionMode==='daily'&&selectedDateStr){const d=getData(selectedDateStr)||{tasks:[],notes:'',dayTitle:'',holiday:false,attachments:[],learnings:[],habits:[]};updateDetailPanel(d,selectedDateStr)}else if(selectionMode==='weekly'&&selectedWeekId){const d=getWeekData(selectedWeekId)||{tasks:[],notes:''};updateDetailPanelWeek(d,selectedWeekId)}}
@@ -10437,6 +10438,53 @@ function renderHabitMiniCalendar() {
         }
     }
 
+        function clearLearningSelections(){
+        selectedLearningKeys.clear();
+        document.querySelectorAll('.learning-tile.selected').forEach(el=>el.classList.remove('selected'));
+        document.querySelectorAll('.learning-select-box.selected').forEach(el=>el.classList.remove('selected'));
+        renderLearningsToolbar();
+    }
+
+    function getSelectedLearningDuration(id, sourceDate){
+        let l = null;
+        if(sourceDate){
+            const d = getData(sourceDate);
+            if(d && Array.isArray(d.learnings)){
+                l = d.learnings.find(x => x.id === id);
+            }
+        }
+        if(!l){
+            const found = findLearningById(id);
+            if(found) l = found.learning;
+        }
+        if(l && l.duration !== null && l.duration !== undefined && !isNaN(l.duration)){
+            const num = Number(l.duration);
+            if(num > 0) return num;
+        }
+        return 0;
+    }
+
+    function computeSelectedLearningsDuration(keys){
+        let total = 0;
+        (keys || []).forEach(k => {
+            const idx = k.lastIndexOf('|');
+            if(idx > -1){
+                total += getSelectedLearningDuration(k.slice(0, idx), k.slice(idx + 1));
+            }
+        });
+        return total;
+    }
+
+    function formatLearningTotalDuration(mins){
+        if(!mins || isNaN(mins) || mins <= 0) return '0 min';
+        const m = Math.round(mins);
+        const hours = Math.floor(m / 60);
+        const rem = m % 60;
+        if(hours > 0 && rem > 0) return `${hours}h ${rem}m`;
+        if(hours > 0) return `${hours}h`;
+        return `${rem} min`;
+    }
+
     function renderLearningsToolbar(){
         const keys=Array.from(selectedLearningKeys);
 
@@ -10461,6 +10509,9 @@ function renderHabitMiniCalendar() {
         if(keys.length>1){
             const allTiles=document.querySelectorAll('.learning-tile:not(.completed) .learning-select-box[data-select-learning]');
             const allSelected=allTiles.length>0&&keys.length>=allTiles.length;
+                        const totalDur=computeSelectedLearningsDuration(keys);
+            const durText=formatLearningTotalDuration(totalDur);
+            const durBadgeHtml=`<span class="learning-total-duration-badge" id="ltTotalDuration" title="Total duration of all selected learnings combined: ${totalDur} min">&#9201; ${durText}</span>`;
             learningsToolbarTitle.textContent=keys.length+' learnings selected';
             learningsToolbarTitle.classList.remove('empty');
             learningsToolbarActions.innerHTML=`
@@ -10473,7 +10524,7 @@ function renderHabitMiniCalendar() {
                     <button class="task-defer-btn" data-lt="bulk-defer" data-days="30">+1m</button>
                 </div>
                 <button class="task-toolbar-btn danger" data-lt="bulk-delete">🗑 Delete</button>
-                <button class="task-toolbar-btn" data-lt="bulk-clear">✕ Clear</button>
+                <button class="task-toolbar-btn" data-lt="bulk-clear">✕ Clear</button>` + durBadgeHtml + `
             `;
             return;
         }
@@ -10487,6 +10538,9 @@ function renderHabitMiniCalendar() {
         const l=found.learning;
         const srs=srsStatus(l);
         const txt=String(l.title||'Learning').slice(0,60);
+                const totalDur=computeSelectedLearningsDuration(keys);
+        const durText=formatLearningTotalDuration(totalDur);
+        const durBadgeHtml=`<span class="learning-total-duration-badge" id="ltTotalDuration" title="Total duration of all selected learnings combined: ${totalDur} min">&#9201; ${durText}</span>`;
         learningsToolbarTitle.textContent=txt||'Learning';
         learningsToolbarTitle.classList.remove('empty');
 
@@ -10513,6 +10567,7 @@ function renderHabitMiniCalendar() {
             <button class="task-toolbar-btn" data-lt="edit">&#9998; Edit</button>
             ${!l.completed?`<button class="task-toolbar-btn success" data-lt="done">&#10003; Done</button>`:''}
             <button class="task-toolbar-btn danger" data-lt="delete">&#128465; Delete</button>
+                    <button class="task-toolbar-btn" data-lt="bulk-clear">✕ Clear</button>` + durBadgeHtml + `
         `;
     }
 
@@ -20770,8 +20825,32 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
                 const sourceDate=payload.sourceDate;
                 if(!targetDate||targetDate===sourceDate)return;
                 pushUndo('Move learning to '+getShortDate(targetDate));
-                const ok=moveLearningBetweenDates(payload.learningId,sourceDate,targetDate);
-                if(ok)showToast('\uD83D\uDCDA Learning moved to '+getShortDate(targetDate));
+                const payloadKey=payload.learningId+'|'+(sourceDate||'');
+                if(selectedLearningKeys.size>0&&selectedLearningKeys.has(payloadKey)){
+                    const ops=Array.from(selectedLearningKeys);
+                    if(typeof clearLearningSelections==='function')clearLearningSelections();else selectedLearningKeys.clear();
+                    let anyMoved=false;
+                    ops.forEach(k=>{
+                        const i=k.lastIndexOf('|');
+                        if(i>-1){
+                            const lid=k.slice(0,i);
+                            const lsrc=k.slice(i+1);
+                            if(moveLearningBetweenDates(lid,lsrc,targetDate,{silent:true}))anyMoved=true;
+                        }
+                    });
+                    if(typeof clearLearningSelections==='function')clearLearningSelections();
+                    if(anyMoved){
+                        renderCalendar();
+                        renderLearningsSection();
+                        renderLearningsToolbar();
+                        showToast(`\uD83D\uDCDA ${ops.length} learning(s) moved to ${getShortDate(targetDate)}`);
+                    }
+                }else{
+                    if(typeof clearLearningSelections==='function')clearLearningSelections();
+                    const ok=moveLearningBetweenDates(payload.learningId,sourceDate,targetDate);
+                    if(typeof clearLearningSelections==='function')clearLearningSelections();
+                    if(ok)showToast('\uD83D\uDCDA Learning moved to '+getShortDate(targetDate));
+                }
             }
         });
 
@@ -20840,24 +20919,23 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(kind==='bulk-defer'){const m=parseInt(document.getElementById('learningBulkDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;
                 if(isNaN(days))return;
                 const ops=keys.slice();
-                selectedLearningKeys.clear();
+                if(typeof clearLearningSelections==='function')clearLearningSelections();else selectedLearningKeys.clear();
                 ops.forEach(k=>{const i=k.lastIndexOf('|');if(i>-1)deferLearning(k.slice(0,i),days,k.slice(i+1))});
+                if(typeof clearLearningSelections==='function')clearLearningSelections();
                 renderLearningsSection();
                 return;
             }
             if(kind==='bulk-delete'){
                 if(!confirm(`Delete ${keys.length} learning(s)?`))return;
                 const ops=keys.slice();
-                selectedLearningKeys.clear();
+                if(typeof clearLearningSelections==='function')clearLearningSelections();else selectedLearningKeys.clear();
                 ops.forEach(k=>{const i=k.lastIndexOf('|');if(i>-1)deleteLearning(k.slice(0,i),k.slice(i+1))});
+                if(typeof clearLearningSelections==='function')clearLearningSelections();
                 renderLearningsSection();
                 return;
             }
             if(kind==='bulk-clear'){
-                selectedLearningKeys.clear();
-                document.querySelectorAll('.learning-tile.selected').forEach(el=>el.classList.remove('selected'));
-                document.querySelectorAll('.learning-select-box.selected').forEach(el=>el.classList.remove('selected'));
-                renderLearningsToolbar();
+                if(typeof clearLearningSelections==='function')clearLearningSelections();else{selectedLearningKeys.clear();document.querySelectorAll('.learning-tile.selected').forEach(el=>el.classList.remove('selected'));document.querySelectorAll('.learning-select-box.selected').forEach(el=>el.classList.remove('selected'));renderLearningsToolbar();}
                 return;
             }
 
@@ -20869,7 +20947,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(kind==='vote-up'){voteLearning(id,source,1);return}
             if(kind==='vote-down'){voteLearning(id,source,-1);return}
             // rate feature removed
-            if(kind==='defer'){const m=parseInt(document.getElementById('learningSingleDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;if(!isNaN(days))deferLearning(id,days,source);return}
+            if(kind==='defer'){const m=parseInt(document.getElementById('learningSingleDeferMult')?.value||currentLearningDeferMult||1,10)||1;currentLearningDeferMult=m;const days=parseInt(btn.dataset.days,10)*m;if(!isNaN(days)){deferLearning(id,days,source);if(typeof clearLearningSelections==='function')clearLearningSelections();}return}
             if(kind==='done'){markLearningDone(id,source);return}
             if(kind==='delete'){if(confirm('Delete this learning?'))deleteLearning(id,source);return}
             if(kind==='edit'){openEditLearningModal(id,source);return}
@@ -20896,6 +20974,12 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
             if(isNaN(p) || p <= 0) l.duration = null;
             else l.duration = p;
             saveData(found.dateStr, data);
+            const totalDurBadge = document.getElementById('ltTotalDuration');
+            if(totalDurBadge && typeof computeSelectedLearningsDuration === 'function' && typeof formatLearningTotalDuration === 'function'){
+                const curMins = computeSelectedLearningsDuration(Array.from(selectedLearningKeys));
+                totalDurBadge.innerHTML = `&#9201; ${formatLearningTotalDuration(curMins)}`;
+                totalDurBadge.title = `Total duration of all selected learnings combined: ${curMins} min`;
+            }
             if(!noRender){
                 renderLearningsSection();
                 refreshDetailAfterLearningChange(found.dateStr);
@@ -22825,6 +22909,9 @@ function renderPanchangaDetailHTML(ds) {
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
         deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
+        clearLearningSelections: typeof clearLearningSelections === 'function' ? clearLearningSelections : undefined,
+        computeSelectedLearningsDuration: typeof computeSelectedLearningsDuration === 'function' ? computeSelectedLearningsDuration : undefined,
+        formatLearningTotalDuration: typeof formatLearningTotalDuration === 'function' ? formatLearningTotalDuration : undefined,
         renderEisen,
         selectDate,
         selectWeek,
@@ -22972,6 +23059,9 @@ function renderPanchangaDetailHTML(ds) {
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
         deleteDeck: typeof deleteDeck === 'function' ? deleteDeck : undefined,
+        clearLearningSelections: typeof clearLearningSelections === 'function' ? clearLearningSelections : undefined,
+        computeSelectedLearningsDuration: typeof computeSelectedLearningsDuration === 'function' ? computeSelectedLearningsDuration : undefined,
+        formatLearningTotalDuration: typeof formatLearningTotalDuration === 'function' ? formatLearningTotalDuration : undefined,
         renderEisen,
         selectDate,
         selectWeek,
