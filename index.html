@@ -8448,6 +8448,7 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     }
 
     const DECKS_KEY = 'td_decks';
+    const DECK_USAGE_KEY = 'td_deck_usage';
 
     function getRegisteredDecks(){
         try {
@@ -8488,6 +8489,47 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
             current.push(trimmed);
             saveRegisteredDecks(current);
         }
+    }
+
+    function getDeckUsageMap(){
+        try {
+            const raw = appStorage.getItem(DECK_USAGE_KEY) || (typeof localStorage !== 'undefined' ? localStorage.getItem(DECK_USAGE_KEY) : null);
+            if(raw){
+                const parsed = JSON.parse(raw);
+                if(parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+            }
+        } catch(e){}
+        return {};
+    }
+
+    function saveDeckUsageMap(map){
+        try {
+            const json = JSON.stringify(map || {});
+            appStorage.setItem(DECK_USAGE_KEY, json);
+            if(typeof localStorage !== 'undefined') localStorage.setItem(DECK_USAGE_KEY, json);
+        } catch(e){}
+    }
+
+    function recordDeckUsage(deckName){
+        if(!deckName || typeof deckName !== 'string') return;
+        const trimmed = deckName.trim();
+        if(!trimmed) return;
+        try {
+            const map = getDeckUsageMap();
+            map[trimmed.toLowerCase()] = Date.now();
+            saveDeckUsageMap(map);
+        } catch(e){}
+    }
+
+    function removeDeckUsage(deckName){
+        if(!deckName || typeof deckName !== 'string') return;
+        const trimmed = deckName.trim();
+        if(!trimmed) return;
+        try {
+            const map = getDeckUsageMap();
+            delete map[trimmed.toLowerCase()];
+            saveDeckUsageMap(map);
+        } catch(e){}
     }
 
     function getAllDecks(){
@@ -10072,8 +10114,22 @@ function renderHabitMiniCalendar() {
         });
 
         if(deckFilterSelect){
+            // Dynamic sorting of decks in filter dropdown based on number of learnings in the deck descending
+            const usageMap = (typeof getDeckUsageMap === 'function') ? getDeckUsageMap() : {};
+            const sortedDecksForFilter = allDecks.slice().sort((a, b) => {
+                const cntA = deckCounts[a] || 0;
+                const cntB = deckCounts[b] || 0;
+                if(cntB !== cntA) return cntB - cntA; // Higher count first
+                // Secondary sort: recent usage if counts are equal
+                const timeA = usageMap[a.toLowerCase()] || 0;
+                const timeB = usageMap[b.toLowerCase()] || 0;
+                if(timeB !== timeA) return timeB - timeA;
+                // Tertiary sort: alphabetical
+                return a.localeCompare(b);
+            });
+
             let opts=`<option value="">📚 All decks (${baseLearnings.length})</option>`;
-            allDecks.forEach(d=>{
+            sortedDecksForFilter.forEach(d=>{
                 const cnt = deckCounts[d] || 0;
                 opts+=`<option value="${escapeHtml(d)}"${d===deckFilter?' selected':''}>📚 ${escapeHtml(d)} (${cnt})</option>`;
             });
@@ -10748,7 +10804,7 @@ function renderHabitMiniCalendar() {
         const duration=(durVal&&!isNaN(durVal)&&Number(durVal)>0)?Number(durVal):null;
         const content=document.getElementById('learningFormContent')?.value?.trim()||'';
         if(!title&&!content){alert('Please enter a title or content.');return}
-        if(deck && typeof registerDeck === 'function') registerDeck(deck);
+        if(deck){ if(typeof registerDeck === 'function') registerDeck(deck); if(typeof recordDeckUsage === 'function') recordDeckUsage(deck); }
         pushUndo('Add learning');
         rememberLearningType(type);
         const l={id:generateLearningId(),type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',duration,votes:0,createdAt:Date.now(),deck};
@@ -10771,7 +10827,7 @@ function renderHabitMiniCalendar() {
         const duration=(durVal&&!isNaN(durVal)&&Number(durVal)>0)?Number(durVal):null;
         const content=document.getElementById('learningFormContent')?.value?.trim()||'';
         if(!title&&!content){alert('Please enter a title or content.');return}
-        if(deck && typeof registerDeck === 'function') registerDeck(deck);
+        if(deck){ if(typeof registerDeck === 'function') registerDeck(deck); if(typeof recordDeckUsage === 'function') recordDeckUsage(deck); }
         pushUndo('Edit learning');
         rememberLearningType(type);
         const updated={type,title:title||(type==='text'?'Note':type==='youtube'?'YouTube':type==='link'?'Link':'File'),content:type==='file'?'':content,filePath:type==='file'?content:'',deck,duration};
@@ -20114,8 +20170,8 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         initGenericCollapsibles();
     }
 
-    function exportJSON(){flushDebounced();const eo={version:1,exportType:'todo-complete',exportedAt:new Date().toISOString(),entries:{},weeks:{},decks:(typeof getRegisteredDecks==='function'?getRegisteredDecks():[])};for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k)continue;if(k.startsWith(WEEK_PREFIX)){const w=k.slice(WEEK_PREFIX.length);try{eo.weeks[w]=JSON.parse(appStorage.getItem(k))}catch(e){}}else if(k.startsWith(STORAGE_PREFIX)){const d=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(d)){try{eo.entries[d]=JSON.parse(appStorage.getItem(k))}catch(e){}}}}const b=new Blob([JSON.stringify(eo,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`todo-planner-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
-    function importJSON(file){if(!file)return;const r=new FileReader();r.onerror=()=>alert('Failed to read file.');r.onload=e=>{let o;try{o=JSON.parse(e.target.result)}catch(err){alert('Invalid JSON file.');return}if(!o||typeof o!=='object')return;if(Array.isArray(o.decks)&&typeof saveRegisteredDecks==='function')saveRegisteredDecks(o.decks);const en=o.entries||{},we=o.weeks||{};const ve={},vw={};Object.entries(en).forEach(([ds,d])=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!d||typeof d!=='object')return;ve[ds]={tasks:Array.isArray(d.tasks)?d.tasks:[],notes:d.notes||'',dayTitle:typeof d.dayTitle==='string'?d.dayTitle:'',holiday:d.holiday===true,attachments:Array.isArray(d.attachments)?d.attachments.map(a=>typeof a==='string'?a:(a?.name||'')):[],learnings:Array.isArray(d.learnings)?d.learnings:[],habits:Array.isArray(d.habits)?d.habits:[],textCalendar:Array.isArray(d.textCalendar)?d.textCalendar.filter(x=>typeof x==='string'):[]}});Object.entries(we).forEach(([w,d])=>{if(!/^\d{4}-\d{2}-W\d+$/.test(w)||!d||typeof d!=='object')return;vw[w]={tasks:Array.isArray(d.tasks)?d.tasks:[],notes:d.notes||''}});const t=Object.keys(ve).length+Object.keys(vw).length;if(!t){alert('No valid data found.');return}const c=prompt(`Found ${t} items. Type "merge" or "replace".`,'merge');if(!c)return;const mode=c.trim().toLowerCase();if(mode!=='merge'&&mode!=='replace'){alert('Cancelled.');return}let im={entries:0,weeks:0,skipped:0};try{if(mode==='replace'){const tr=[];for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)))tr.push(k)}tr.forEach(k=>appStorage.removeItem(k))}Object.entries(ve).forEach(([ds,d])=>{if(mode==='merge'&&appStorage.getItem(getStorageKey(ds))){im.skipped++;return}appStorage.setItem(getStorageKey(ds),JSON.stringify(d));im.entries++});Object.entries(vw).forEach(([w,d])=>{if(mode==='merge'&&appStorage.getItem(getWeekKey(w))){im.skipped++;return}appStorage.setItem(getWeekKey(w),JSON.stringify(d));im.weeks++})}catch(err){alert('Import error: '+err.message)}renderCalendar();renderLearningsSection();if(selectionMode==='daily'&&selectedDateStr)updateDetailPanel(getData(selectedDateStr),selectedDateStr);else if(selectionMode==='weekly'&&selectedWeekId)updateDetailPanelWeek(getWeekData(selectedWeekId),selectedWeekId);alert(`✓ Import complete.\nDaily: ${im.entries}\nWeekly: ${im.weeks}`)};r.readAsText(file)}
+    function exportJSON(){flushDebounced();const eo={version:1,exportType:'todo-complete',exportedAt:new Date().toISOString(),entries:{},weeks:{},decks:(typeof getRegisteredDecks==='function'?getRegisteredDecks():[]),deckUsage:(typeof getDeckUsageMap==='function'?getDeckUsageMap():{})};for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(!k)continue;if(k.startsWith(WEEK_PREFIX)){const w=k.slice(WEEK_PREFIX.length);try{eo.weeks[w]=JSON.parse(appStorage.getItem(k))}catch(e){}}else if(k.startsWith(STORAGE_PREFIX)){const d=k.slice(STORAGE_PREFIX.length);if(/^\d{4}-\d{2}-\d{2}$/.test(d)){try{eo.entries[d]=JSON.parse(appStorage.getItem(k))}catch(e){}}}}const b=new Blob([JSON.stringify(eo,null,2)],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`todo-planner-${new Date().toISOString().slice(0,10)}.json`;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u)}
+    function importJSON(file){if(!file)return;const r=new FileReader();r.onerror=()=>alert('Failed to read file.');r.onload=e=>{let o;try{o=JSON.parse(e.target.result)}catch(err){alert('Invalid JSON file.');return}if(!o||typeof o!=='object')return;if(Array.isArray(o.decks)&&typeof saveRegisteredDecks==='function')saveRegisteredDecks(o.decks);if(o.deckUsage&&typeof saveDeckUsageMap==='function')saveDeckUsageMap(o.deckUsage);const en=o.entries||{},we=o.weeks||{};const ve={},vw={};Object.entries(en).forEach(([ds,d])=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(ds)||!d||typeof d!=='object')return;ve[ds]={tasks:Array.isArray(d.tasks)?d.tasks:[],notes:d.notes||'',dayTitle:typeof d.dayTitle==='string'?d.dayTitle:'',holiday:d.holiday===true,attachments:Array.isArray(d.attachments)?d.attachments.map(a=>typeof a==='string'?a:(a?.name||'')):[],learnings:Array.isArray(d.learnings)?d.learnings:[],habits:Array.isArray(d.habits)?d.habits:[],textCalendar:Array.isArray(d.textCalendar)?d.textCalendar.filter(x=>typeof x==='string'):[]}});Object.entries(we).forEach(([w,d])=>{if(!/^\d{4}-\d{2}-W\d+$/.test(w)||!d||typeof d!=='object')return;vw[w]={tasks:Array.isArray(d.tasks)?d.tasks:[],notes:d.notes||''}});const t=Object.keys(ve).length+Object.keys(vw).length;if(!t){alert('No valid data found.');return}const c=prompt(`Found ${t} items. Type "merge" or "replace".`,'merge');if(!c)return;const mode=c.trim().toLowerCase();if(mode!=='merge'&&mode!=='replace'){alert('Cancelled.');return}let im={entries:0,weeks:0,skipped:0};try{if(mode==='replace'){const tr=[];for(let i=0;i<appStorage.length;i++){const k=appStorage.key(i);if(k&&(k.startsWith(STORAGE_PREFIX)||k.startsWith(WEEK_PREFIX)))tr.push(k)}tr.forEach(k=>appStorage.removeItem(k))}Object.entries(ve).forEach(([ds,d])=>{if(mode==='merge'&&appStorage.getItem(getStorageKey(ds))){im.skipped++;return}appStorage.setItem(getStorageKey(ds),JSON.stringify(d));im.entries++});Object.entries(vw).forEach(([w,d])=>{if(mode==='merge'&&appStorage.getItem(getWeekKey(w))){im.skipped++;return}appStorage.setItem(getWeekKey(w),JSON.stringify(d));im.weeks++})}catch(err){alert('Import error: '+err.message)}renderCalendar();renderLearningsSection();if(selectionMode==='daily'&&selectedDateStr)updateDetailPanel(getData(selectedDateStr),selectedDateStr);else if(selectionMode==='weekly'&&selectedWeekId)updateDetailPanelWeek(getWeekData(selectedWeekId),selectedWeekId);alert(`✓ Import complete.\nDaily: ${im.entries}\nWeekly: ${im.weeks}`)};r.readAsText(file)}
     async function exportPDF(){flushDebounced();const b=document.getElementById('btnExportPdf');const oh=b.innerHTML;b.style.pointerEvents='none';b.innerHTML='...';try{const el=document.querySelector('.app-container');const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--bg')});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:canvas.width>canvas.height?'landscape':'portrait',unit:'px',format:[canvas.width,canvas.height]});pdf.addImage(img,'PNG',0,0,canvas.width,canvas.height);pdf.save(`todo-planner-${new Date().toISOString().slice(0,10)}.pdf`)}catch(e){alert('PDF export failed.')}finally{b.style.pointerEvents='auto';b.innerHTML=oh}}
 
     function init(){
@@ -22647,8 +22703,9 @@ function renderPanchangaDetailHTML(ds) {
             }
         }
         const sanitized = (targetDeck && typeof targetDeck === 'string') ? targetDeck.trim() : '';
-        if(sanitized && typeof registerDeck === 'function'){
-            registerDeck(sanitized);
+        if(sanitized){
+            if(typeof registerDeck === 'function') registerDeck(sanitized);
+            if(typeof recordDeckUsage === 'function') recordDeckUsage(sanitized);
         }
         pushUndo('Switch Learning Deck');
         const ok = updateLearningInDate(sDate, learningId, { deck: sanitized });
@@ -22675,6 +22732,9 @@ function renderPanchangaDetailHTML(ds) {
             const current = getRegisteredDecks();
             const filtered = current.filter(d => d.toLowerCase() !== sanitized.toLowerCase());
             saveRegisteredDecks(filtered);
+        }
+        if(typeof removeDeckUsage === 'function'){
+            removeDeckUsage(sanitized);
         }
 
         for(let i=0; i<appStorage.length; i++){
@@ -22739,6 +22799,15 @@ function renderPanchangaDetailHTML(ds) {
 
         // Get all decks in storage
         const allDecks = typeof getAllDecks === 'function' ? getAllDecks() : [];
+        const usageMap = typeof getDeckUsageMap === 'function' ? getDeckUsageMap() : {};
+
+        // Sort decks dynamically based on recent deck usage (MRU), secondary alphabetical
+        const sortedDecksForMenu = allDecks.slice().sort((a, b) => {
+            const timeA = usageMap[a.toLowerCase()] || 0;
+            const timeB = usageMap[b.toLowerCase()] || 0;
+            if(timeB !== timeA) return timeB - timeA;
+            return a.localeCompare(b);
+        });
 
         // Count learnings due for that date per deck
         const dayLearnings = (typeof getData === 'function' && sDate) ? ((getData(sDate) && getData(sDate).learnings) || []) : [];
@@ -22752,10 +22821,10 @@ function renderPanchangaDetailHTML(ds) {
         });
 
         let html = '';
-        if(allDecks.length === 0){
+        if(sortedDecksForMenu.length === 0){
             html = '<div class="deck-picker-empty">No decks created yet</div>';
         } else {
-            allDecks.forEach(d => {
+            sortedDecksForMenu.forEach(d => {
                 const isCur = (d.toLowerCase() === curDeck.toLowerCase());
                 const cnt = dayDeckCounts[d] || 0;
                 html += `<div class="deck-picker-item-row">` +
@@ -22821,6 +22890,7 @@ function renderPanchangaDetailHTML(ds) {
                 if(entered !== null && entered.trim() !== ''){
                     const dName = entered.trim();
                     if(typeof registerDeck === 'function') registerDeck(dName);
+                    if(typeof recordDeckUsage === 'function') recordDeckUsage(dName);
                     if(activeDeckSwitchTarget && activeDeckSwitchTarget.id){
                         switchLearningDeck(activeDeckSwitchTarget.id, activeDeckSwitchTarget.sourceDate, dName);
                     } else {
@@ -22905,6 +22975,9 @@ function renderPanchangaDetailHTML(ds) {
         getAllDecks: typeof getAllDecks === 'function' ? getAllDecks : undefined,
         registerDeck: typeof registerDeck === 'function' ? registerDeck : undefined,
         getRegisteredDecks: typeof getRegisteredDecks === 'function' ? getRegisteredDecks : undefined,
+        getDeckUsageMap: typeof getDeckUsageMap === 'function' ? getDeckUsageMap : undefined,
+        recordDeckUsage: typeof recordDeckUsage === 'function' ? recordDeckUsage : undefined,
+        removeDeckUsage: typeof removeDeckUsage === 'function' ? removeDeckUsage : undefined,
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
@@ -23055,6 +23128,9 @@ function renderPanchangaDetailHTML(ds) {
         getAllDecks: typeof getAllDecks === 'function' ? getAllDecks : undefined,
         registerDeck: typeof registerDeck === 'function' ? registerDeck : undefined,
         getRegisteredDecks: typeof getRegisteredDecks === 'function' ? getRegisteredDecks : undefined,
+        getDeckUsageMap: typeof getDeckUsageMap === 'function' ? getDeckUsageMap : undefined,
+        recordDeckUsage: typeof recordDeckUsage === 'function' ? recordDeckUsage : undefined,
+        removeDeckUsage: typeof removeDeckUsage === 'function' ? removeDeckUsage : undefined,
         openDeckPickerMenu: typeof openDeckPickerMenu === 'function' ? openDeckPickerMenu : undefined,
         closeDeckPickerMenu: typeof closeDeckPickerMenu === 'function' ? closeDeckPickerMenu : undefined,
         switchLearningDeck: typeof switchLearningDeck === 'function' ? switchLearningDeck : undefined,
