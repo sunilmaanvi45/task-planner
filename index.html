@@ -7663,10 +7663,10 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     const DEFAULT_QUAD_LABELS={do_now:'Do it now',do_later:'Do it later',delegate:'Delegate',delete:'Delete'};
     const DEFAULT_SUB_LABELS=['My court','Others court','On-going','Ending'];
     const EISEN_MIME='application/x-eisen-item';
-    const EISEN_TAGS=['nothing','learn','whatsapp','call','email','say','visit','work','check','meeting','escalate'];
+    const EISEN_TAGS=['nothing','whatsapp','call','email','say','visit','work','check','meeting','escalate'];
     const DEFAULT_TAG='nothing';
-    const TAG_META={nothing:{icon:'⚪',label:'Nothing'},learn:{icon:'📚',label:'Learn'},whatsapp:{icon:'💬',label:'WhatsApp'},call:{icon:'📞',label:'Call'},email:{icon:'✉️',label:'Email'},say:{icon:'🗣️',label:'Say'},visit:{icon:'📍',label:'Visit'},work:{icon:'💼',label:'Work'},check:{icon:'✅',label:'Check'},meeting:{icon:'📅',label:'Meeting'},escalate:{icon:'🚨',label:'Escalate'}};
-    const TAG_RANK={work:10,check:9,meeting:8,visit:7,escalate:6,email:5,call:4,whatsapp:3,say:2,learn:1,nothing:0};
+    const TAG_META={nothing:{icon:'⚪',label:'Nothing'},whatsapp:{icon:'💬',label:'WhatsApp'},call:{icon:'📞',label:'Call'},email:{icon:'✉️',label:'Email'},say:{icon:'🗣️',label:'Say'},visit:{icon:'📍',label:'Visit'},work:{icon:'💼',label:'Work'},check:{icon:'✅',label:'Check'},meeting:{icon:'📅',label:'Meeting'},escalate:{icon:'🚨',label:'Escalate'}};
+    const TAG_RANK={work:10,check:9,meeting:8,visit:7,escalate:6,email:5,call:4,whatsapp:3,say:2,nothing:0};
     let eisenDateStr=null,eisenView='main',eisenDragPayload=null,eisenSortTimeout=null,eisenTagEditingIds=new Set();
     let eisenTagFilter=new Set(['work']),eisenSubFilter=new Set(['0']),eisenShowCompleted=false;
     let eisenDefaultsMode=true;
@@ -10342,7 +10342,7 @@ function renderHabitMiniCalendar() {
         const durBadge=(l.duration&&!isNaN(l.duration)&&Number(l.duration)>0)?`<span class="task-meta-pill" title="Duration: ${l.duration}m">&#9201; ${l.duration}m</span>`:'';
         const previewHTML=(l.type==='text'||!l.type)?renderInlineMarkdown(tp):escapeHtml(tp);
         const titleHTML=renderInlineMarkdown(title);
-        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar or Eisenhower Matrix">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBtn}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
+        return `<div class="learning-tile${ic?' completed':''}${ac}${is?' selected':''}" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}"><div class="learning-select-box${is?' selected':''}" data-select-learning="${l.id}" data-select-source="${l._sourceDate}"></div><div class="learning-tile-drag" draggable="true" data-id="${l.id}" data-source="${l._sourceDate}" title="Drag into Calendar">&#10255;</div><div class="learning-tile-top"><span class="learning-type-icon">${getTypeIcon(l.type)}</span><span class="learning-tile-title">${titleHTML}</span></div><div class="learning-tile-preview">${previewHTML}</div><div class="learning-tile-bottom"><span class="srs-badge srs-${s.status}">${s.label}</span><div class="learning-tile-actions">${deckBtn}${durBadge}${v>0?`<span class="task-meta-pill" title="Votes">&#9650; ${v}</span>`:''}</div></div></div>`;
     }function handleLearningsGridClick(e){
         const rb=e.target.closest('.learning-deck-revert-btn');
         if(rb){
@@ -10383,11 +10383,11 @@ function renderHabitMiniCalendar() {
         if(!f)return;
         const l=f.learning;
         const srcDate=l._sourceDate||f.dateStr||(selectionMode==='daily'?selectedDateStr:null);
-        const eisenPayload={item:{id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type},origin:'external',quadKey:null,cellIdx:null};
-        eisenDragPayload=eisenPayload;
+        // eisenPayload omitted - learnings excluded from matrix
+        eisenDragPayload=null;
         const learnPayload={learningId:l.id,sourceDate:srcDate};
         try{
-            e.dataTransfer.setData(EISEN_MIME,JSON.stringify(eisenPayload));
+            
             e.dataTransfer.setData(LEARNING_MIME,JSON.stringify(learnPayload));
             e.dataTransfer.setData('text/plain',l.title||(getPreviewContent(l)||''));
         }catch(err){}
@@ -17566,12 +17566,22 @@ function deleteTask(id){
                         items.push({id:'task_'+t.id,kind:'task',sourceId:t.id,title:title||'(untitled task)',detail:t.text||'',priority:t.priority||'medium'});
                     });
                 }
-                const learnings=getLearningsDueForDate(ds)||[];
-                learnings.forEach(l=>{
-                    items.push({id:'learn_'+l.id,kind:'learning',sourceId:l.id,title:l.title||'Learning',detail:getPreviewContent(l)||'',type:l.type});
-                });
                 return items;
             }
+                function sanitizeEisenAllStorage(){
+        try {
+            if(!window.appStorage) return;
+            for(let i=0; i<appStorage.length; i++){
+                const k = appStorage.key(i);
+                if(k && k.startsWith(EISEN_PREFIX)){
+                    const ds = k.slice(EISEN_PREFIX.length);
+                    if(/^\d{4}-\d{2}-\d{2}$/.test(ds)){
+                        getEisenData(ds);
+                    }
+                }
+            }
+        } catch(e){}
+    }
             function getEisenData(ds){
                 if(!ds)return {quadrants:{do_now:{items:[]},do_later:{items:[]},delegate:{items:[]},delete:{items:[]}},justStart:{}};
                 const raw=appStorage.getItem(EISEN_PREFIX+ds);
@@ -17600,13 +17610,17 @@ function deleteTask(id){
                     const prevCount=q.items.length;
                     q.items=q.items.filter(it=>{
                         if(!it||!it.id)return false;
+                        if(it.kind==='learning'||String(it.id).startsWith('learn_'))return false;
                         const ok=(validIds.has(it.id))||(it.sourceId&&validIds.has(String(it.sourceId)))||(it.kind&&it.sourceId&&validIds.has(it.kind+'_'+it.sourceId));
                         return ok;
                     });
                     if(q.items.length!==prevCount)prunedAny=true;
                     q.items.forEach(it=>{
                         if(it.sub!==0&&it.sub!==1&&it.sub!==2&&it.sub!==3)it.sub=null;
-                        if(!it.tag||!TAG_META[it.tag])it.tag=DEFAULT_TAG;
+                        if(!it.tag||!TAG_META[it.tag]||it.tag==='learn'){
+                            it.tag=DEFAULT_TAG;
+                            prunedAny=true;
+                        }
                     });
                     q.label=tpl.quadrants[k].label;
                     if(!q.sub||typeof q.sub!=='object')q.sub={};
@@ -17615,6 +17629,10 @@ function deleteTask(id){
                     if(q.sub)delete q.sub._customLabels;
                     d.quadrants[k]=q;
                 });
+                if(d.justStart&&(d.justStart.kind==='learning'||String(d.justStart.id).startsWith('learn_'))){
+                    d.justStart={};
+                    prunedAny=true;
+                }
                 if(prunedAny&&raw){
                     saveEisenData(ds,d);
                 }
@@ -18916,7 +18934,7 @@ function deleteTask(id){
         chip.dataset.origin=origin;
         if(qk)chip.dataset.quad=qk;
         if(ci!==undefined&&ci!==null)chip.dataset.cell=String(ci);
-        const icon=item.kind==='learning'?'🧠':'📋';
+        const icon='📋';
         const sm=getSourceMeta(item);
         if(sm.done)chip.classList.add('chip-done');
         const title=resolveChipTitle(item);
@@ -19077,7 +19095,7 @@ function deleteTask(id){
     function isEisenDrag(e){if(!e.dataTransfer)return false;const types=e.dataTransfer.types;if(types)for(let i=0;i<types.length;i++)if(types[i]===EISEN_MIME)return true;return!!eisenDragPayload}
     function readEisenDrag(e){try{const raw=e.dataTransfer.getData(EISEN_MIME);if(raw)return JSON.parse(raw)}catch(err){}return eisenDragPayload}
     function handleEisenDrop(payload,tq,tc){
-        if(!eisenDateStr||!payload)return;
+        if(!eisenDateStr||!payload||!payload.item)return;if(payload.item.kind==='learning'||String(payload.item.id).startsWith('learn_'))return;
         pushUndo('Move chip');
         const data=getEisenData(eisenDateStr);const item=payload.item;const fq=payload.quadKey;
         if(fq&&data.quadrants[fq]){const q=data.quadrants[fq];const i=q.items.findIndex(x=>x.id===item.id);if(i!==-1)q.items.splice(i,1);selectedEisenIds.delete(item.id+'|'+fq);renderEisenSelectionBar()}
@@ -19110,7 +19128,7 @@ function deleteTask(id){
                 const cntTxt=(eisenFilterActive()&&vis.length!==base.length)?(vis.length+'/'+base.length):String(vis.length);
                 quad.innerHTML=`<div class="eisen-quadrant-header"><span class="eisen-quadrant-label" data-quad="${k}">${escapeHtml(q.label)}</span><span class="eisen-quadrant-count">${cntTxt}</span><button class="eisen-expand-btn" data-quad="${k}" title="Open sub-matrix">&#10530;</button></div><div class="eisen-quadrant-body" data-quad="${k}"></div>`;
                 const body=quad.querySelector('.eisen-quadrant-body');
-                if(vis.length===0){body.innerHTML=(eisenFilterActive()&&base.length>0)?'<div class="eisen-empty">No items match filter</div>':'<div class="eisen-empty">Drop tasks / learnings here — double-click to open sub-matrix</div>'}
+                if(vis.length===0){body.innerHTML=(eisenFilterActive()&&base.length>0)?'<div class="eisen-empty">No items match filter</div>':'<div class="eisen-empty">Drop tasks here — double-click to open sub-matrix</div>'}
                 else{const sorted=sortEisenItems(vis);sorted.forEach(it=>body.appendChild(buildEisenChip(it,'quadrant',k,it.sub)))}
                 setupQuadrantLabel(quad,k,data);
                 quad.addEventListener('dblclick',e=>{if(e.target.closest('.eisen-quadrant-label'))return;if(e.target.closest('button'))return;if(e.target.closest('.eisen-chip'))return;openEisenSub(k)});
@@ -20340,7 +20358,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
     async function exportPDF(){flushDebounced();const b=document.getElementById('btnExportPdf');const oh=b.innerHTML;b.style.pointerEvents='none';b.innerHTML='...';try{const el=document.querySelector('.app-container');const canvas=await html2canvas(el,{scale:2,useCORS:true,backgroundColor:getComputedStyle(document.documentElement).getPropertyValue('--bg')});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:canvas.width>canvas.height?'landscape':'portrait',unit:'px',format:[canvas.width,canvas.height]});pdf.addImage(img,'PNG',0,0,canvas.width,canvas.height);pdf.save(`todo-planner-${new Date().toISOString().slice(0,10)}.pdf`)}catch(e){alert('PDF export failed.')}finally{b.style.pointerEvents='auto';b.innerHTML=oh}}
 
     function init(){
-        initTheme();initStatsCollapse();initPertCollapse();if(typeof deduplicateAllStorage==='function')deduplicateAllStorage();if(typeof migrateToNormalizedEntities==='function')migrateToNormalizedEntities();
+        initTheme();initStatsCollapse();initPertCollapse();if(typeof sanitizeEisenAllStorage==='function')sanitizeEisenAllStorage();if(typeof deduplicateAllStorage==='function')deduplicateAllStorage();if(typeof migrateToNormalizedEntities==='function')migrateToNormalizedEntities();
         if(pathPrefixInput) pathPrefixInput.value=filePathPrefix;
         const ts=getTodayStr();
         const[y,m]=ts.split('-').map(Number);
@@ -20354,6 +20372,7 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
         window.dispatchEvent(new CustomEvent('td-date-changed',{detail:{date:ts}}));
         function refreshOnIdbReady(){
             if(typeof deduplicateAllStorage === 'function') deduplicateAllStorage();
+            if(typeof sanitizeEisenAllStorage === 'function') sanitizeEisenAllStorage();
             renderCalendar();
             renderLearningsSection();
             renderHabits();
@@ -27708,7 +27727,7 @@ function renderPanchangaDetailHTML(ds) {
         }
         if('serviceWorker' in navigator){
     window.addEventListener('load', function(){
-        navigator.serviceWorker.register('sw.js').then(function(reg){
+        navigator.serviceWorker.register('sw.js?v=46').then(function(reg){
             if(reg) reg.update().catch(function(){});
         }).catch(function(err){
             console.log('SW registration error:', err);
