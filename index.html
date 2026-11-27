@@ -6761,6 +6761,15 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     .learnings-search-input { width: 140px; }
     .learnings-search-input:focus { width: 180px; }
 }
+/* Step 6jj: Reschedule Button & Modal Styles */
+.pj-btn-reschedule{padding:3px 8px;border-radius:999px;border:1px solid var(--accent);background:rgba(99,102,241,0.08);color:var(--accent);font-size:var(--fs-2xs);font-weight:700;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:3px;}
+.pj-btn-reschedule:hover{background:var(--accent);color:#fff;}
+#pjRescheduleModalOverlay{position:fixed!important;inset:0!important;z-index:10060!important;background:var(--modal-overlay,rgba(0,0,0,0.4))!important;backdrop-filter:blur(6px)!important;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .2s ease;}
+#pjRescheduleModalOverlay.active{display:flex!important;opacity:1!important;}
+#pjRescheduleModal{width:100%;max-width:400px;background:var(--card-bg,#fff);border:1px solid var(--border,#e5e7eb);border-radius:12px;padding:20px;box-shadow:0 16px 40px rgba(0,0,0,0.22);transform:scale(0.96);transition:transform .2s ease;}
+#pjRescheduleModalOverlay.active #pjRescheduleModal{transform:scale(1)!important;}
+.pj-reschedule-preset-btn{padding:8px 10px;border-radius:6px;border:1px solid var(--border,#d1d5db);background:var(--surface-2,#f9fafb);color:var(--text,#374151);font-size:12px;font-weight:600;cursor:pointer;text-align:center;transition:all .15s ease;}
+.pj-reschedule-preset-btn:hover{background:var(--accent-light,#eef2ff);border-color:var(--accent,#6366f1);color:var(--accent,#6366f1);}
 </style>
 </head>
 <body>
@@ -7374,6 +7383,38 @@ body.panchanga-mode .calendar-cell:not(.empty) .cell-eisen-mini {
     <input type="file" id="pjEnhancedBackupInput" accept="application/json,.json" style="display:none">
 
     
+        <!-- Step 6jj: Reschedule Follow-up Modal Overlay -->
+    <div class="pj-overlay" id="pjRescheduleModalOverlay" role="dialog" aria-modal="true" aria-label="Reschedule Follow-up">
+        <div class="pj-modal-card" id="pjRescheduleModal">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;border-bottom:1px solid var(--border,#e5e7eb);padding-bottom:10px;">
+                <div style="font-weight:700;font-size:15px;color:var(--text,#111827);display:flex;align-items:center;gap:6px;">
+                    <span>&#128197;</span> <span>Reschedule Follow-up</span>
+                </div>
+                <button type="button" id="pjRescheduleCloseBtn" style="border:none;background:none;font-size:20px;cursor:pointer;color:var(--text-secondary,#6b7280);line-height:1;" aria-label="Close">&times;</button>
+            </div>
+            <div id="pjRescheduleTargetInfo" style="font-size:13px;color:var(--text-secondary,#4b5563);margin-bottom:16px;">
+                Rescheduling follow-up for <strong id="pjRescheduleTargetName" style="color:var(--text,#111827);"></strong>
+                <div id="pjRescheduleCurrentDue" style="font-size:11px;color:var(--text-muted,#9ca3af);margin-top:2px;"></div>
+            </div>
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-secondary,#6b7280);margin-bottom:6px;letter-spacing:0.04em;">Quick Presets</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="pjReschedulePresets">
+                    <button type="button" class="pj-reschedule-preset-btn" data-days="1">Tomorrow (+1d)</button>
+                    <button type="button" class="pj-reschedule-preset-btn" data-days="2">+2 Days</button>
+                    <button type="button" class="pj-reschedule-preset-btn" data-days="7">Next Week (+7d)</button>
+                    <button type="button" class="pj-reschedule-preset-btn" data-days="30">+1 Month</button>
+                </div>
+            </div>
+            <div style="margin-bottom:18px;">
+                <label for="pjRescheduleDateInput" style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-secondary,#6b7280);margin-bottom:6px;letter-spacing:0.04em;">Or Pick a Specific Date</label>
+                <input type="date" id="pjRescheduleDateInput" class="pj-input" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border,#d1d5db);font-size:13px;background:var(--input-bg,#fff);color:var(--text,#111827);box-sizing:border-box;" />
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button type="button" id="pjRescheduleCancelBtn" class="pj-btn-secondary" style="padding:7px 14px;border-radius:6px;border:1px solid var(--border,#d1d5db);background:var(--card-bg,#fff);color:var(--text,#374151);cursor:pointer;font-weight:600;font-size:12px;">Cancel</button>
+                <button type="button" id="pjRescheduleConfirmBtn" class="pj-btn-primary" style="padding:7px 14px;border-radius:6px;border:none;background:var(--accent,#6366f1);color:#fff;cursor:pointer;font-weight:600;font-size:12px;">Confirm Reschedule</button>
+            </div>
+        </div>
+    </div>
     <!-- Today Agenda Cockpit Modal Overlay -->
     <div class="pj-overlay" id="todayAgendaModalOverlay" role="dialog" aria-modal="true" aria-label="Today Agenda">
         <div class="pj-modal-card today-agenda-modal" id="todayAgendaModal">
@@ -12374,6 +12415,7 @@ if (ds) openEisenModal(ds);
                                         source: 'encounter',
                                         personId: p.personId,
                                         encounterId: e.id,
+                                        encounterDate: e._date || '',
                                         name: pjCanonicalName(p, p.personId),
                                         action: e.followUpText || 'Follow-up',
                                         due: due,
@@ -12434,7 +12476,8 @@ if (ds) openEisenModal(ds);
                                     </div>
                                     <div class="pj-day-followup-actions">
                                         ${fu.status !== 'done' ? `
-                                            <button type="button" class="pj-btn-done" data-action="complete-followup" data-source="${escapeAttr(fu.source)}" data-pid="${escapeAttr(fu.personId)}" ${fu.encounterId ? `data-enc-id="${escapeAttr(fu.encounterId)}" data-enc-date="${escapeAttr(fu.encounterDate)}"` : ''} title="Mark follow-up done">&#10003; Done</button>
+                                            <button type="button" class="pj-btn-done" data-action="complete-followup" data-source="${escapeAttr(fu.source)}" data-pid="${escapeAttr(fu.personId)}" ${fu.encounterId ? `data-enc-id="${escapeAttr(fu.encounterId)}" data-enc-date="${escapeAttr(fu.encounterDate||ds)}"` : ''} title="Mark follow-up done">&#10003; Done</button>
+                                            <button type="button" class="pj-btn-reschedule" data-action="reschedule-followup" data-source="${escapeAttr(fu.source)}" data-pid="${escapeAttr(fu.personId)}" ${fu.encounterId ? `data-enc-id="${escapeAttr(fu.encounterId)}" data-enc-date="${escapeAttr(fu.encounterDate||ds)}"` : ''} data-due="${escapeAttr(fu.due)}" data-name="${escapeAttr(fu.name)}" title="Reschedule follow-up">&#128197; Reschedule</button>
                                         ` : ''}
                                         <button type="button" class="pj-action-btn" data-pid="${escapeAttr(fu.personId)}" title="Open Profile">&#128100;</button>
                                     </div>
@@ -12558,6 +12601,19 @@ if (ds) openEisenModal(ds);
                 selectDate(target);
                 showToast('Follow-up: ' + getShortDate(target));
             }
+            return;
+        }
+        const rescheduleBtn = e.target.closest('[data-action="reschedule-followup"]');
+        if(rescheduleBtn){
+            e.preventDefault();
+            openPjRescheduleModal({
+                source: rescheduleBtn.dataset.source,
+                pid: rescheduleBtn.dataset.pid,
+                encId: rescheduleBtn.dataset.encId,
+                encDate: rescheduleBtn.dataset.encDate,
+                due: rescheduleBtn.dataset.due,
+                name: rescheduleBtn.dataset.name
+            });
             return;
         }
         const doneBtn = e.target.closest('[data-action="complete-followup"]');
@@ -16786,6 +16842,7 @@ function setTaskTimeblock(taskId, blockId) {
 }
 
 function addTaskInTimeblock(blockId) {
+    if (typeof expandSectionIfCollapsed === 'function') expandSectionIfCollapsed('tasksSection');
     const data = getCurrentData();
     const et = data.tasks?.find(t => !t.text || t.text.trim() === '');
     if (et) {
@@ -16793,11 +16850,15 @@ function addTaskInTimeblock(blockId) {
             et.text = applyTaskTimeblock(et.text, blockId);
         }
         activeTaskId = et.id;
+        currentDataCache = JSON.parse(JSON.stringify(data));
         renderTaskList(data.tasks);
         setTimeout(() => {
             const el = taskList.querySelector(`[data-id="${et.id}"] .task-text`);
             if (el) {
                 el.focus();
+                if (blockId && blockId !== 'unscheduled') {
+                    try { el.setSelectionRange(0, 0); } catch(err) {}
+                }
                 autoResizeTextarea(el);
             }
         }, 50);
@@ -16819,7 +16880,6 @@ function addTaskInTimeblock(blockId) {
     data.tasks.push(nt);
     activeTaskId = nt.id;
     currentDataCache = JSON.parse(JSON.stringify(data));
-    saveCurrentData(data);
     renderTaskList(data.tasks);
     setTimeout(() => {
         const el = taskList.querySelector(`[data-id="${nt.id}"] .task-text`);
@@ -21504,6 +21564,130 @@ window.moveWtbBatchBlock = moveWtbBatchBlock;
    ============================================================ */
 
 // Today Agenda Open & Render Logic
+// Step 6jj: Direct Follow-up Reschedule Engine
+let currentRescheduleContext = null;
+
+function openPjRescheduleModal(fuContext) {
+    currentRescheduleContext = fuContext;
+    const modal = document.getElementById('pjRescheduleModalOverlay');
+    if (!modal) return;
+    const nameEl = document.getElementById('pjRescheduleTargetName');
+    const dueEl = document.getElementById('pjRescheduleCurrentDue');
+    const input = document.getElementById('pjRescheduleDateInput');
+    
+    if (nameEl) nameEl.textContent = fuContext.name || 'Contact';
+    if (dueEl) dueEl.textContent = 'Currently due: ' + (fuContext.due || 'Not set');
+    
+    // Default the date picker to Tomorrow
+    const baseDate = new Date();
+    baseDate.setDate(baseDate.getDate() + 1);
+    const y = baseDate.getFullYear();
+    const m = String(baseDate.getMonth() + 1).padStart(2, '0');
+    const d = String(baseDate.getDate()).padStart(2, '0');
+    if (input) input.value = `${y}-${m}-${d}`;
+    
+    modal.classList.add('active');
+}
+
+function closePjRescheduleModal() {
+    currentRescheduleContext = null;
+    const modal = document.getElementById('pjRescheduleModalOverlay');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function executePjReschedule(newDueDate) {
+    if (!currentRescheduleContext || !newDueDate) return;
+    const ctx = currentRescheduleContext;
+    const src = ctx.source;
+    const pid = ctx.pid;
+    
+    if (src === 'profile' && pid) {
+        const pr = pjProfile(pid);
+        pr.nextActionDue = newDueDate;
+        pr.nextActionStatus = 'open';
+        savePjMeta();
+    } else if (src === 'encounter') {
+        const encId = ctx.encId;
+        let encDate = ctx.encDate;
+        let dData = encDate ? getPjDayData(encDate) : null;
+        let enc = dData ? (dData.encounters || []).find(x => x.id === encId) : null;
+        
+        if (!enc) {
+            // Fallback search across all stored days
+            const allDays = (typeof pjMeta !== 'undefined' && pjMeta.days) ? Object.keys(pjMeta.days) : [];
+            for (const dayKey of allDays) {
+                const dayObj = getPjDayData(dayKey);
+                const found = (dayObj?.encounters || []).find(x => (encId && x.id === encId) || (x.personId === pid && x.followUp === ctx.due));
+                if (found) {
+                    enc = found;
+                    dData = dayObj;
+                    encDate = dayKey;
+                    break;
+                }
+            }
+        }
+        
+        if (enc && encDate && dData) {
+            enc.followUp = newDueDate;
+            enc.followUpDone = false;
+            savePjDayData(encDate, dData);
+        }
+    }
+    
+    if (typeof invalidatePjCache === 'function') invalidatePjCache();
+    if (typeof renderCalendar === 'function') renderCalendar();
+    if (typeof selectedDateStr !== 'undefined' && selectedDateStr && typeof renderPjDailySection === 'function') {
+        renderPjDailySection(selectedDateStr);
+    }
+    closePjRescheduleModal();
+    if (typeof showToast === 'function') showToast(`Follow-up rescheduled to ${getShortDate(newDueDate)}`);
+}
+
+// Wire Reschedule Modal Event Listeners
+function initPjRescheduleListeners() {
+    document.getElementById('pjRescheduleCloseBtn')?.addEventListener('click', closePjRescheduleModal);
+    document.getElementById('pjRescheduleCancelBtn')?.addEventListener('click', closePjRescheduleModal);
+    document.getElementById('pjRescheduleModalOverlay')?.addEventListener('click', (e) => {
+        if (e.target.id === 'pjRescheduleModalOverlay') closePjRescheduleModal();
+    });
+    
+    document.querySelectorAll('.pj-reschedule-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const addDays = parseInt(btn.dataset.days, 10) || 1;
+            const refDate = new Date();
+            refDate.setDate(refDate.getDate() + addDays);
+            const y = refDate.getFullYear();
+            const m = String(refDate.getMonth() + 1).padStart(2, '0');
+            const d = String(refDate.getDate()).padStart(2, '0');
+            executePjReschedule(`${y}-${m}-${d}`);
+        });
+    });
+    
+    document.getElementById('pjRescheduleConfirmBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('pjRescheduleDateInput');
+        if (input && input.value) {
+            executePjReschedule(input.value);
+        }
+    });
+    
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const overlay = document.getElementById('pjRescheduleModalOverlay');
+            if (overlay && overlay.classList.contains('active')) {
+                closePjRescheduleModal();
+            }
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initPjRescheduleListeners);
+} else {
+    initPjRescheduleListeners();
+}
+
 function openTodayAgendaModal() {
     const modalOverlay = document.getElementById('todayAgendaModalOverlay');
     const body = document.getElementById('todayAgendaBody');
@@ -23372,6 +23556,9 @@ function renderPanchangaDetailHTML(ds) {
         closePanchangaModal: typeof closePanchangaModal === 'function' ? closePanchangaModal : undefined,
         getData: typeof getData === 'function' ? getData : undefined,
         saveData: typeof saveData === 'function' ? saveData : undefined,
+        openPjRescheduleModal: typeof openPjRescheduleModal === 'function' ? openPjRescheduleModal : undefined,
+        closePjRescheduleModal: typeof closePjRescheduleModal === 'function' ? closePjRescheduleModal : undefined,
+        executePjReschedule: typeof executePjReschedule === 'function' ? executePjReschedule : undefined,
         openTodayAgendaModal: typeof openTodayAgendaModal === 'function' ? openTodayAgendaModal : undefined,
         closeTodayAgendaModal: typeof closeTodayAgendaModal === 'function' ? closeTodayAgendaModal : undefined,
         currentTaskDeferMult: () => currentTaskDeferMult,
@@ -27727,7 +27914,7 @@ function renderPanchangaDetailHTML(ds) {
         }
         if('serviceWorker' in navigator){
     window.addEventListener('load', function(){
-        navigator.serviceWorker.register('sw.js?v=46').then(function(reg){
+        navigator.serviceWorker.register('sw.js?v=47').then(function(reg){
             if(reg) reg.update().catch(function(){});
         }).catch(function(err){
             console.log('SW registration error:', err);
